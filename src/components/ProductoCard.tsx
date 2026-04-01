@@ -1,7 +1,8 @@
 // ARCHIVO: src/components/ProductoCard.tsx
 
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
 import { ProductoInventario } from '../types/inventario';
 import { formatearFecha } from '../utils/fecha';
 import { formatearPrecio } from '../utils/formato';
@@ -27,7 +28,9 @@ export const ProductoCard: React.FC<Props> = ({ item, onPress }) => {
                     <Image
                         source={{ uri: String(item.Imagen) }}
                         style={styles.imagenProducto}
-                        resizeMode="contain"
+                        contentFit="contain"
+                        transition={200}
+                        cachePolicy="disk"
                     />
                 ) : (
                     <View style={[styles.imagenPlaceholder, { backgroundColor: colors.inputDeshabilitado }]}>

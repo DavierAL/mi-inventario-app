@@ -1,7 +1,9 @@
 // ARCHIVO: src/store/useInventarioStore.ts
 import { create } from 'zustand';
+import NetInfo from '@react-native-community/netinfo';
 import { ProductoInventario } from '../types/inventario';
 import { obtenerInventario, actualizarProducto } from '../services/api';
+import { agregarACola, obtenerCola, removerDeCola } from '../services/offlineQueue';
 
 interface InventarioState {
     inventario: ProductoInventario[];
@@ -14,12 +16,18 @@ interface InventarioState {
     
     productoEditando: ProductoInventario | null;
     guardando: boolean;
+    
+    // Offline Tracking
+    pendientesSync: number;
+    sincronizandoFondo: boolean;
 
     // Acciones
     cargarDatos: (refrescando?: boolean) => Promise<void>;
     setBusqueda: (texto: string) => void;
     setProductoEditando: (producto: ProductoInventario | null) => void;
     guardarEdicion: (fv: string, fechaEdicion: string, comentario: string) => Promise<boolean>;
+    iniciarListenerInternet: () => void;
+    sincronizarColaPendientes: () => Promise<void>;
 }
 
 export const useInventarioStore = create<InventarioState>((set, get) => ({
@@ -34,21 +42,30 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
     productoEditando: null,
     guardando: false,
 
+    pendientesSync: 0,
+    sincronizandoFondo: false,
+
     cargarDatos: async (refrescando = false) => {
         try {
-            // Si está refrescando manualmente, no queremos la UI principal tapada entera con un ActivityIndicator:
             if (!refrescando) set({ cargando: true });
             
             set({ error: null });
             
             const resultado = await obtenerInventario();
+            const pendientes = await obtenerCola();
             
             set({
                 inventario: resultado.datos,
                 modoOffline: resultado.fromCache,
                 lastSync: resultado.lastSync,
-                cargando: false
+                cargando: false,
+                pendientesSync: pendientes.length
             });
+            
+            // Si cargó y hay red, intentamos enviar cola.
+            if (!resultado.fromCache && pendientes.length > 0) {
+                get().sincronizarColaPendientes();
+            }
         } catch (err) {
             set({ 
                 error: 'No se pudo conectar con la base de datos.\nVerifica tu conexión a internet.',
@@ -70,7 +87,7 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
         const codigo = state.productoEditando.Cod_Barras;
         const inventarioPrevio = state.inventario;
 
-        // Optimistic UI update
+        // Actualización optimista. No la revertiremos si es error de red.
         const nuevoInventario = state.inventario.map(item =>
             String(item.Cod_Barras).trim() === String(codigo).trim()
                 ? { ...item, FV_Actual: fv, Fecha_edicion: fechaEdicion, Comentarios: comentario }
@@ -79,15 +96,71 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
         
         set({ inventario: nuevoInventario, productoEditando: null });
 
-        const exito = await actualizarProducto(codigo, undefined, fv, fechaEdicion, comentario);
+        const respuesta = await actualizarProducto(codigo, undefined, fv, fechaEdicion, comentario);
 
-        if (!exito) {
-            // Revertir
-            set({ inventario: inventarioPrevio, guardando: false });
+        // Si falló por mala conexión, encolamos el request de manera silenciosa!
+        if (!respuesta.exito && respuesta.isNetworkError) {
+            await agregarACola({
+                codigoBarras: codigo,
+                nuevoFV: fv,
+                nuevoFechaEdicion: fechaEdicion,
+                nuevoComentario: comentario
+            });
+            const pendientes = await obtenerCola();
+            set({ guardando: false, pendientesSync: pendientes.length });
+            return true; // Mentimos a la UI, le decimos "Sí guardó" en el teléfono de momento. 
+        }
+
+        // Si falló y no era problema de red (servidor rechazó)
+        if (!respuesta.exito && !respuesta.isNetworkError) {
+            set({ inventario: inventarioPrevio, guardando: false }); // Revertir
             return false;
         }
 
         set({ guardando: false });
         return true;
+    },
+
+    sincronizarColaPendientes: async () => {
+        if (get().sincronizandoFondo) return;
+        
+        const cola = await obtenerCola();
+        if (cola.length === 0) return;
+
+        set({ sincronizandoFondo: true });
+
+        for (const item of cola) {
+            const respuesta = await actualizarProducto(
+                item.codigoBarras,
+                undefined,
+                item.nuevoFV,
+                item.nuevoFechaEdicion,
+                item.nuevoComentario
+            );
+            
+            // Solo si tiene éxito verdadero lo quitamos de la cola de pendientes
+            if (respuesta.exito) {
+                await removerDeCola(item.id);
+            } else if (!respuesta.isNetworkError) {
+                // Si dió error del sistema y NO de internet, es mejor borrarlo 
+                // para que no tranque el sistema.
+                await removerDeCola(item.id);
+            }
+        }
+
+        const colaRestante = await obtenerCola();
+        set({ sincronizandoFondo: false, pendientesSync: colaRestante.length });
+    },
+
+    iniciarListenerInternet: () => {
+        // Ejecutado una sóla vez idealmente en InventarioListScreen
+        NetInfo.addEventListener(state => {
+            if (state.isConnected && state.isInternetReachable) {
+                const pendientes = get().pendientesSync;
+                if (pendientes > 0) {
+                    get().sincronizarColaPendientes();
+                }
+            }
+        });
     }
 }));

@@ -1,11 +1,13 @@
 // ARCHIVO: src/screens/InventarioListScreen.tsx
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-    StyleSheet, Text, View, FlatList, ActivityIndicator,
+    StyleSheet, Text, View, ActivityIndicator,
     SafeAreaView, StatusBar, TouchableOpacity, Alert,
     TextInput, RefreshControl
 } from 'react-native';
 import { useCameraPermissions } from 'expo-camera';
+import { FlashList } from '@shopify/flash-list';
+import { useDebounce } from '../utils/useDebounce';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 
@@ -17,6 +19,8 @@ import { useInventarioStore } from '../store/useInventarioStore';
 import { RootStackParamList } from '../types/navigation';
 import { ProductoInventario } from '../types/inventario';
 
+const FastList = FlashList as any;
+
 type InventarioListNavProp = NativeStackNavigationProp<RootStackParamList, 'InventarioList'>;
 
 export const InventarioListScreen = () => {
@@ -26,25 +30,30 @@ export const InventarioListScreen = () => {
     const {
         inventario, cargando, error, modoOffline, lastSync,
         busqueda, setBusqueda, cargarDatos,
-        productoEditando, setProductoEditando, guardando, guardarEdicion
+        productoEditando, setProductoEditando, guardando, guardarEdicion,
+        pendientesSync, sincronizandoFondo, iniciarListenerInternet
     } = useInventarioStore();
 
     const [permisoCamara, pedirPermisoCamara] = useCameraPermissions();
     const [refrescando, setRefrescando] = useState(false);
+    
+    // Retardo artificial para búsquedas
+    const busquedaDebounced = useDebounce(busqueda, 300);
 
     useEffect(() => {
         cargarDatos();
+        iniciarListenerInternet();
     }, []);
 
     const inventarioFiltrado = useMemo(() => {
-        const termino = busqueda.toLowerCase().trim();
+        const termino = busquedaDebounced.toLowerCase().trim();
         if (!termino) return inventario;
         return inventario.filter(p =>
             String(p.SKU).toLowerCase().includes(termino) ||
             String(p.Descripcion).toLowerCase().includes(termino) ||
             String(p.Cod_Barras).toLowerCase().includes(termino)
         );
-    }, [busqueda, inventario]);
+    }, [busquedaDebounced, inventario]);
 
     const handleRefresh = async () => {
         setRefrescando(true);
@@ -106,6 +115,11 @@ export const InventarioListScreen = () => {
 
                 <View style={[styles.cabecera, { backgroundColor: colors.superficie, borderBottomColor: colors.borde }]}>
                     <Text style={[styles.tituloApp, { color: colors.textoPrincipal }]}>Inventario Activo</Text>
+                    {pendientesSync > 0 && (
+                        <Text style={{ fontSize: 13, color: colors.error, fontWeight: '700', marginTop: -2, marginBottom: 4 }}>
+                            {sincronizandoFondo ? '🔄 Enviando pendientes...' : `⏳ ${pendientesSync} edición(es) por enviar`}
+                        </Text>
+                    )}
                     <Text style={[styles.subtituloApp, { color: colors.textoSecundario }]}>
                         {busqueda && inventarioFiltrado.length > 0 ? `${inventarioFiltrado.length} de ` : ''}{inventario.length} productos registrados
                     </Text>
@@ -129,29 +143,33 @@ export const InventarioListScreen = () => {
                     </View>
                 </View>
 
-                <FlatList
-                    data={inventarioFiltrado}
-                    keyExtractor={(item) => String(item.Cod_Barras).trim()}
-                    renderItem={({ item }) => (
-                        <ProductoCard item={item} onPress={manejarProductoEncontrado} />
-                    )}
-                    refreshControl={
-                        <RefreshControl
-                            refreshing={refrescando}
-                            onRefresh={handleRefresh}
-                            colors={[colors.primario]}
-                            tintColor={colors.primario}
-                        />
-                    }
-                    ListEmptyComponent={
-                        <View style={styles.listaVacia}>
-                            <Text style={styles.listaVaciaIcono}>🔎</Text>
-                            <Text style={[styles.listaVaciaTexto, { color: colors.textoSecundario }]}>
-                                {busqueda ? `Sin resultados para "${busqueda}"` : 'Sin inventario'}
-                            </Text>
-                        </View>
-                    }
-                />
+                {/* Importante: FlashList necesita de un contenedor con altura implícita o 'flex: 1' */}
+                <View style={{ flex: 1, width: '100%' }}>
+                    <FastList
+                        data={inventarioFiltrado}
+                        keyExtractor={(item: ProductoInventario) => String(item.Cod_Barras).trim()}
+                        estimatedItemSize={104} // Clave del alto rendimiento
+                        renderItem={({ item }: { item: ProductoInventario }) => (
+                            <ProductoCard item={item} onPress={manejarProductoEncontrado} />
+                        )}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={refrescando}
+                                onRefresh={handleRefresh}
+                                colors={[colors.primario]}
+                                tintColor={colors.primario}
+                            />
+                        }
+                        ListEmptyComponent={
+                            <View style={styles.listaVacia}>
+                                <Text style={styles.listaVaciaIcono}>🔎</Text>
+                                <Text style={[styles.listaVaciaTexto, { color: colors.textoSecundario }]}>
+                                    {busqueda ? `Sin resultados para "${busqueda}"` : 'Sin inventario'}
+                                </Text>
+                            </View>
+                        }
+                    />
+                </View>
             </View>
 
             <EditProductoModal

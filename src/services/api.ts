@@ -100,7 +100,7 @@ export const actualizarProducto = async (
     nuevoFV?: string,
     nuevoFechaEdicion?: string,
     nuevoComentario?: string
-): Promise<boolean> => {
+): Promise<{ exito: boolean; isNetworkError?: boolean }> => {
     try {
         const respuesta = await fetch(API_URL, {
             method: 'POST',
@@ -122,13 +122,14 @@ export const actualizarProducto = async (
         const json: RespuestaAPI = await respuesta.json();
 
         if (json.status === 'success') {
-            return true;
+            return { exito: true };
         } else {
             console.error('Error del servidor:', json.message);
-            return false;
+            return { exito: false };
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error en actualizarProducto:', error);
-        return false;
+        // Si fecth falla (por timeout o dns), tira exception "Network request failed"
+        return { exito: false, isNetworkError: true };
     }
 };
