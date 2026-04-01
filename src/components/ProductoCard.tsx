@@ -1,9 +1,8 @@
 // ARCHIVO: src/components/ProductoCard.tsx
 
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Image } from 'expo-image';
-import Animated, { FadeInUp } from 'react-native-reanimated';
 import { ProductoInventario } from '../types/inventario';
 import { formatearFecha } from '../utils/fecha';
 import { formatearPrecio } from '../utils/formato';
@@ -16,54 +15,72 @@ interface Props {
 
 export const ProductoCard: React.FC<Props> = ({ item, onPress }) => {
     const { colors } = useTheme();
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const slideAnim = useRef(new Animated.Value(20)).current;
+
+    useEffect(() => {
+        Animated.parallel([
+            Animated.timing(fadeAnim, {
+                toValue: 1,
+                duration: 350,
+                useNativeDriver: true,
+            }),
+            Animated.spring(slideAnim, {
+                toValue: 0,
+                tension: 80,
+                friction: 12,
+                useNativeDriver: true,
+            }),
+        ]).start();
+    }, []);
 
     return (
-        <Animated.View entering={FadeInUp.duration(400).springify()}>
+        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
             <TouchableOpacity
                 style={[styles.tarjetaProducto, { backgroundColor: colors.superficie }]}
                 onPress={() => onPress(item)}
                 activeOpacity={0.7}
             >
                 {/* Imagen del producto */}
-            <View style={[styles.contenedorImagen, { backgroundColor: colors.inputFondo, borderColor: colors.borde }]}>
-                {item.Imagen ? (
-                    <Image
-                        source={{ uri: String(item.Imagen) }}
-                        style={styles.imagenProducto}
-                        contentFit="contain"
-                        transition={200}
-                        cachePolicy="disk"
-                    />
-                ) : (
-                    <View style={[styles.imagenPlaceholder, { backgroundColor: colors.inputDeshabilitado }]}>
-                        <Text style={styles.imagenPlaceholderIcono}>📦</Text>
-                    </View>
-                )}
-            </View>
+                <View style={[styles.contenedorImagen, { backgroundColor: colors.inputFondo, borderColor: colors.borde }]}>
+                    {item.Imagen ? (
+                        <Image
+                            source={{ uri: String(item.Imagen) }}
+                            style={styles.imagenProducto}
+                            contentFit="contain"
+                            transition={200}
+                            cachePolicy="disk"
+                        />
+                    ) : (
+                        <View style={[styles.imagenPlaceholder, { backgroundColor: colors.inputDeshabilitado }]}>
+                            <Text style={styles.imagenPlaceholderIcono}>📦</Text>
+                        </View>
+                    )}
+                </View>
             
-            <View style={styles.infoPrincipal}>
-                <Text style={[styles.textoSKU, { color: colors.primario }]}>{item.SKU}</Text>
-                <Text style={[styles.textoDescripcion, { color: colors.textoPrincipal }]} numberOfLines={2}>{item.Descripcion}</Text>
-                <Text style={[styles.textoCodigoBarras, { color: colors.textoSecundario }]}>Cód: {item.Cod_Barras}</Text>
-                {item.FV_Actual ? (
-                    <Text style={[styles.textoFV, { color: colors.error }]}>FV: {formatearFecha(item.FV_Actual)}</Text>
-                ) : null}
-            </View>
+                <View style={styles.infoPrincipal}>
+                    <Text style={[styles.textoSKU, { color: colors.primario }]}>{item.SKU}</Text>
+                    <Text style={[styles.textoDescripcion, { color: colors.textoPrincipal }]} numberOfLines={2}>{item.Descripcion}</Text>
+                    <Text style={[styles.textoCodigoBarras, { color: colors.textoSecundario }]}>Cód: {item.Cod_Barras}</Text>
+                    {item.FV_Actual ? (
+                        <Text style={[styles.textoFV, { color: colors.error }]}>FV: {formatearFecha(item.FV_Actual)}</Text>
+                    ) : null}
+                </View>
 
-            {/* Panel lateral: Precios y Stock */}
-            <View style={[styles.infoPrecios, { borderLeftColor: colors.borde }]}>
-                <View style={styles.filaPrecio}>
-                    <Text style={[styles.textoPrecioTitulo, { color: colors.textoSecundario }]}>Web</Text>
-                    <Text style={[styles.textoPrecioNumero, { color: colors.textoPrincipal }]}>{formatearPrecio(item.Precio_Web)}</Text>
-                </View>
-                <View style={styles.filaPrecio}>
-                    <Text style={[styles.textoPrecioTitulo, { color: colors.textoSecundario }]}>P. Tienda</Text>
-                    <Text style={[styles.textoPrecioNumero, { color: colors.primario }]}>{formatearPrecio(item.Precio_Tienda)}</Text>
-                </View>
-                <View style={[styles.filaStock, { backgroundColor: colors.fondoPrimario }]}>
-                    <Text style={[styles.textoStockTitulo, { color: colors.textoSecundario }]}>Stock</Text>
-                    <Text style={[styles.textoStockNumero, { color: colors.exito }]}>{item.Stock_Master}</Text>
-                </View>
+                {/* Panel lateral: Precios y Stock */}
+                <View style={[styles.infoPrecios, { borderLeftColor: colors.borde }]}>
+                    <View style={styles.filaPrecio}>
+                        <Text style={[styles.textoPrecioTitulo, { color: colors.textoSecundario }]}>Web</Text>
+                        <Text style={[styles.textoPrecioNumero, { color: colors.textoPrincipal }]}>{formatearPrecio(item.Precio_Web)}</Text>
+                    </View>
+                    <View style={styles.filaPrecio}>
+                        <Text style={[styles.textoPrecioTitulo, { color: colors.textoSecundario }]}>P. Tienda</Text>
+                        <Text style={[styles.textoPrecioNumero, { color: colors.primario }]}>{formatearPrecio(item.Precio_Tienda)}</Text>
+                    </View>
+                    <View style={[styles.filaStock, { backgroundColor: colors.fondoPrimario }]}>
+                        <Text style={[styles.textoStockTitulo, { color: colors.textoSecundario }]}>Stock</Text>
+                        <Text style={[styles.textoStockNumero, { color: colors.exito }]}>{item.Stock_Master}</Text>
+                    </View>
                 </View>
             </TouchableOpacity>
         </Animated.View>
