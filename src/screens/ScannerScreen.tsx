@@ -1,37 +1,49 @@
 // ARCHIVO: src/screens/ScannerScreen.tsx
-
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { CameraView } from 'expo-camera';
-import { ProductoInventario } from '../types/inventario';
+import * as Haptics from 'expo-haptics';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../types/navigation';
+import { useInventarioStore } from '../store/useInventarioStore';
 
-interface Props {
-    inventario: ProductoInventario[];
-    onProductoEncontrado: (producto: ProductoInventario) => void;
-    onCancelar: () => void;
-}
+type ScannerNavProp = NativeStackNavigationProp<RootStackParamList, 'Scanner'>;
 
-export const ScannerScreen: React.FC<Props> = ({
-    inventario,
-    onProductoEncontrado,
-    onCancelar,
-}) => {
-    // Previene que la cámara dispare múltiples lecturas del mismo código
+export const ScannerScreen = () => {
+    const navigation = useNavigation<ScannerNavProp>();
+    const inventario = useInventarioStore(state => state.inventario);
+    const setProductoEditando = useInventarioStore(state => state.setProductoEditando);
+    
     const [procesandoEscaneo, setProcesandoEscaneo] = useState<boolean>(false);
+
+    const reproducirBeep = async (exito: boolean) => {
+        try {
+            if (exito) {
+                await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            } else {
+                await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            }
+        } catch (error) {
+            console.log("Audio/Haptic no soportado", error);
+        }
+    };
 
     const manejarCodigoEscaneado = ({ data }: { data: string }) => {
         if (procesandoEscaneo) return;
         setProcesandoEscaneo(true);
 
         const codigoLimpio = String(data).trim();
-
         const productoEncontrado = inventario.find(
             (p) => String(p.Cod_Barras).trim() === codigoLimpio
         );
 
         if (productoEncontrado) {
-            onProductoEncontrado(productoEncontrado);
+            reproducirBeep(true);
+            setProductoEditando(productoEncontrado);
+            navigation.goBack(); // Cierra el escáner y vuelve a la lista, donde se abrirá el modal.
         } else {
+            reproducirBeep(false);
             Alert.alert(
                 'Producto no encontrado',
                 `El código escaneado (${codigoLimpio}) no existe en tu base de datos actual.`,
@@ -51,7 +63,6 @@ export const ScannerScreen: React.FC<Props> = ({
                 }}
             />
 
-            {/* Marco visual de guía */}
             <View style={styles.capa}>
                 <Text style={styles.textoInfo}>Alinea el código en el centro</Text>
 
@@ -62,85 +73,41 @@ export const ScannerScreen: React.FC<Props> = ({
                     <View style={[styles.esquina, styles.esquinaBR]} />
                 </View>
 
-                <TouchableOpacity style={styles.botonCancelar} onPress={onCancelar}>
-                    <Text style={styles.textoBoton}>✕ Cancelar</Text>
+                {/* Botón Flotante para Cancelar */}
+                <TouchableOpacity 
+                    style={styles.botonCancelarCerrar} 
+                    onPress={() => navigation.goBack()}
+                >
+                    <Text style={styles.textoBotonCancelar}>✕ Cancelar</Text>
                 </TouchableOpacity>
             </View>
         </View>
     );
 };
 
-const ESQUINA_SIZE = 24;
-const ESQUINA_GROSOR = 3;
+const ESQUINA_SIZE = 40;
+const ESQUINA_GROSOR = 4;
 
 const styles = StyleSheet.create({
-    contenedor: {
-        flex: 1,
-        backgroundColor: '#000',
-    },
+    contenedor: { flex: 1, backgroundColor: '#000' },
     capa: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.45)',
-        justifyContent: 'space-between',
-        alignItems: 'center',
+        flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'space-between', alignItems: 'center',
         paddingVertical: 80,
     },
     textoInfo: {
-        color: '#FFF',
-        fontSize: 16,
-        fontWeight: '600',
-        backgroundColor: 'rgba(0,0,0,0.65)',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 20,
-        overflow: 'hidden',
+        color: '#FFF', fontSize: 16, fontWeight: '700',
+        backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 24, paddingVertical: 12,
+        borderRadius: 24, overflow: 'hidden',
     },
-    // Marco con esquinas, estilo "visor de escáner"
-    marco: {
-        width: 220,
-        height: 140,
-        position: 'relative',
+    marco: { width: 280, height: 180, position: 'relative' },
+    esquina: { position: 'absolute', width: ESQUINA_SIZE, height: ESQUINA_SIZE, borderColor: '#63B3ED' },
+    esquinaTL: { top: 0, left: 0, borderTopWidth: ESQUINA_GROSOR, borderLeftWidth: ESQUINA_GROSOR, borderTopLeftRadius: 10 },
+    esquinaTR: { top: 0, right: 0, borderTopWidth: ESQUINA_GROSOR, borderRightWidth: ESQUINA_GROSOR, borderTopRightRadius: 10 },
+    esquinaBL: { bottom: 0, left: 0, borderBottomWidth: ESQUINA_GROSOR, borderLeftWidth: ESQUINA_GROSOR, borderBottomLeftRadius: 10 },
+    esquinaBR: { bottom: 0, right: 0, borderBottomWidth: ESQUINA_GROSOR, borderRightWidth: ESQUINA_GROSOR, borderBottomRightRadius: 10 },
+    botonCancelarCerrar: {
+        backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 24, marginTop: 40
     },
-    esquina: {
-        position: 'absolute',
-        width: ESQUINA_SIZE,
-        height: ESQUINA_SIZE,
-        borderColor: '#3182CE',
-    },
-    esquinaTL: {
-        top: 0, left: 0,
-        borderTopWidth: ESQUINA_GROSOR,
-        borderLeftWidth: ESQUINA_GROSOR,
-        borderTopLeftRadius: 4,
-    },
-    esquinaTR: {
-        top: 0, right: 0,
-        borderTopWidth: ESQUINA_GROSOR,
-        borderRightWidth: ESQUINA_GROSOR,
-        borderTopRightRadius: 4,
-    },
-    esquinaBL: {
-        bottom: 0, left: 0,
-        borderBottomWidth: ESQUINA_GROSOR,
-        borderLeftWidth: ESQUINA_GROSOR,
-        borderBottomLeftRadius: 4,
-    },
-    esquinaBR: {
-        bottom: 0, right: 0,
-        borderBottomWidth: ESQUINA_GROSOR,
-        borderRightWidth: ESQUINA_GROSOR,
-        borderBottomRightRadius: 4,
-    },
-    botonCancelar: {
-        backgroundColor: '#E53E3E',
-        paddingHorizontal: 30,
-        paddingVertical: 15,
-        borderRadius: 12,
-        elevation: 4,
-    },
-    textoBoton: {
-        color: '#FFF',
-        fontSize: 16,
-        fontWeight: '700',
-    },
+    textoBotonCancelar: { color: '#FFF', fontSize: 16, fontWeight: '700' }
 });

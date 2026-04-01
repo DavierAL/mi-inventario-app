@@ -1,0 +1,47 @@
+// ARCHIVO: src/utils/colores.ts
+export const ThemeColors = {
+    light: {
+        fondo: '#F0F4F8',
+        superficie: '#FFFFFF',
+        textoPrincipal: '#2D3748',
+        textoSecundario: '#718096',
+        borde: '#E2E8F0',
+        primario: '#3182CE',
+        fondoPrimario: '#EBF8FF',
+        error: '#E53E3E',
+        exito: '#38A169',
+        inputFondo: '#F7FAFC',
+        inputDeshabilitado: '#EDF2F7',
+        placeholder: '#A0AEC0',
+        bottomBarFondo: '#FFFFFF',
+        bottomBarIcono: '#A0AEC0',
+        bottomBarIconoActivo: '#3182CE',
+        bannerOfflineFondo: '#744210',
+        bannerOfflineTexto: '#FEFCBF',
+        bannerOfflineBoton: '#F6E05E',
+        marcadorEscaner: '#3182CE',
+        fondoBuscador: '#F7FAFC'
+    },
+    dark: {
+        fondo: '#1A202C',
+        superficie: '#2D3748',
+        textoPrincipal: '#F7FAFC',
+        textoSecundario: '#A0AEC0',
+        borde: '#4A5568',
+        primario: '#63B3ED',
+        fondoPrimario: '#2C5282',
+        error: '#FC8181',
+        exito: '#68D391',
+        inputFondo: '#1A202C',
+        inputDeshabilitado: '#4A5568',
+        placeholder: '#718096',
+        bottomBarFondo: '#2D3748',
+        bottomBarIcono: '#718096',
+        bottomBarIconoActivo: '#63B3ED',
+        bannerOfflineFondo: '#975A16',
+        bannerOfflineTexto: '#FEFCBF',
+        bannerOfflineBoton: '#F6E05E',
+        marcadorEscaner: '#63B3ED',
+        fondoBuscador: '#1A202C'
+    }
+};

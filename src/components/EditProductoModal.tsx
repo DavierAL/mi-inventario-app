@@ -1,12 +1,11 @@
 // ARCHIVO: src/components/EditProductoModal.tsx
-
 import React, { useState } from 'react';
-import {
-    View, Text, TextInput, TouchableOpacity,
-    Modal, StyleSheet, Platform, Alert,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, Platform, Image } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { ProductoInventario } from '../types/inventario';
+import { formatearFecha } from '../utils/fecha';
+import { formatearPrecio } from '../utils/formato';
+import { useTheme } from '../context/ThemeContext';
 
 interface Props {
     visible: boolean;
@@ -23,22 +22,20 @@ export const EditProductoModal: React.FC<Props> = ({
     onGuardar,
     onCancelar,
 }) => {
+    const { colors, isDark } = useTheme();
+
     const [formFV, setFormFV] = useState<string>('');
     const [formFechaEdicion] = useState<string>(new Date().toLocaleDateString('es-ES'));
     const [formComentario, setFormComentario] = useState<string>('');
-
-    // Estado del DateTimePicker
     const [mostrarDatePicker, setMostrarDatePicker] = useState<boolean>(false);
     const [fechaSeleccionada, setFechaSeleccionada] = useState<Date>(new Date());
 
-    // Sincronizamos los campos cuando cambia el producto a editar
     React.useEffect(() => {
         if (producto) {
-            const fvStr = producto.FV_Actual ? String(producto.FV_Actual) : '';
+            const fvStr = formatearFecha(producto.FV_Actual);  
             setFormFV(fvStr);
             setFormComentario(producto.Comentarios ? String(producto.Comentarios) : '');
 
-            // Si el producto ya tiene una fecha de vencimiento válida, la usamos como valor inicial del picker
             if (fvStr) {
                 const partes = fvStr.split('/');
                 if (partes.length === 3) {
@@ -53,10 +50,9 @@ export const EditProductoModal: React.FC<Props> = ({
     }, [producto]);
 
     const manejarCambioDeFecha = (_event: DateTimePickerEvent, fecha?: Date) => {
-        setMostrarDatePicker(Platform.OS === 'ios'); // En iOS el picker se mantiene visible
+        setMostrarDatePicker(Platform.OS === 'ios'); 
         if (fecha) {
             setFechaSeleccionada(fecha);
-            // Formateamos la fecha a DD/MM/AAAA para guardarla
             const dia = String(fecha.getDate()).padStart(2, '0');
             const mes = String(fecha.getMonth() + 1).padStart(2, '0');
             const anio = fecha.getFullYear();
@@ -64,46 +60,71 @@ export const EditProductoModal: React.FC<Props> = ({
         }
     };
 
-    const handleGuardar = () => {
-        onGuardar(formFV, formFechaEdicion, formComentario);
-    };
-
     if (!producto) return null;
 
     return (
         <Modal visible={visible} animationType="slide" transparent={true}>
             <View style={styles.modalFondo}>
-                <View style={styles.modalContenedor}>
-                    <Text style={styles.modalTitulo}>Actualizar Inventario</Text>
-                    <Text style={styles.modalSubtitulo} numberOfLines={2}>{producto.Descripcion}</Text>
-                    <Text style={styles.modalCod}>CÓDIGO: {producto.Cod_Barras}</Text>
+                <View style={[styles.modalContenedor, { backgroundColor: colors.superficie }]}>
+
+                    {/* Cabecera / Imagen */}
+                    <View style={styles.cabeceraModal}>
+                        <View style={[styles.contenedorImagenModal, { backgroundColor: colors.inputDeshabilitado, borderColor: colors.borde }]}>
+                            {producto.Imagen ? (
+                                <Image
+                                    source={{ uri: String(producto.Imagen) }}
+                                    style={styles.imagenModal}
+                                    resizeMode="contain"
+                                />
+                            ) : (
+                                <Text style={styles.imagenModalPlaceholder}>📦</Text>
+                            )}
+                        </View>
+                        <View style={styles.infoModal}>
+                            <Text style={[styles.modalTitulo, { color: colors.textoPrincipal }]}>Actualizar Inventario</Text>
+                            <Text style={[styles.modalSubtitulo, { color: colors.textoSecundario }]} numberOfLines={2}>{producto.Descripcion}</Text>
+                            <Text style={[styles.modalCod, { color: colors.textoSecundario, backgroundColor: colors.inputDeshabilitado }]}>CÓDIGO: {producto.Cod_Barras}</Text>
+                        </View>
+                    </View>
+
+                    {/* Resumen de Precios */}
+                    <View style={[styles.filaPrecios, { backgroundColor: colors.fondoPrimario }]}>
+                        <View style={styles.precioItem}>
+                            <Text style={[styles.precioLabel, { color: colors.textoSecundario }]}>Precio Web</Text>
+                            <Text style={[styles.precioValor, { color: colors.textoPrincipal }]}>{formatearPrecio(producto.Precio_Web)}</Text>
+                        </View>
+                        <View style={styles.precioDivisor} />
+                        <View style={styles.precioItem}>
+                            <Text style={[styles.precioLabel, { color: colors.textoSecundario }]}>Precio Tienda</Text>
+                            <Text style={[styles.precioValor, { color: colors.primario }]}>{formatearPrecio(producto.Precio_Tienda)}</Text>
+                        </View>
+                    </View>
 
                     {/* Fila Stock (solo lectura) + Vencimiento */}
                     <View style={styles.filaFormulario}>
                         <View style={styles.columnaFormulario}>
-                            <Text style={styles.label}>Stock Actual</Text>
+                            <Text style={[styles.label, { color: colors.textoSecundario }]}>Stock Físico</Text>
                             <TextInput
-                                style={[styles.input, styles.inputDeshabilitado]}
+                                style={[styles.input, { backgroundColor: colors.inputDeshabilitado, color: colors.textoSecundario, borderColor: colors.borde }]}
                                 value={String(producto.Stock_Master || 0)}
                                 editable={false}
                             />
                         </View>
                         <View style={styles.columnaFormulario}>
-                            <Text style={styles.label}>Vencimiento</Text>
-                            {/* Tocando este campo abre el DatePicker nativo */}
+                            <Text style={[styles.label, { color: colors.textoSecundario }]}>Vencimiento</Text>
                             <TouchableOpacity
-                                style={styles.inputTouchable}
+                                style={[styles.inputTouchable, { backgroundColor: colors.fondoPrimario, borderColor: colors.primario }]}
                                 onPress={() => setMostrarDatePicker(true)}
                             >
-                                <Text style={[styles.inputTouchableTexto, !formFV && styles.placeholder]}>
-                                    {formFV || 'Seleccionar fecha'}
+                                <Text style={[styles.inputTouchableTexto, { color: colors.textoPrincipal }, !formFV && { color: colors.placeholder }]}>
+                                    {formFV || 'Seleccionar...'}
                                 </Text>
                                 <Text style={styles.iconoCalendario}>📅</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
 
-                    {/* DateTimePicker nativo (se muestra/oculta según estado) */}
+                    {/* Selector Nativo */}
                     {mostrarDatePicker && (
                         <DateTimePicker
                             value={fechaSeleccionada}
@@ -111,41 +132,42 @@ export const EditProductoModal: React.FC<Props> = ({
                             display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                             onChange={manejarCambioDeFecha}
                             minimumDate={new Date(2020, 0, 1)}
+                            themeVariant={isDark ? 'dark' : 'light'}
                         />
                     )}
 
-                    <Text style={styles.label}>Fecha de Actualización</Text>
+                    <Text style={[styles.label, { color: colors.textoSecundario }]}>Fecha de Edición</Text>
                     <TextInput
-                        style={[styles.input, styles.inputDeshabilitado]}
+                        style={[styles.input, { backgroundColor: colors.inputDeshabilitado, color: colors.textoSecundario, borderColor: colors.borde }]}
                         value={formFechaEdicion}
                         editable={false}
                     />
 
-                    <Text style={styles.label}>Observaciones / Comentarios</Text>
+                    <Text style={[styles.label, { color: colors.textoSecundario }]}>Comentarios</Text>
                     <TextInput
-                        style={[styles.input, styles.inputMultilinea]}
+                        style={[styles.input, styles.inputMultilinea, { backgroundColor: colors.inputFondo, color: colors.textoPrincipal, borderColor: colors.borde }]}
                         multiline
                         returnKeyType="done"
                         value={formComentario}
                         onChangeText={setFormComentario}
-                        placeholder="Añadir una nota..."
-                        placeholderTextColor="#A0AEC0"
+                        placeholder="Añadir nota de revisión..."
+                        placeholderTextColor={colors.placeholder}
                     />
 
                     <View style={styles.filaBotones}>
                         <TouchableOpacity
-                            style={[styles.boton, styles.botonCancelar]}
+                            style={[styles.boton, { backgroundColor: colors.textoSecundario }]}
                             onPress={onCancelar}
                         >
                             <Text style={styles.textoBoton}>Cancelar</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            style={[styles.boton, styles.botonGuardar]}
-                            onPress={handleGuardar}
+                            style={[styles.boton, { backgroundColor: colors.primario }]}
+                            onPress={() => onGuardar(formFV, formFechaEdicion, formComentario)}
                             disabled={guardando}
                         >
                             <Text style={styles.textoBoton}>
-                                {guardando ? 'Procesando...' : 'Confirmar Cambios'}
+                                {guardando ? 'Guardando...' : 'Confirmar'}
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -162,38 +184,81 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0,0,0,0.6)',
     },
     modalContenedor: {
-        backgroundColor: '#FFF',
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
         padding: 24,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
         elevation: 20,
     },
+    cabeceraModal: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 16,
+        gap: 14,
+    },
+    contenedorImagenModal: {
+        width: 80,
+        height: 80,
+        borderRadius: 12,
+        overflow: 'hidden',
+        borderWidth: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexShrink: 0,
+    },
+    imagenModal: {
+        width: '100%',
+        height: '100%',
+    },
+    imagenModalPlaceholder: {
+        fontSize: 32,
+    },
+    infoModal: {
+        flex: 1,
+    },
     modalTitulo: {
-        fontSize: 22,
+        fontSize: 18,
         fontWeight: '800',
-        color: '#1A202C',
-        marginBottom: 4,
+        marginBottom: 2,
     },
     modalSubtitulo: {
-        fontSize: 15,
-        color: '#4A5568',
-        marginBottom: 8,
+        fontSize: 14,
+        marginBottom: 6,
         fontWeight: '500',
     },
     modalCod: {
-        fontSize: 12,
-        color: '#718096',
+        fontSize: 11,
         fontFamily: 'monospace',
-        marginBottom: 20,
-        backgroundColor: '#EDF2F7',
         alignSelf: 'flex-start',
         paddingHorizontal: 8,
         paddingVertical: 4,
         borderRadius: 6,
+        fontWeight: 'bold',
+    },
+    filaPrecios: {
+        flexDirection: 'row',
+        padding: 12,
+        borderRadius: 12,
+        marginBottom: 16,
+        alignItems: 'center',
+        justifyContent: 'space-around',
+    },
+    precioItem: {
+        alignItems: 'center',
+    },
+    precioLabel: {
+        fontSize: 11,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        marginBottom: 2,
+    },
+    precioValor: {
+        fontSize: 16,
+        fontWeight: '900',
+    },
+    precioDivisor: {
+        width: 1,
+        height: 30,
+        backgroundColor: 'rgba(0,0,0,0.1)',
     },
     filaFormulario: {
         flexDirection: 'row',
@@ -204,7 +269,6 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: 12,
-        color: '#4A5568',
         fontWeight: '700',
         textTransform: 'uppercase',
         marginBottom: 6,
@@ -213,42 +277,26 @@ const styles = StyleSheet.create({
     },
     input: {
         borderWidth: 1.5,
-        borderColor: '#E2E8F0',
         borderRadius: 10,
         padding: 14,
         fontSize: 16,
-        color: '#2D3748',
-        backgroundColor: '#F7FAFC',
         fontWeight: '500',
-    },
-    inputDeshabilitado: {
-        backgroundColor: '#EDF2F7',
-        color: '#A0AEC0',
     },
     inputMultilinea: {
         height: 80,
         textAlignVertical: 'top',
     },
-    // Reemplaza el TextInput de fecha por un botón que abre el DatePicker
     inputTouchable: {
         borderWidth: 1.5,
-        borderColor: '#3182CE',
         borderRadius: 10,
         padding: 14,
-        backgroundColor: '#EBF8FF',
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginTop: 0,
     },
     inputTouchableTexto: {
         fontSize: 16,
-        color: '#2D3748',
         fontWeight: '600',
-    },
-    placeholder: {
-        color: '#A0AEC0',
-        fontWeight: '400',
     },
     iconoCalendario: {
         fontSize: 18,
@@ -266,12 +314,6 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         alignItems: 'center',
         elevation: 2,
-    },
-    botonCancelar: {
-        backgroundColor: '#A0AEC0',
-    },
-    botonGuardar: {
-        backgroundColor: '#3182CE',
     },
     textoBoton: {
         color: '#FFFFFF',
