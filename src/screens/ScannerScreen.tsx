@@ -1,8 +1,9 @@
 // ARCHIVO: src/screens/ScannerScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { CameraView } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
+import { EditProductoModal } from '../components/EditProductoModal';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
@@ -12,10 +13,21 @@ type ScannerNavProp = NativeStackNavigationProp<RootStackParamList, 'Scanner'>;
 
 export const ScannerScreen = () => {
     const navigation = useNavigation<ScannerNavProp>();
-    const inventario = useInventarioStore(state => state.inventario);
-    const setProductoEditando = useInventarioStore(state => state.setProductoEditando);
+    const { 
+        inventario, setProductoEditando, productoEditando, 
+        guardando, guardarEdicion 
+    } = useInventarioStore();
     
     const [procesandoEscaneo, setProcesandoEscaneo] = useState<boolean>(false);
+
+    // BATCH SCANNING: Reactivador automático tras cerrar validaciones
+    useEffect(() => {
+        if (productoEditando === null && procesandoEscaneo) {
+            // Usuario terminó de editar o canceló la edición. Esperamos 500ms y destrabamos la cámara.
+            const timer = setTimeout(() => setProcesandoEscaneo(false), 500);
+            return () => clearTimeout(timer);
+        }
+    }, [productoEditando]);
 
     const reproducirBeep = async (exito: boolean) => {
         try {
@@ -41,7 +53,7 @@ export const ScannerScreen = () => {
         if (productoEncontrado) {
             reproducirBeep(true);
             setProductoEditando(productoEncontrado);
-            navigation.goBack(); // Cierra el escáner y vuelve a la lista, donde se abrirá el modal.
+            // Batch Scanning: Eliminamos el navigation.goBack(). El modal saldrá por encima en automático porque el estado es global.
         } else {
             reproducirBeep(false);
             Alert.alert(
@@ -78,9 +90,17 @@ export const ScannerScreen = () => {
                     style={styles.botonCancelarCerrar} 
                     onPress={() => navigation.goBack()}
                 >
-                    <Text style={styles.textoBotonCancelar}>✕ Cancelar</Text>
+                    <Text style={styles.textoBotonCancelar}>✕ Terminar Lote</Text>
                 </TouchableOpacity>
             </View>
+
+            <EditProductoModal
+                visible={productoEditando !== null}
+                producto={productoEditando}
+                guardando={guardando}
+                onGuardar={guardarEdicion}
+                onCancelar={() => setProductoEditando(null)}
+            />
         </View>
     );
 };

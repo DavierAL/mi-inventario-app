@@ -3,6 +3,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import { ProductoInventario } from '../types/inventario';
 import { formatearFecha } from '../utils/fecha';
 import { formatearPrecio } from '../utils/formato';
@@ -17,12 +18,13 @@ export const ProductoCard: React.FC<Props> = ({ item, onPress }) => {
     const { colors } = useTheme();
 
     return (
-        <TouchableOpacity
-            style={[styles.tarjetaProducto, { backgroundColor: colors.superficie }]}
-            onPress={() => onPress(item)}
-            activeOpacity={0.7}
-        >
-            {/* Imagen del producto */}
+        <Animated.View entering={FadeInUp.duration(400).springify()}>
+            <TouchableOpacity
+                style={[styles.tarjetaProducto, { backgroundColor: colors.superficie }]}
+                onPress={() => onPress(item)}
+                activeOpacity={0.7}
+            >
+                {/* Imagen del producto */}
             <View style={[styles.contenedorImagen, { backgroundColor: colors.inputFondo, borderColor: colors.borde }]}>
                 {item.Imagen ? (
                     <Image
@@ -62,8 +64,9 @@ export const ProductoCard: React.FC<Props> = ({ item, onPress }) => {
                     <Text style={[styles.textoStockTitulo, { color: colors.textoSecundario }]}>Stock</Text>
                     <Text style={[styles.textoStockNumero, { color: colors.exito }]}>{item.Stock_Master}</Text>
                 </View>
-            </View>
-        </TouchableOpacity>
+                </View>
+            </TouchableOpacity>
+        </Animated.View>
     );
 };
 
