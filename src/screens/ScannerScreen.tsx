@@ -3,7 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { CameraView } from 'expo-camera';
 import * as Haptics from 'expo-haptics';
+import Toast from 'react-native-toast-message';
 import { EditProductoModal } from '../components/EditProductoModal';
+import { precargarSonidos, reproducirSonido } from '../utils/sonidos';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
@@ -20,10 +22,11 @@ export const ScannerScreen = () => {
     
     const [procesandoEscaneo, setProcesandoEscaneo] = useState<boolean>(false);
 
-    // BATCH SCANNING: Reactivador automático tras cerrar validaciones
     useEffect(() => {
+        // Precargar sonidos cuando se abre el escáner
+        precargarSonidos();
+        
         if (productoEditando === null && procesandoEscaneo) {
-            // Usuario terminó de editar o canceló la edición. Esperamos 500ms y destrabamos la cámara.
             const timer = setTimeout(() => setProcesandoEscaneo(false), 500);
             return () => clearTimeout(timer);
         }
@@ -32,8 +35,10 @@ export const ScannerScreen = () => {
     const reproducirBeep = async (exito: boolean) => {
         try {
             if (exito) {
+                reproducirSonido('beep');
                 await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             } else {
+                reproducirSonido('error');
                 await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
             }
         } catch (error) {
@@ -53,14 +58,16 @@ export const ScannerScreen = () => {
         if (productoEncontrado) {
             reproducirBeep(true);
             setProductoEditando(productoEncontrado);
-            // Batch Scanning: Eliminamos el navigation.goBack(). El modal saldrá por encima en automático porque el estado es global.
         } else {
             reproducirBeep(false);
-            Alert.alert(
-                'Producto no encontrado',
-                `El código escaneado (${codigoLimpio}) no existe en tu base de datos actual.`,
-                [{ text: 'Aceptar', onPress: () => setProcesandoEscaneo(false) }]
-            );
+            Toast.show({
+                type: 'error',
+                text1: '❌ No encontrado',
+                text2: `El código ${codigoLimpio} no existe en stock.`,
+                position: 'top',
+                visibilityTime: 3000,
+            });
+            setTimeout(() => setProcesandoEscaneo(false), 1500);
         }
     };
 

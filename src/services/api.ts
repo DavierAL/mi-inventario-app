@@ -66,7 +66,14 @@ export const obtenerInventario = async (): Promise<{
     lastSync?: string;
 }> => {
     try {
-        const respuesta = await fetch(`${API_URL}?action=leerInventario`);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 35000); // Aumentado a 35s
+
+        const respuesta = await fetch(`${API_URL}?action=leerInventario`, {
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        
         const json: RespuestaAPI = await respuesta.json();
 
         if (json.status === 'success' && json.data) {
@@ -102,11 +109,15 @@ export const actualizarProducto = async (
     nuevoComentario?: string
 ): Promise<{ exito: boolean; isNetworkError?: boolean }> => {
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 35000); // Aumentado a 35s
+
         const respuesta = await fetch(API_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
+            signal: controller.signal,
             body: JSON.stringify({
                 accion: 'actualizarDatoManual',
                 datos: {
@@ -119,7 +130,16 @@ export const actualizarProducto = async (
             }),
         });
 
-        const json: RespuestaAPI = await respuesta.json();
+        clearTimeout(timeoutId);
+        
+        const responseText = await respuesta.text();
+        let json: RespuestaAPI;
+        try {
+            json = JSON.parse(responseText);
+        } catch (parseError) {
+            console.error('El servidor no devolvió JSON. Devolvió:', responseText);
+            throw new Error(`Google devolvió una página de error en vez de datos validos: ${responseText.substring(0, 50)}...`);
+        }
 
         if (json.status === 'success') {
             return { exito: true };
@@ -128,8 +148,7 @@ export const actualizarProducto = async (
             return { exito: false };
         }
     } catch (error: any) {
-        console.error('Error en actualizarProducto:', error);
-        // Si fecth falla (por timeout o dns), tira exception "Network request failed"
+        console.error('Error en actualizarProducto:', error.message);
         return { exito: false, isNetworkError: true };
     }
 };

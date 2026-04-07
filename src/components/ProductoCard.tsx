@@ -1,6 +1,6 @@
 // ARCHIVO: src/components/ProductoCard.tsx
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { Image } from 'expo-image';
 import { ProductoInventario } from '../types/inventario';
@@ -13,7 +13,7 @@ interface Props {
     onPress: (producto: ProductoInventario) => void;
 }
 
-export const ProductoCard: React.FC<Props> = ({ item, onPress }) => {
+const ProductoCardComponent: React.FC<Props> = ({ item, onPress }) => {
     const { colors } = useTheme();
     const fadeAnim = useRef(new Animated.Value(0)).current;
     const slideAnim = useRef(new Animated.Value(20)).current;
@@ -86,6 +86,17 @@ export const ProductoCard: React.FC<Props> = ({ item, onPress }) => {
         </Animated.View>
     );
 };
+
+export const ProductoCard = memo(ProductoCardComponent, (prevProps, nextProps) => {
+    // Rendimiento Extremo: Solo redibujar si cambiaron estas propiedades clave
+    return (
+        prevProps.item.FV_Actual === nextProps.item.FV_Actual &&
+        prevProps.item.Stock_Master === nextProps.item.Stock_Master &&
+        prevProps.item.Precio_Web === nextProps.item.Precio_Web &&
+        prevProps.item.Precio_Tienda === nextProps.item.Precio_Tienda &&
+        prevProps.item.Comentarios === nextProps.item.Comentarios
+    );
+});
 
 const styles = StyleSheet.create({
     tarjetaProducto: {

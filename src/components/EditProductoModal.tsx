@@ -1,6 +1,7 @@
 // ARCHIVO: src/components/EditProductoModal.tsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, StyleSheet, Platform, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Image, ActivityIndicator } from 'react-native';
+import Modal from 'react-native-modal';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { ProductoInventario } from '../types/inventario';
 import { formatearFecha } from '../utils/fecha';
@@ -63,12 +64,23 @@ export const EditProductoModal: React.FC<Props> = ({
     if (!producto) return null;
 
     return (
-        <Modal visible={visible} animationType="slide" transparent={true}>
-            <View style={styles.modalFondo}>
-                <View style={[styles.modalContenedor, { backgroundColor: colors.superficie }]}>
+        <Modal 
+            isVisible={visible} 
+            onBackdropPress={onCancelar}
+            onSwipeComplete={onCancelar}
+            swipeDirection="down"
+            style={styles.modalBase}
+            avoidKeyboard={true}
+        >
+            <View style={[styles.modalContenedor, { backgroundColor: colors.superficie }]}>
+                
+                {/* 📌 BARRA DE ARRASTRE TIPO iOS */}
+                <View style={styles.handleContainer}>
+                    <View style={[styles.handleBar, { backgroundColor: colors.borde }]} />
+                </View>
 
-                    {/* Cabecera / Imagen */}
-                    <View style={styles.cabeceraModal}>
+                {/* Cabecera / Imagen */}
+                <View style={[styles.cabeceraModal, { marginTop: -10 }]}>
                         <View style={[styles.contenedorImagenModal, { backgroundColor: colors.inputDeshabilitado, borderColor: colors.borde }]}>
                             {producto.Imagen ? (
                                 <Image
@@ -162,32 +174,46 @@ export const EditProductoModal: React.FC<Props> = ({
                             <Text style={styles.textoBoton}>Cancelar</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
-                            style={[styles.boton, { backgroundColor: colors.primario }]}
+                            style={[
+                                styles.boton, 
+                                { backgroundColor: guardando ? colors.inputDeshabilitado : colors.primario },
+                                guardando && { borderColor: 'transparent' }
+                            ]}
                             onPress={() => onGuardar(formFV, formFechaEdicion, formComentario)}
                             disabled={guardando}
                         >
-                            <Text style={styles.textoBoton}>
-                                {guardando ? 'Guardando...' : 'Confirmar'}
-                            </Text>
+                            {guardando ? (
+                                <ActivityIndicator color={colors.textoPrincipal} size="small" />
+                            ) : (
+                                <Text style={styles.textoBoton}>Confirmar</Text>
+                            )}
                         </TouchableOpacity>
                     </View>
-                </View>
             </View>
         </Modal>
     );
 };
 
 const styles = StyleSheet.create({
-    modalFondo: {
-        flex: 1,
+    modalBase: {
         justifyContent: 'flex-end',
-        backgroundColor: 'rgba(0,0,0,0.6)',
+        margin: 0,
     },
     modalContenedor: {
-        borderTopLeftRadius: 24,
-        borderTopRightRadius: 24,
-        padding: 24,
+        borderTopLeftRadius: 30,
+        borderTopRightRadius: 30,
+        paddingHorizontal: 24,
+        paddingBottom: Platform.OS === 'ios' ? 40 : 24,
         elevation: 20,
+    },
+    handleContainer: {
+        alignItems: 'center',
+        paddingVertical: 14,
+    },
+    handleBar: {
+        width: 45,
+        height: 5,
+        borderRadius: 5,
     },
     cabeceraModal: {
         flexDirection: 'row',

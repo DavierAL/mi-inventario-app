@@ -4,6 +4,8 @@ import NetInfo from '@react-native-community/netinfo';
 import { ProductoInventario } from '../types/inventario';
 import { obtenerInventario, actualizarProducto } from '../services/api';
 import { agregarACola, obtenerCola, removerDeCola } from '../services/offlineQueue';
+import Toast from 'react-native-toast-message';
+import { reproducirSonido } from '../utils/sonidos';
 
 interface InventarioState {
     inventario: ProductoInventario[];
@@ -108,16 +110,38 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
             });
             const pendientes = await obtenerCola();
             set({ guardando: false, pendientesSync: pendientes.length });
+            
+            reproducirSonido('success');
+            Toast.show({
+                type: 'info',
+                text1: '📥 Guardado en cola offline',
+                text2: 'Se enviará cuando recuperes la conexión.',
+                visibilityTime: 3000,
+            });
             return true; // Mentimos a la UI, le decimos "Sí guardó" en el teléfono de momento. 
         }
 
         // Si falló y no era problema de red (servidor rechazó)
         if (!respuesta.exito && !respuesta.isNetworkError) {
             set({ inventario: inventarioPrevio, guardando: false }); // Revertir
+            reproducirSonido('error');
+            Toast.show({
+                type: 'error',
+                text1: '❌ Error de servidor',
+                text2: 'No se pudo guardar la modificación.',
+                visibilityTime: 4000,
+            });
             return false;
         }
 
         set({ guardando: false });
+        reproducirSonido('success');
+        Toast.show({
+            type: 'success',
+            text1: '✅ Guardado con éxito',
+            text2: `Las modificaciones de ${codigo} se sincronizaron.`,
+            visibilityTime: 2500,
+        });
         return true;
     },
 

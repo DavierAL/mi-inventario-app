@@ -4,6 +4,7 @@
 import React from 'react';
 import { ThemeProvider } from './src/context/ThemeContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
+import Toast from 'react-native-toast-message';
 
 // ==========================================
 // EXPORT CON PROVIDER Y ENRUTADOR
@@ -12,6 +13,7 @@ export default function App() {
     return (
         <ThemeProvider>
             <AppNavigator />
+            <Toast />
         </ThemeProvider>
     );
 }

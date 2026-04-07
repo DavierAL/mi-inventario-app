@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
     StyleSheet, Text, View, ActivityIndicator,
     SafeAreaView, StatusBar, TouchableOpacity, Alert,
-    TextInput, RefreshControl
+    TextInput, RefreshControl, ScrollView
 } from 'react-native';
 import { useCameraPermissions } from 'expo-camera';
 import { FlashList } from '@shopify/flash-list';
@@ -12,6 +12,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 
 import { ProductoCard } from '../components/ProductoCard';
+import { SkeletonCard } from '../components/SkeletonCard';
 import { EditProductoModal } from '../components/EditProductoModal';
 import { BottomBar } from '../components/BottomBar';
 import { useTheme } from '../context/ThemeContext';
@@ -45,15 +46,56 @@ export const InventarioListScreen = () => {
         iniciarListenerInternet();
     }, []);
 
-    const inventarioFiltrado = useMemo(() => {
+    const [filtroRapido, setFiltroRapido] = useState<'TODOS' | 'VENCIDOS' | '30_DIAS' | '90_DIAS'>('TODOS');
+
+    const { inventarioProcesado, conteos } = useMemo(() => {
+        const hoy = new Date();
+        hoy.setHours(0,0,0,0);
+        
+        let vencidos = 0, en30Dias = 0, en90Dias = 0;
+        
+        // 1. Calculamos los días restantes para CADA producto
+        const inventarioConDias = inventario.map(item => {
+            let diasRestantes = Infinity;
+            
+            if (item.FV_Actual) {
+                const [dia, mes, anio] = item.FV_Actual.split('/');
+                if(dia && mes && anio) {
+                    const fechaVencimiento = new Date(Number(anio), Number(mes) - 1, Number(dia));
+                    const diferenciaMilisegundos = fechaVencimiento.getTime() - hoy.getTime();
+                    diasRestantes = Math.ceil(diferenciaMilisegundos / (1000 * 3600 * 24));
+                    
+                    if (diasRestantes < 0) vencidos++;
+                    else if (diasRestantes <= 30) en30Dias++;
+                    else if (diasRestantes <= 90) en90Dias++;
+                }
+            }
+            return { ...item, diasRestantes };
+        });
+
+        // 2. Filtramos según botón
+        let listaFiltrada = inventarioConDias;
+        if (filtroRapido === 'VENCIDOS') listaFiltrada = listaFiltrada.filter(i => i.diasRestantes < 0);
+        if (filtroRapido === '30_DIAS') listaFiltrada = listaFiltrada.filter(i => i.diasRestantes >= 0 && i.diasRestantes <= 30);
+        if (filtroRapido === '90_DIAS') listaFiltrada = listaFiltrada.filter(i => i.diasRestantes > 30 && i.diasRestantes <= 90);
+
+        // 3. Aplicamos la búsqueda de texto si el usuario escribió algo
         const termino = busquedaDebounced.toLowerCase().trim();
-        if (!termino) return inventario;
-        return inventario.filter(p =>
-            String(p.SKU).toLowerCase().includes(termino) ||
-            String(p.Descripcion).toLowerCase().includes(termino) ||
-            String(p.Cod_Barras).toLowerCase().includes(termino)
-        );
-    }, [busquedaDebounced, inventario]);
+        if (termino) {
+            listaFiltrada = listaFiltrada.filter(p =>
+                String(p.SKU).toLowerCase().includes(termino) ||
+                String(p.Descripcion).toLowerCase().includes(termino) ||
+                String(p.Cod_Barras).toLowerCase().includes(termino)
+            );
+        }
+
+        // Ordenar rápido para que los que expiran primero salgan arriba, solo si estamos en un filtro activo
+        if (filtroRapido !== 'TODOS') {
+            listaFiltrada.sort((a, b) => a.diasRestantes - b.diasRestantes);
+        }
+
+        return { inventarioProcesado: listaFiltrada, conteos: { vencidos, en30Dias, en90Dias } };
+    }, [busquedaDebounced, inventario, filtroRapido]);
 
     const handleRefresh = async () => {
         setRefrescando(true);
@@ -76,12 +118,20 @@ export const InventarioListScreen = () => {
         setProductoEditando(producto);
     };
 
-    if (cargando) {
+    if (cargando && inventario.length === 0) {
+        // En lugar del spinner solitario, renderizamos Skeletons
+        const fakeList = [1, 2, 3, 4, 5, 6, 7];
         return (
-            <View style={[styles.pantallaCentrada, { backgroundColor: colors.fondo }]}>
-                <ActivityIndicator size="large" color={colors.primario} />
-                <Text style={[styles.textoCargando, { color: colors.textoSecundario }]}>Sincronizando inventario...</Text>
-            </View>
+            <SafeAreaView style={[styles.contenedor, { backgroundColor: colors.fondo }]}>
+                <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.superficie} />
+                <View style={[styles.cabecera, { backgroundColor: colors.superficie, borderBottomColor: colors.borde }]}>
+                    <Text style={[styles.tituloApp, { color: colors.textoPrincipal }]}>Inventario Activo</Text>
+                    <Text style={[styles.subtituloApp, { color: colors.textoSecundario }]}>Sincronizando con la nube...</Text>
+                </View>
+                <ScrollView style={{ flex: 1, marginTop: 10 }}>
+                    {fakeList.map((k) => <SkeletonCard key={k} />)}
+                </ScrollView>
+            </SafeAreaView>
         );
     }
 
@@ -121,7 +171,7 @@ export const InventarioListScreen = () => {
                         </Text>
                     )}
                     <Text style={[styles.subtituloApp, { color: colors.textoSecundario }]}>
-                        {busqueda && inventarioFiltrado.length > 0 ? `${inventarioFiltrado.length} de ` : ''}{inventario.length} productos registrados
+                        {busqueda || filtroRapido !== 'TODOS' ? `${inventarioProcesado.length} de ` : ''}{inventario.length} productos registrados
                     </Text>
                     
                     <View style={[styles.contenedorBuscador, { backgroundColor: colors.fondoBuscador, borderColor: colors.borde }]}>
@@ -143,10 +193,49 @@ export const InventarioListScreen = () => {
                     </View>
                 </View>
 
+                {/* NUEVO: DASHBOARD DE CADUCIDAD (CARRUSEL) */}
+                <View style={[styles.contenedorFiltros, { backgroundColor: colors.superficie, borderBottomColor: colors.borde }]}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}>
+                        <TouchableOpacity 
+                            style={[styles.botonFiltro, filtroRapido === 'TODOS' && [styles.filtroActivo, { borderColor: colors.primario, backgroundColor: colors.primario }]]}
+                            onPress={() => setFiltroRapido('TODOS')}
+                        >
+                            <Text style={[styles.textoFiltro, { color: colors.textoSecundario }, filtroRapido === 'TODOS' && { color: 'white' }]}>📦 Todos</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity 
+                            style={[styles.botonFiltro, { borderColor: '#E53E3E' }, filtroRapido === 'VENCIDOS' && { backgroundColor: '#E53E3E' }]}
+                            onPress={() => setFiltroRapido('VENCIDOS')}
+                        >
+                            <Text style={[styles.textoFiltro, { color: '#E53E3E' }, filtroRapido === 'VENCIDOS' && { color: 'white' }]}>
+                                🔴 Vencidos: {conteos.vencidos}
+                            </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity 
+                            style={[styles.botonFiltro, { borderColor: '#DD6B20' }, filtroRapido === '30_DIAS' && { backgroundColor: '#DD6B20' }]}
+                            onPress={() => setFiltroRapido('30_DIAS')}
+                        >
+                            <Text style={[styles.textoFiltro, { color: '#DD6B20' }, filtroRapido === '30_DIAS' && { color: 'white' }]}>
+                                🟠 &lt; 30 días: {conteos.en30Dias}
+                            </Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity 
+                            style={[styles.botonFiltro, { borderColor: '#D69E2E' }, filtroRapido === '90_DIAS' && { backgroundColor: '#D69E2E' }]}
+                            onPress={() => setFiltroRapido('90_DIAS')}
+                        >
+                            <Text style={[styles.textoFiltro, { color: '#D69E2E' }, filtroRapido === '90_DIAS' && { color: 'white' }]}>
+                                🟡 &lt; 90 días: {conteos.en90Dias}
+                            </Text>
+                        </TouchableOpacity>
+                    </ScrollView>
+                </View>
+
                 {/* Importante: FlashList necesita de un contenedor con altura implícita o 'flex: 1' */}
                 <View style={{ flex: 1, width: '100%' }}>
                     <FastList
-                        data={inventarioFiltrado}
+                        data={inventarioProcesado}
                         keyExtractor={(item: ProductoInventario) => String(item.Cod_Barras).trim()}
                         estimatedItemSize={104} // Clave del alto rendimiento
                         renderItem={({ item }: { item: ProductoInventario }) => (
@@ -227,4 +316,25 @@ const styles = StyleSheet.create({
     listaVacia: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 80 },
     listaVaciaIcono: { fontSize: 48, marginBottom: 12 },
     listaVaciaTexto: { fontSize: 16, fontWeight: '500', textAlign: 'center' },
+    contenedorFiltros: {
+        paddingBottom: 10,
+        marginBottom: 8,
+        borderBottomWidth: 1,
+    },
+    botonFiltro: {
+        borderWidth: 1.5,
+        borderColor: '#CBD5E0',
+        borderRadius: 20,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        justifyContent: 'center',
+    },
+    filtroActivo: {
+        backgroundColor: '#3182CE',
+        borderColor: '#3182CE',
+    },
+    textoFiltro: {
+        fontWeight: 'bold',
+        fontSize: 13,
+    }
 });
