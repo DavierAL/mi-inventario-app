@@ -23,7 +23,7 @@ export const BottomBar: React.FC<Props> = ({ modoActivo, onTabPress }) => {
                     onPress={() => onTabPress('lista')}
                 >
                     <Ionicons name="home-outline" size={24} color={modoActivo === 'lista' ? colors.bottomBarIconoActivo : colors.bottomBarIcono} />
-                    <Text style={[styles.texto, { color: modoActivo === 'lista' ? colors.bottomBarIconoActivo : colors.bottomBarIcono, marginTop: 4 }]}>Almacén</Text>
+                    <Text style={[styles.texto, { color: modoActivo === 'lista' ? colors.bottomBarIconoActivo : colors.bottomBarIcono, marginTop: 2 }]}>Almacén</Text>
                 </TouchableOpacity>
 
                 {/* TAB: ESCÁNER (Botón Central Flotante) */}
@@ -61,10 +61,10 @@ const styles = StyleSheet.create({
     },
     contenedor: {
         flexDirection: 'row',
-        height: 60,
+        height: 40,
         justifyContent: 'space-around',
         alignItems: 'center',
-        paddingHorizontal: 10,
+        paddingHorizontal: 5,
         paddingBottom: Platform.OS === 'android' ? 10 : 0, 
     },
     tab: {
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     },
     icono: {
         fontSize: 22,
-        marginBottom: 4,
+        marginBottom: 3,
     },
     texto: {
         fontSize: 12,
@@ -88,8 +88,8 @@ const styles = StyleSheet.create({
         position: 'relative',
     },
     botonEscaner: {
-        width: 64,
-        height: 64,
+        width: 80,
+        height: 80,
         borderRadius: 32,
         alignItems: 'center',
         justifyContent: 'center',

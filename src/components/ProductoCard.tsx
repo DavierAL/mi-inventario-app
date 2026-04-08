@@ -95,8 +95,8 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
     },
     contenedorImagen: {
-        width: 62,
-        height: 62,
+        width: 80,
+        height: 80,
         marginRight: 10,
         borderRadius: 8,
         overflow: 'hidden',
