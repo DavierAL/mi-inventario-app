@@ -32,7 +32,7 @@ export const InventarioListScreen = () => {
     const {
         inventario, cargando, error, modoOffline, lastSync,
         busqueda, setBusqueda, cargarDatos,
-        productoEditando, setProductoEditando, guardando, guardarEdicion,
+        productoEditando, setProductoEditando, guardarEdicion,
         pendientesSync, sincronizandoFondo, iniciarListenerInternet
     } = useInventarioStore();
 
@@ -265,7 +265,6 @@ export const InventarioListScreen = () => {
             <EditProductoModal
                 visible={productoEditando !== null}
                 producto={productoEditando}
-                guardando={guardando}
                 onGuardar={guardarEdicion}
                 onCancelar={() => setProductoEditando(null)}
             />

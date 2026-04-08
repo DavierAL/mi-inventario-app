@@ -17,7 +17,7 @@ export const ScannerScreen = () => {
     const navigation = useNavigation<ScannerNavProp>();
     const { 
         inventario, setProductoEditando, productoEditando, 
-        guardando, guardarEdicion, guardarEdicionDirecta 
+        guardarEdicion, guardarEdicionDirecta 
     } = useInventarioStore();
     
     const [procesandoEscaneo, setProcesandoEscaneo] = useState<boolean>(false);
@@ -149,7 +149,6 @@ export const ScannerScreen = () => {
             <EditProductoModal
                 visible={productoEditando !== null}
                 producto={productoEditando}
-                guardando={guardando}
                 onGuardar={guardarEdicion}
                 onCancelar={() => setProductoEditando(null)}
             />

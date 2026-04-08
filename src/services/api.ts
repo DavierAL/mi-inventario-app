@@ -78,7 +78,7 @@ export const actualizarProducto = async (
 ): Promise<{ exito: boolean; isNetworkError?: boolean }> => {
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s máximo estricto
+        const timeoutId = setTimeout(() => controller.abort(), 35000); // 35s máximo para dar más aire
         
         const respuesta = await fetch(API_URL, {
             method: 'POST',
@@ -118,9 +118,14 @@ export const actualizarProducto = async (
             return { exito: false, isNetworkError: false }; // 👈 Especifico que fue el backend
         }
     } catch (error: any) {
-        console.error('Error en actualizarProducto:', error.message);
-        // Si el fetch aborta o falla conexión, el mensaje típicamente contiene "Network", "Failed to fetch", o "Aborted"
         const isNetwork = error.message === 'Aborted' || error.message?.includes('Network') || error.message?.includes('fetch') || error.message?.includes('OKHTTP');
+        
+        if (isNetwork) {
+            console.warn(`📡 Background Sync pausado automáticamente por latencia/timeout: ${error.message} (Se reintentará silenciosamente luego)`);
+        } else {
+            console.error('Error Crítico en actualizarProducto:', error.message);
+        }
+        
         return { exito: false, isNetworkError: isNetwork };
     }
 };

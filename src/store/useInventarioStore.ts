@@ -17,7 +17,6 @@ interface InventarioState {
     busqueda: string;
     
     productoEditando: ProductoInventario | null;
-    guardando: boolean;
     
     // Offline Tracking
     pendientesSync: number;
@@ -45,7 +44,6 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
     busqueda: '',
     
     productoEditando: null,
-    guardando: false,
 
     pendientesSync: 0,
     sincronizandoFondo: false,
@@ -87,8 +85,6 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
         const state = get();
         if (!state.productoEditando) return false;
 
-        set({ guardando: true });
-        
         const codigo = state.productoEditando.Cod_Barras;
         const inventarioPrevio = state.inventario;
 
@@ -112,7 +108,7 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
                 nuevoComentario: comentario
             });
             const pendientes = await obtenerCola();
-            set({ guardando: false, pendientesSync: pendientes.length });
+            set({ pendientesSync: pendientes.length });
             
             reproducirSonido('success');
             Toast.show({
@@ -126,7 +122,7 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
 
         // Si falló y no era problema de red (servidor rechazó)
         if (!respuesta.exito && !respuesta.isNetworkError) {
-            set({ inventario: inventarioPrevio, guardando: false }); // Revertir
+            set({ inventario: inventarioPrevio }); // Revertir
             reproducirSonido('error');
             Toast.show({
                 type: 'error',
@@ -137,7 +133,6 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
             return false;
         }
 
-        set({ guardando: false });
         reproducirSonido('success');
         Toast.show({
             type: 'success',

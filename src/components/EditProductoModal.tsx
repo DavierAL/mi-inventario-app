@@ -1,5 +1,5 @@
 // ARCHIVO: src/components/EditProductoModal.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Image, ActivityIndicator } from 'react-native';
 import Modal from 'react-native-modal';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
@@ -11,7 +11,6 @@ import { useTheme } from '../context/ThemeContext';
 interface Props {
     visible: boolean;
     producto: ProductoInventario | null;
-    guardando: boolean;
     onGuardar: (fv: string, fechaEdicion: string, comentario: string) => void;
     onCancelar: () => void;
 }
@@ -19,11 +18,12 @@ interface Props {
 export const EditProductoModal: React.FC<Props> = ({
     visible,
     producto,
-    guardando,
     onGuardar,
     onCancelar,
 }) => {
     const { colors, isDark } = useTheme();
+
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const [formFV, setFormFV] = useState<string>('');
     const [formFechaEdicion] = useState<string>(new Date().toLocaleDateString('es-ES'));
@@ -60,6 +60,10 @@ export const EditProductoModal: React.FC<Props> = ({
             setFormFV(`${dia}/${mes}/${anio}`);
         }
     };
+
+    useEffect(() => {
+        if (!visible) setIsSubmitting(false);
+    }, [visible]);
 
     if (!producto) return null;
 
@@ -176,13 +180,16 @@ export const EditProductoModal: React.FC<Props> = ({
                         <TouchableOpacity
                             style={[
                                 styles.boton, 
-                                { backgroundColor: guardando ? colors.inputDeshabilitado : colors.primario },
-                                guardando && { borderColor: 'transparent' }
+                                { backgroundColor: isSubmitting ? colors.inputDeshabilitado : colors.primario },
+                                isSubmitting && { borderColor: 'transparent' }
                             ]}
-                            onPress={() => onGuardar(formFV, formFechaEdicion, formComentario)}
-                            disabled={guardando}
+                            onPress={() => {
+                                setIsSubmitting(true);
+                                onGuardar(formFV, formFechaEdicion, formComentario);
+                            }}
+                            disabled={isSubmitting}
                         >
-                            {guardando ? (
+                            {isSubmitting ? (
                                 <ActivityIndicator color={colors.textoPrincipal} size="small" />
                             ) : (
                                 <Text style={styles.textoBoton}>Confirmar</Text>
