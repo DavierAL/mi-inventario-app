@@ -28,9 +28,12 @@ interface InventarioState {
     setBusqueda: (texto: string) => void;
     setProductoEditando: (producto: ProductoInventario | null) => void;
     guardarEdicion: (fv: string, fechaEdicion: string, comentario: string) => Promise<boolean>;
+    guardarEdicionDirecta: (producto: ProductoInventario) => Promise<boolean>;
     iniciarListenerInternet: () => void;
     sincronizarColaPendientes: () => Promise<void>;
 }
+
+let internetListenerRegistrado = false;
 
 export const useInventarioStore = create<InventarioState>((set, get) => ({
     inventario: [],
@@ -145,6 +148,39 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
         return true;
     },
 
+    guardarEdicionDirecta: async (producto: ProductoInventario) => {
+        const state = get();
+        const codigo = producto.Cod_Barras;
+        const fv = producto.FV_Actual || '';
+        const fechaEdicion = new Date().toLocaleDateString('es-ES');
+        const comentario = producto.Comentarios || '';
+        
+        const inventarioPrevio = state.inventario;
+        const nuevoInventario = state.inventario.map(item =>
+            String(item.Cod_Barras).trim() === String(codigo).trim()
+                ? { ...item, Fecha_edicion: fechaEdicion }
+                : item
+        );
+        
+        set({ inventario: nuevoInventario });
+        
+        const respuesta = await actualizarProducto(codigo, undefined, fv, fechaEdicion, comentario);
+
+        if (!respuesta.exito && respuesta.isNetworkError) {
+            await agregarACola({ codigoBarras: codigo, nuevoFV: fv, nuevoFechaEdicion: fechaEdicion, nuevoComentario: comentario });
+            const pendientes = await obtenerCola();
+            set({ pendientesSync: pendientes.length });
+            return true;
+        }
+
+        if (!respuesta.exito && !respuesta.isNetworkError) {
+            set({ inventario: inventarioPrevio }); // Revertir
+            return false;
+        }
+
+        return true;
+    },
+
     sincronizarColaPendientes: async () => {
         if (get().sincronizandoFondo) return;
         
@@ -177,7 +213,9 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
     },
 
     iniciarListenerInternet: () => {
-        // Ejecutado una sóla vez idealmente en InventarioListScreen
+        if (internetListenerRegistrado) return;
+        internetListenerRegistrado = true;
+
         NetInfo.addEventListener(state => {
             if (state.isConnected && state.isInternetReachable) {
                 const pendientes = get().pendientesSync;

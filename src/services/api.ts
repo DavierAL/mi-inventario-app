@@ -1,12 +1,12 @@
 // ARCHIVO: src/services/api.ts
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ProductoInventario, RespuestaAPI } from '../types/inventario';
+import { guardarCatalogoEnDB, leerCatalogoDesdeDB, initDB } from './db';
 
 const API_URL = 'https://script.google.com/macros/s/AKfycbyykgRWrpkmAedMW57GZWMQmIAs_Pu8XLRlS7EaIzViBLOH7FGQIqy3WY9_UMZPJfVIow/exec';
 
-const CACHE_KEY_DATOS = 'inventario_cache_datos';
-const CACHE_KEY_TIMESTAMP = 'inventario_cache_timestamp';
+// Inicializar la DB nada más cargar el módulo
+initDB().catch(e => console.error("Fallo al inicializar DB nativa", e));
 
 /**
  * Formatea la diferencia de tiempo entre ahora y una fecha dada en texto legible.
@@ -24,41 +24,11 @@ function formatearTiempoTranscurrido(timestamp: number): string {
     return `hace ${diffDias} día(s)`;
 }
 
-/**
- * Guarda los datos del inventario en el caché local.
- */
-async function guardarEnCache(datos: ProductoInventario[]): Promise<void> {
-    try {
-        await AsyncStorage.setItem(CACHE_KEY_DATOS, JSON.stringify(datos));
-        await AsyncStorage.setItem(CACHE_KEY_TIMESTAMP, String(Date.now()));
-    } catch (e) {
-        console.warn('No se pudo guardar el caché local:', e);
-    }
-}
-
-/**
- * Lee el inventario desde el caché local.
- * Devuelve null si no hay caché o si ocurre un error.
- */
-async function leerDesdeCache(): Promise<{ datos: ProductoInventario[]; lastSync: string } | null> {
-    try {
-        const datosJSON = await AsyncStorage.getItem(CACHE_KEY_DATOS);
-        const timestampStr = await AsyncStorage.getItem(CACHE_KEY_TIMESTAMP);
-
-        if (!datosJSON || !timestampStr) return null;
-
-        const datos: ProductoInventario[] = JSON.parse(datosJSON);
-        const lastSync = formatearTiempoTranscurrido(Number(timestampStr));
-        return { datos, lastSync };
-    } catch (e) {
-        console.warn('No se pudo leer el caché local:', e);
-        return null;
-    }
-}
+// AsyncStorage helpers removidos (Reemplazados por SQLite)
 
 /**
  * Obtiene el catálogo de productos.
- * Primero intenta la API. Si falla, usa el caché local.
+ * Primero intenta la API. Si falla, usa la Base de Datos local.
  */
 export const obtenerInventario = async (): Promise<{
     datos: ProductoInventario[];
@@ -66,30 +36,28 @@ export const obtenerInventario = async (): Promise<{
     lastSync?: string;
 }> => {
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 35000); // Aumentado a 35s
-
-        const respuesta = await fetch(`${API_URL}?action=leerInventario`, {
-            signal: controller.signal
-        });
-        clearTimeout(timeoutId);
+        const respuesta = await fetch(`${API_URL}?action=leerInventario`);
         
         const json: RespuestaAPI = await respuesta.json();
 
         if (json.status === 'success' && json.data) {
-            // Guardamos en caché para uso offline futuro
-            await guardarEnCache(json.data);
+            // Guardamos velozmente masivo con SQLite
+            await guardarCatalogoEnDB(json.data);
             return { datos: json.data, fromCache: false };
         } else {
             throw new Error(json.message || 'Error desconocido al leer la base de datos');
         }
     } catch (error) {
-        console.warn('Fallo la API, intentando caché local...', error);
+        console.warn('Fallo la API, intentando Base de Datos local...', error);
 
-        // Intentamos el caché offline
-        const cache = await leerDesdeCache();
+        // Intentamos el caché en SQLite offline
+        const cache = await leerCatalogoDesdeDB();
         if (cache) {
-            return { datos: cache.datos, fromCache: true, lastSync: cache.lastSync };
+            return { 
+                datos: cache.datos, 
+                fromCache: true, 
+                lastSync: formatearTiempoTranscurrido(cache.timestamp) 
+            };
         }
 
         // Sin API ni caché: lanzamos el error para que la UI lo muestre
@@ -110,12 +78,14 @@ export const actualizarProducto = async (
 ): Promise<{ exito: boolean; isNetworkError?: boolean }> => {
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 35000); // Aumentado a 35s
-
+        const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s máximo estricto
+        
         const respuesta = await fetch(API_URL, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                // IMPORTANT: Usar text/plain evita el preflight CORS (petición OPTIONS)
+                // que es el causante de que se duplique el tiempo de respuesta y OkHttp aborte.
+                'Content-Type': 'text/plain;charset=utf-8',
             },
             signal: controller.signal,
             body: JSON.stringify({
@@ -129,7 +99,7 @@ export const actualizarProducto = async (
                 },
             }),
         });
-
+        
         clearTimeout(timeoutId);
         
         const responseText = await respuesta.text();
@@ -145,10 +115,12 @@ export const actualizarProducto = async (
             return { exito: true };
         } else {
             console.error('Error del servidor:', json.message);
-            return { exito: false };
+            return { exito: false, isNetworkError: false }; // 👈 Especifico que fue el backend
         }
     } catch (error: any) {
         console.error('Error en actualizarProducto:', error.message);
-        return { exito: false, isNetworkError: true };
+        // Si el fetch aborta o falla conexión, el mensaje típicamente contiene "Network", "Failed to fetch", o "Aborted"
+        const isNetwork = error.message === 'Aborted' || error.message?.includes('Network') || error.message?.includes('fetch') || error.message?.includes('OKHTTP');
+        return { exito: false, isNetworkError: isNetwork };
     }
 };

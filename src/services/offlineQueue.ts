@@ -1,5 +1,5 @@
 // ARCHIVO: src/services/offlineQueue.ts
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { db } from './db';
 
 export interface EdicionPendiente {
     id: string;
@@ -9,43 +9,40 @@ export interface EdicionPendiente {
     nuevoComentario: string;
 }
 
-const CACHE_KEY_OFFLINE_QUEUE = 'inventario_offline_queue';
-
 export const agregarACola = async (edicion: Omit<EdicionPendiente, 'id'>) => {
     try {
-        const colaActual = await obtenerCola();
-        const nuevaEdicion: EdicionPendiente = { ...edicion, id: Date.now().toString() };
-        colaActual.push(nuevaEdicion);
-        await AsyncStorage.setItem(CACHE_KEY_OFFLINE_QUEUE, JSON.stringify(colaActual));
+        const id = Date.now().toString();
+        await db.runAsync(
+            'INSERT INTO cola_offline (id, codigoBarras, nuevoFV, nuevoFechaEdicion, nuevoComentario, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
+            [id, edicion.codigoBarras, edicion.nuevoFV || '', edicion.nuevoFechaEdicion || '', edicion.nuevoComentario || '', Date.now()]
+        );
     } catch(e) {
-        console.warn('Error al guardar en cola offline', e);
+        console.warn('Error al guardar en cola offline SQLite', e);
     }
 };
 
 export const obtenerCola = async (): Promise<EdicionPendiente[]> => {
     try {
-        const json = await AsyncStorage.getItem(CACHE_KEY_OFFLINE_QUEUE);
-        return json ? JSON.parse(json) : [];
+        const rows = await db.getAllAsync<any>('SELECT * FROM cola_offline ORDER BY timestamp ASC;');
+        return rows as EdicionPendiente[];
     } catch(e) {
-        console.warn('Error al obtener cola offline', e);
+        console.warn('Error al obtener cola offline SQLite', e);
         return [];
     }
 };
 
 export const removerDeCola = async (id: string) => {
     try {
-        const colaActual = await obtenerCola();
-        const nuevaCola = colaActual.filter(item => item.id !== id);
-        await AsyncStorage.setItem(CACHE_KEY_OFFLINE_QUEUE, JSON.stringify(nuevaCola));
+        await db.runAsync('DELETE FROM cola_offline WHERE id = ?', [id]);
     } catch(e) {
-        console.warn('Error al remover de la cola offline', e);
+        console.warn('Error al remover de la cola offline SQLite', e);
     }
 };
 
 export const vaciarCola = async () => {
     try {
-        await AsyncStorage.removeItem(CACHE_KEY_OFFLINE_QUEUE);
+        await db.runAsync('DELETE FROM cola_offline');
     } catch(e) {
-        console.warn('Error al vaciar cola offline', e);
+        console.warn('Error al vaciar cola offline SQLite', e);
     }
 };

@@ -17,10 +17,12 @@ export const ScannerScreen = () => {
     const navigation = useNavigation<ScannerNavProp>();
     const { 
         inventario, setProductoEditando, productoEditando, 
-        guardando, guardarEdicion 
+        guardando, guardarEdicion, guardarEdicionDirecta 
     } = useInventarioStore();
     
     const [procesandoEscaneo, setProcesandoEscaneo] = useState<boolean>(false);
+    const [modoRafaga, setModoRafaga] = useState<boolean>(false);
+    const [ultimoEscaneado, setUltimoEscaneado] = useState<string | null>(null);
 
     useEffect(() => {
         // Precargar sonidos cuando se abre el escáner
@@ -57,7 +59,25 @@ export const ScannerScreen = () => {
 
         if (productoEncontrado) {
             reproducirBeep(true);
-            setProductoEditando(productoEncontrado);
+            
+            if (modoRafaga) {
+                // MODO RÁFAGA: Guardado silencioso de fondo, cámara no se detiene mucho
+                guardarEdicionDirecta(productoEncontrado);
+                setUltimoEscaneado(productoEncontrado.SKU || codigoLimpio);
+                
+                Toast.show({
+                    type: 'success',
+                    text1: '⚡ Ráfaga: Procesado',
+                    text2: `${productoEncontrado.Descripcion}`,
+                    position: 'top',
+                    visibilityTime: 1200,
+                });
+                // En modo ráfaga, habilitamos el escáner rápido de nuevo
+                setTimeout(() => setProcesandoEscaneo(false), 800);
+            } else {
+                // MODO NORMAL: Abrimos Modal
+                setProductoEditando(productoEncontrado);
+            }
         } else {
             reproducirBeep(false);
             Toast.show({
@@ -83,13 +103,38 @@ export const ScannerScreen = () => {
             />
 
             <View style={styles.capa}>
-                <Text style={styles.textoInfo}>Alinea el código en el centro</Text>
+                {/* Selector de Modo */}
+                <View style={styles.contenedorModos}>
+                    <TouchableOpacity 
+                        style={[styles.botonModo, !modoRafaga && styles.botonModoActivo]}
+                        onPress={() => setModoRafaga(false)}
+                    >
+                        <Text style={[styles.textoModo, !modoRafaga && styles.textoModoActivo]}>Modo Edición</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={[styles.botonModo, modoRafaga && styles.botonModoActivo, modoRafaga && {backgroundColor: '#DD6B20'}]}
+                        onPress={() => setModoRafaga(true)}
+                    >
+                        <Text style={[styles.textoModo, modoRafaga && styles.textoModoActivo]}>⚡ Ráfaga</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <Text style={styles.textoInfo}>
+                    {modoRafaga ? 'Alinea para marcaje rápido' : 'Alinea el código en el centro'}
+                </Text>
 
                 <View style={styles.marco}>
-                    <View style={[styles.esquina, styles.esquinaTL]} />
-                    <View style={[styles.esquina, styles.esquinaTR]} />
-                    <View style={[styles.esquina, styles.esquinaBL]} />
-                    <View style={[styles.esquina, styles.esquinaBR]} />
+                    <View style={[styles.esquina, styles.esquinaTL, modoRafaga && {borderColor: '#DD6B20'}]} />
+                    <View style={[styles.esquina, styles.esquinaTR, modoRafaga && {borderColor: '#DD6B20'}]} />
+                    <View style={[styles.esquina, styles.esquinaBL, modoRafaga && {borderColor: '#DD6B20'}]} />
+                    <View style={[styles.esquina, styles.esquinaBR, modoRafaga && {borderColor: '#DD6B20'}]} />
+                </View>
+
+                {/* Último Escaneado Mini Resumen */}
+                <View style={{ height: 40, justifyContent: 'center' }}>
+                    {modoRafaga && ultimoEscaneado && (
+                        <Text style={{ color: '#48BB78', fontWeight: 'bold' }}>✓ {ultimoEscaneado}</Text>
+                    )}
                 </View>
 
                 {/* Botón Flotante para Cancelar */}
@@ -136,5 +181,20 @@ const styles = StyleSheet.create({
     botonCancelarCerrar: {
         backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 24, marginTop: 40
     },
-    textoBotonCancelar: { color: '#FFF', fontSize: 16, fontWeight: '700' }
+    textoBotonCancelar: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+    contenedorModos: {
+        flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 24, padding: 4, marginBottom: 20
+    },
+    botonModo: {
+        paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20
+    },
+    botonModoActivo: {
+        backgroundColor: '#3182CE'
+    },
+    textoModo: {
+        color: '#A0AEC0', fontWeight: 'bold', fontSize: 14
+    },
+    textoModoActivo: {
+        color: '#FFF'
+    }
 });

@@ -81,60 +81,60 @@ export const EditProductoModal: React.FC<Props> = ({
 
                 {/* Cabecera / Imagen */}
                 <View style={[styles.cabeceraModal, { marginTop: -10 }]}>
-                        <View style={[styles.contenedorImagenModal, { backgroundColor: colors.inputDeshabilitado, borderColor: colors.borde }]}>
-                            {producto.Imagen ? (
-                                <Image
-                                    source={{ uri: String(producto.Imagen) }}
-                                    style={styles.imagenModal}
-                                    resizeMode="contain"
-                                />
-                            ) : (
-                                <Text style={styles.imagenModalPlaceholder}>📦</Text>
-                            )}
-                        </View>
-                        <View style={styles.infoModal}>
-                            <Text style={[styles.modalTitulo, { color: colors.textoPrincipal }]}>Actualizar Inventario</Text>
-                            <Text style={[styles.modalSubtitulo, { color: colors.textoSecundario }]} numberOfLines={2}>{producto.Descripcion}</Text>
-                            <Text style={[styles.modalCod, { color: colors.textoSecundario, backgroundColor: colors.inputDeshabilitado }]}>CÓDIGO: {producto.Cod_Barras}</Text>
-                        </View>
-                    </View>
-
-                    {/* Resumen de Precios */}
-                    <View style={[styles.filaPrecios, { backgroundColor: colors.fondoPrimario }]}>
-                        <View style={styles.precioItem}>
-                            <Text style={[styles.precioLabel, { color: colors.textoSecundario }]}>Precio Web</Text>
-                            <Text style={[styles.precioValor, { color: colors.textoPrincipal }]}>{formatearPrecio(producto.Precio_Web)}</Text>
-                        </View>
-                        <View style={styles.precioDivisor} />
-                        <View style={styles.precioItem}>
-                            <Text style={[styles.precioLabel, { color: colors.textoSecundario }]}>Precio Tienda</Text>
-                            <Text style={[styles.precioValor, { color: colors.primario }]}>{formatearPrecio(producto.Precio_Tienda)}</Text>
-                        </View>
-                    </View>
-
-                    {/* Fila Stock (solo lectura) + Vencimiento */}
-                    <View style={styles.filaFormulario}>
-                        <View style={styles.columnaFormulario}>
-                            <Text style={[styles.label, { color: colors.textoSecundario }]}>Stock Físico</Text>
-                            <TextInput
-                                style={[styles.input, { backgroundColor: colors.inputDeshabilitado, color: colors.textoSecundario, borderColor: colors.borde }]}
-                                value={String(producto.Stock_Master || 0)}
-                                editable={false}
+                    <View style={[styles.contenedorImagenModal, { backgroundColor: colors.inputDeshabilitado, borderColor: colors.borde }]}>
+                        {producto.Imagen ? (
+                            <Image
+                                source={{ uri: String(producto.Imagen) }}
+                                style={styles.imagenModal}
+                                resizeMode="contain"
                             />
-                        </View>
-                        <View style={styles.columnaFormulario}>
-                            <Text style={[styles.label, { color: colors.textoSecundario }]}>Vencimiento</Text>
-                            <TouchableOpacity
-                                style={[styles.inputTouchable, { backgroundColor: colors.fondoPrimario, borderColor: colors.primario }]}
-                                onPress={() => setMostrarDatePicker(true)}
-                            >
-                                <Text style={[styles.inputTouchableTexto, { color: colors.textoPrincipal }, !formFV && { color: colors.placeholder }]}>
-                                    {formFV || 'Seleccionar...'}
-                                </Text>
-                                <Text style={styles.iconoCalendario}>📅</Text>
-                            </TouchableOpacity>
-                        </View>
+                        ) : (
+                            <Text style={styles.imagenModalPlaceholder}>📦</Text>
+                        )}
                     </View>
+                    <View style={styles.infoModal}>
+                        <Text style={[styles.modalTitulo, { color: colors.textoPrincipal }]}>Actualizar Inventario</Text>
+                        <Text style={[styles.modalSubtitulo, { color: colors.textoSecundario }]} numberOfLines={2}>{producto.Descripcion}</Text>
+                        <Text style={[styles.modalCod, { color: colors.textoSecundario, backgroundColor: colors.inputDeshabilitado }]}>CÓDIGO: {producto.Cod_Barras}</Text>
+                    </View>
+                </View>
+
+                {/* Resumen de Precios */}
+                <View style={[styles.filaPrecios, { backgroundColor: colors.fondoPrimario }]}>
+                    <View style={styles.precioItem}>
+                        <Text style={[styles.precioLabel, { color: colors.textoSecundario }]}>Precio Web</Text>
+                        <Text style={[styles.precioValor, { color: colors.textoPrincipal }]}>{formatearPrecio(producto.Precio_Web)}</Text>
+                    </View>
+                    <View style={styles.precioDivisor} />
+                    <View style={styles.precioItem}>
+                        <Text style={[styles.precioLabel, { color: colors.textoSecundario }]}>Precio Tienda</Text>
+                        <Text style={[styles.precioValor, { color: colors.primario }]}>{formatearPrecio(producto.Precio_Tienda)}</Text>
+                    </View>
+                </View>
+
+                {/* Fila Stock (solo lectura) + Vencimiento */}
+                <View style={styles.filaFormulario}>
+                    <View style={styles.columnaFormulario}>
+                        <Text style={[styles.label, { color: colors.textoSecundario }]}>Stock Físico</Text>
+                        <TextInput
+                            style={[styles.input, { backgroundColor: colors.inputDeshabilitado, color: colors.textoSecundario, borderColor: colors.borde }]}
+                            value={String(producto.Stock_Master || 0)}
+                            editable={false}
+                        />
+                    </View>
+                    <View style={styles.columnaFormulario}>
+                        <Text style={[styles.label, { color: colors.textoSecundario }]}>Vencimiento</Text>
+                        <TouchableOpacity
+                            style={[styles.inputTouchable, { backgroundColor: colors.fondoPrimario, borderColor: colors.primario }]}
+                            onPress={() => setMostrarDatePicker(true)}
+                        >
+                            <Text style={[styles.inputTouchableTexto, { color: colors.textoPrincipal }, !formFV && { color: colors.placeholder }]}>
+                                {formFV || 'Seleccionar...'}
+                            </Text>
+                            <Text style={styles.iconoCalendario}>📅</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
 
                     {/* Selector Nativo */}
                     {mostrarDatePicker && (

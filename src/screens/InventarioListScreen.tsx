@@ -1,10 +1,11 @@
 // ARCHIVO: src/screens/InventarioListScreen.tsx
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import {
     StyleSheet, Text, View, ActivityIndicator,
-    SafeAreaView, StatusBar, TouchableOpacity, Alert,
+    StatusBar, TouchableOpacity, Alert,
     TextInput, RefreshControl, ScrollView
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCameraPermissions } from 'expo-camera';
 import { FlashList } from '@shopify/flash-list';
 import { useDebounce } from '../utils/useDebounce';
@@ -114,9 +115,9 @@ export const InventarioListScreen = () => {
         navigation.navigate('Scanner');
     };
 
-    const manejarProductoEncontrado = (producto: ProductoInventario) => {
+    const manejarProductoEncontrado = useCallback((producto: ProductoInventario) => {
         setProductoEditando(producto);
-    };
+    }, [setProductoEditando]);
 
     if (cargando && inventario.length === 0) {
         // En lugar del spinner solitario, renderizamos Skeletons
@@ -217,7 +218,7 @@ export const InventarioListScreen = () => {
                             onPress={() => setFiltroRapido('30_DIAS')}
                         >
                             <Text style={[styles.textoFiltro, { color: '#DD6B20' }, filtroRapido === '30_DIAS' && { color: 'white' }]}>
-                                🟠 &lt; 30 días: {conteos.en30Dias}
+                                🟠 {'<'} 30 días: {conteos.en30Dias}
                             </Text>
                         </TouchableOpacity>
 
@@ -226,7 +227,7 @@ export const InventarioListScreen = () => {
                             onPress={() => setFiltroRapido('90_DIAS')}
                         >
                             <Text style={[styles.textoFiltro, { color: '#D69E2E' }, filtroRapido === '90_DIAS' && { color: 'white' }]}>
-                                🟡 &lt; 90 días: {conteos.en90Dias}
+                                🟡 {'<'} 90 días: {conteos.en90Dias}
                             </Text>
                         </TouchableOpacity>
                     </ScrollView>
@@ -236,7 +237,7 @@ export const InventarioListScreen = () => {
                 <View style={{ flex: 1, width: '100%' }}>
                     <FastList
                         data={inventarioProcesado}
-                        keyExtractor={(item: ProductoInventario) => String(item.Cod_Barras).trim()}
+                        keyExtractor={(item: ProductoInventario) => `${item.Cod_Barras}_${item.SKU}`}
                         estimatedItemSize={104} // Clave del alto rendimiento
                         renderItem={({ item }: { item: ProductoInventario }) => (
                             <ProductoCard item={item} onPress={manejarProductoEncontrado} />
