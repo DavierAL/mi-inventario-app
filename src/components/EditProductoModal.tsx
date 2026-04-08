@@ -1,6 +1,6 @@
 // ARCHIVO: src/components/EditProductoModal.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Image, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Image, ActivityIndicator, KeyboardAvoidingView, ScrollView } from 'react-native';
 import Modal from 'react-native-modal';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { ProductoInventario } from '../types/inventario';
@@ -74,14 +74,21 @@ export const EditProductoModal: React.FC<Props> = ({
             onSwipeComplete={onCancelar}
             swipeDirection="down"
             style={styles.modalBase}
-            avoidKeyboard={true}
+            avoidKeyboard={Platform.OS === 'ios'}
         >
-            <View style={[styles.modalContenedor, { backgroundColor: colors.superficie }]}>
-                
-                {/* 📌 BARRA DE ARRASTRE TIPO iOS */}
-                <View style={styles.handleContainer}>
-                    <View style={[styles.handleBar, { backgroundColor: colors.borde }]} />
-                </View>
+            <KeyboardAvoidingView 
+                behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} 
+                style={{ flex: 1, justifyContent: 'flex-end' }}
+            >
+                <View style={[styles.modalContenedor, { backgroundColor: colors.superficie, maxHeight: '90%' }]}>
+                    
+                    {/* 📌 BARRA DE ARRASTRE TIPO iOS */}
+                    <View style={styles.handleContainer}>
+                        <View style={[styles.handleBar, { backgroundColor: colors.borde }]} />
+                    </View>
+
+                    {/* SCROLL PARA EVITAR CLIPPING CON TECLADO */}
+                    <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
                 {/* Cabecera / Imagen */}
                 <View style={[styles.cabeceraModal, { marginTop: -10 }]}>
@@ -196,7 +203,9 @@ export const EditProductoModal: React.FC<Props> = ({
                             )}
                         </TouchableOpacity>
                     </View>
+                </ScrollView>
             </View>
+            </KeyboardAvoidingView>
         </Modal>
     );
 };

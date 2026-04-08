@@ -77,17 +77,13 @@ export const actualizarProducto = async (
     nuevoComentario?: string
 ): Promise<{ exito: boolean; isNetworkError?: boolean }> => {
     try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 35000); // 35s máximo para dar más aire
-        
         const respuesta = await fetch(API_URL, {
             method: 'POST',
+            redirect: 'follow',
             headers: {
-                // IMPORTANT: Usar text/plain evita el preflight CORS (petición OPTIONS)
-                // que es el causante de que se duplique el tiempo de respuesta y OkHttp aborte.
+                'Accept': 'application/json',
                 'Content-Type': 'text/plain;charset=utf-8',
             },
-            signal: controller.signal,
             body: JSON.stringify({
                 accion: 'actualizarDatoManual',
                 datos: {
@@ -100,15 +96,15 @@ export const actualizarProducto = async (
             }),
         });
         
-        clearTimeout(timeoutId);
-        
         const responseText = await respuesta.text();
         let json: RespuestaAPI;
         try {
             json = JSON.parse(responseText);
         } catch (parseError) {
             console.error('El servidor no devolvió JSON. Devolvió:', responseText);
-            throw new Error(`Google devolvió una página de error en vez de datos validos: ${responseText.substring(0, 50)}...`);
+            // Si el servidor (Google) escupió HTML por un colapso en lugar del JSON,
+            // lo mandamos a la cola para reintentar luego en lugar de perder el dato.
+            return { exito: false, isNetworkError: true };
         }
 
         if (json.status === 'success') {

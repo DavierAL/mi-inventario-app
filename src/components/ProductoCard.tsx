@@ -1,7 +1,7 @@
 // ARCHIVO: src/components/ProductoCard.tsx
 
-import React, { useEffect, useRef, memo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import React, { memo } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { ProductoInventario } from '../types/inventario';
 import { formatearFecha } from '../utils/fecha';
@@ -15,27 +15,9 @@ interface Props {
 
 const ProductoCardComponent: React.FC<Props> = ({ item, onPress }) => {
     const { colors } = useTheme();
-    const fadeAnim = useRef(new Animated.Value(0)).current;
-    const slideAnim = useRef(new Animated.Value(20)).current;
-
-    useEffect(() => {
-        Animated.parallel([
-            Animated.timing(fadeAnim, {
-                toValue: 1,
-                duration: 350,
-                useNativeDriver: true,
-            }),
-            Animated.spring(slideAnim, {
-                toValue: 0,
-                tension: 80,
-                friction: 12,
-                useNativeDriver: true,
-            }),
-        ]).start();
-    }, []);
 
     return (
-        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}>
+        <View>
             <TouchableOpacity
                 style={[styles.tarjetaProducto, { backgroundColor: colors.superficie }]}
                 onPress={() => onPress(item)}
@@ -83,7 +65,7 @@ const ProductoCardComponent: React.FC<Props> = ({ item, onPress }) => {
                     </View>
                 </View>
             </TouchableOpacity>
-        </Animated.View>
+        </View>
     );
 };
 

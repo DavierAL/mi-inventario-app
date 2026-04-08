@@ -2,6 +2,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 
 interface Props {
@@ -21,8 +22,8 @@ export const BottomBar: React.FC<Props> = ({ modoActivo, onTabPress }) => {
                     style={styles.tab} 
                     onPress={() => onTabPress('lista')}
                 >
-                    <Text style={[styles.icono, { color: modoActivo === 'lista' ? colors.bottomBarIconoActivo : colors.bottomBarIcono }]}>🏠</Text>
-                    <Text style={[styles.texto, { color: modoActivo === 'lista' ? colors.bottomBarIconoActivo : colors.bottomBarIcono }]}>Inicio</Text>
+                    <Ionicons name="home-outline" size={24} color={modoActivo === 'lista' ? colors.bottomBarIconoActivo : colors.bottomBarIcono} />
+                    <Text style={[styles.texto, { color: modoActivo === 'lista' ? colors.bottomBarIconoActivo : colors.bottomBarIcono, marginTop: 4 }]}>Almacén</Text>
                 </TouchableOpacity>
 
                 {/* TAB: ESCÁNER (Botón Central Flotante) */}
@@ -32,7 +33,7 @@ export const BottomBar: React.FC<Props> = ({ modoActivo, onTabPress }) => {
                         onPress={() => onTabPress('escaner')}
                         activeOpacity={0.8}
                     >
-                        <Text style={styles.iconoEscaner}>📷</Text>
+                        <Ionicons name="barcode-outline" size={32} color="#FFF" />
                     </TouchableOpacity>
                 </View>
 
@@ -41,8 +42,8 @@ export const BottomBar: React.FC<Props> = ({ modoActivo, onTabPress }) => {
                     style={styles.tab} 
                     onPress={toggleTheme}
                 >
-                    <Text style={[styles.icono, { color: colors.bottomBarIcono }]}>{isDark ? '☀️' : '🌙'}</Text>
-                    <Text style={[styles.texto, { color: colors.bottomBarIcono }]}>Tema</Text>
+                    <Ionicons name={isDark ? "sunny-outline" : "moon-outline"} size={24} color={colors.bottomBarIcono} />
+                    <Text style={[styles.texto, { color: colors.bottomBarIcono, marginTop: 4 }]}>Tema</Text>
                 </TouchableOpacity>
 
             </View>
@@ -98,9 +99,5 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.4,
         shadowRadius: 6,
-    },
-    iconoEscaner: {
-        fontSize: 28,
-        color: '#FFF',
     }
 });

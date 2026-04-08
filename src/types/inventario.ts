@@ -12,6 +12,7 @@ export interface ProductoInventario {
     Fila_Inventario: number;
     Imagen: string;
     Comentarios: string;
+    Marca?: string;
 }
 
 // Esta interfaz define la respuesta que nos da Google Apps Script

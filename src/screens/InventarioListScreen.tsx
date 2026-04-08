@@ -9,8 +9,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCameraPermissions } from 'expo-camera';
 import { FlashList } from '@shopify/flash-list';
 import { useDebounce } from '../utils/useDebounce';
+import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
+import { formatearFecha } from '../utils/fecha';
 
 import { ProductoCard } from '../components/ProductoCard';
 import { SkeletonCard } from '../components/SkeletonCard';
@@ -60,7 +62,8 @@ export const InventarioListScreen = () => {
             let diasRestantes = Infinity;
             
             if (item.FV_Actual) {
-                const [dia, mes, anio] = item.FV_Actual.split('/');
+                const fvFormateada = formatearFecha(item.FV_Actual);
+                const [dia, mes, anio] = fvFormateada.split('/');
                 if(dia && mes && anio) {
                     const fechaVencimiento = new Date(Number(anio), Number(mes) - 1, Number(dia));
                     const diferenciaMilisegundos = fechaVencimiento.getTime() - hoy.getTime();
@@ -165,7 +168,12 @@ export const InventarioListScreen = () => {
                 )}
 
                 <View style={[styles.cabecera, { backgroundColor: colors.superficie, borderBottomColor: colors.borde }]}>
-                    <Text style={[styles.tituloApp, { color: colors.textoPrincipal }]}>Inventario Activo</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+                        <Text style={[styles.tituloApp, { color: colors.textoPrincipal }]}>Inventario Activo</Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('Analytics')}>
+                            <Ionicons name="stats-chart" size={26} color={colors.primario} style={{ padding: 4 }} />
+                        </TouchableOpacity>
+                    </View>
                     {pendientesSync > 0 && (
                         <Text style={{ fontSize: 13, color: colors.error, fontWeight: '700', marginTop: -2, marginBottom: 4 }}>
                             {sincronizandoFondo ? '🔄 Enviando pendientes...' : `⏳ ${pendientesSync} edición(es) por enviar`}

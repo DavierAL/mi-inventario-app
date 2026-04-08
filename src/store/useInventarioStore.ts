@@ -57,8 +57,27 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
             const resultado = await obtenerInventario();
             const pendientes = await obtenerCola();
             
+            // ⭐️ FIX MÁSTER: Fusionar la caché nativa/online con la Cola de Pendientes.
+            // Si Google (o el caché) nos manda datos "Viejos" porque aún no se ha mandado la cola,
+            // sobre-escribimos en RAM visualmente la versión con las ediciones locales.
+            let inventarioFinal = resultado.datos;
+            if (pendientes.length > 0) {
+                inventarioFinal = inventarioFinal.map(prod => {
+                    const edicionPendiente = pendientes.slice().reverse().find(p => p.codigoBarras === prod.Cod_Barras);
+                    if (edicionPendiente) {
+                        return {
+                            ...prod,
+                            FV_Actual: edicionPendiente.nuevoFV || prod.FV_Actual,
+                            Fecha_edicion: edicionPendiente.nuevoFechaEdicion || prod.Fecha_edicion,
+                            Comentarios: edicionPendiente.nuevoComentario || prod.Comentarios
+                        };
+                    }
+                    return prod;
+                });
+            }
+
             set({
-                inventario: resultado.datos,
+                inventario: inventarioFinal,
                 modoOffline: resultado.fromCache,
                 lastSync: resultado.lastSync,
                 cargando: false,
@@ -153,7 +172,7 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
         const inventarioPrevio = state.inventario;
         const nuevoInventario = state.inventario.map(item =>
             String(item.Cod_Barras).trim() === String(codigo).trim()
-                ? { ...item, Fecha_edicion: fechaEdicion }
+                ? { ...item, FV_Actual: fv, Fecha_edicion: fechaEdicion, Comentarios: comentario }
                 : item
         );
         
@@ -204,6 +223,13 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
         }
 
         const colaRestante = await obtenerCola();
+        
+        // Al terminar de vaciar, actualizamos silenciosamente desde la nube para asegurar 
+        // consistencia de los datos ya que Google Sheets ya tiene las verdades absolutas.
+        if (colaRestante.length === 0 && !get().modoOffline) {
+            get().cargarDatos(true);
+        }
+
         set({ sincronizandoFondo: false, pendientesSync: colaRestante.length });
     },
 

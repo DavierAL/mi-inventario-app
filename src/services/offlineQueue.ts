@@ -11,7 +11,8 @@ export interface EdicionPendiente {
 
 export const agregarACola = async (edicion: Omit<EdicionPendiente, 'id'>) => {
     try {
-        const id = Date.now().toString();
+        // Agregamos semilla aleatoria para evitar ráfagas del mismo milisegundo colisionando
+        const id = Date.now().toString() + Math.random().toString(36).substring(7);
         await db.runAsync(
             'INSERT INTO cola_offline (id, codigoBarras, nuevoFV, nuevoFechaEdicion, nuevoComentario, timestamp) VALUES (?, ?, ?, ?, ?, ?)',
             [id, edicion.codigoBarras, edicion.nuevoFV || '', edicion.nuevoFechaEdicion || '', edicion.nuevoComentario || '', Date.now()]
