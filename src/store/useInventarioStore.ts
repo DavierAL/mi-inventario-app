@@ -12,9 +12,7 @@ interface InventarioState {
     error: string | null;
     modoOffline: boolean;
     lastSync?: string;
-    
     busqueda: string;
-    
     productoEditando: ProductoInventario | null;
     pendientesSync: number;
     sincronizandoFondo: boolean;
@@ -29,7 +27,6 @@ interface InventarioState {
 }
 
 export const useInventarioStore = create<InventarioState>((set, get) => ({
-    // Estado Inicial
     inventario: {},
     cargando: true,
     error: null,
@@ -40,147 +37,115 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
     pendientesSync: 0,
     sincronizandoFondo: false,
 
-    // Conexión y Sincronización
     conectarInventario: () => {
         set({ cargando: true, error: null });
-        
         InventarioRepository.vaciarColaSync();
 
-        const unsubscribe = InventarioRepository.suscribir(
+        return InventarioRepository.suscribir(
             (datos, fromCache) => {
-                // NORMALIZACIÓN O(n): Transformamos arreglo a Diccionario para búsquedas O(1)
-                const inventarioNormalizado = datos.reduce((acc, curr) => {
+                const dict = datos.reduce((acc, curr) => {
                     const key = String(curr.Cod_Barras || curr.SKU).trim();
                     if (key) acc[key] = curr;
                     return acc;
                 }, {} as Record<string, ProductoInventario>);
 
                 set({
-                    inventario: inventarioNormalizado,
+                    inventario: dict,
                     modoOffline: fromCache,
                     cargando: false,
                     lastSync: new Date().toLocaleTimeString(),
                     error: null
                 });
             },
-            (error) => {
-                set({ 
-                    error: MENSAJES.ERROR_CONEXION_REALTIME,
-                    cargando: false 
-                });
-            }
+            (err) => set({ error: MENSAJES.ERROR_CONEXION_REALTIME, cargando: false })
         );
-
-        return unsubscribe;
     },
 
     cargarDatosSync: () => {
         set({ cargando: true });
-        // Simulación de "refresco" visual ya que onSnapshot es reactivo
         setTimeout(() => set({ cargando: false }), 500);
     },
 
-    setBusqueda: (texto: string) => set({ busqueda: texto }),
+    setBusqueda: (busqueda) => set({ busqueda }),
+    setProductoEditando: (productoEditando) => set({ productoEditando }),
 
-    setProductoEditando: (producto) => set({ productoEditando: producto }),
+    guardarEdicion: async (fv, fechaEdicion, comentario) => {
+        const { productoEditando, inventario } = get();
+        if (!productoEditando) return false;
 
-    // Persistencia O(1)
-    guardarEdicion: async (fv: string, fechaEdicion: string, comentario: string) => {
-        const state = get();
-        if (!state.productoEditando) return false;
+        const codigo = String(productoEditando.Cod_Barras).trim();
+        const original = inventario[codigo];
+        if (!original) return false;
 
-        const codigo = String(state.productoEditando.Cod_Barras).trim();
-        const productoPrevio = state.inventario[codigo];
-        if (!productoPrevio) return false;
-
-        // Actualización Optimista O(1)
-        const nuevoProducto = {
-            ...productoPrevio,
-            FV_Actual: fv,
-            Fecha_edicion: fechaEdicion,
-            Comentarios: comentario
+        // 1. Actualización Optimista
+        const actualizado: ProductoInventario = { 
+            ...original, 
+            FV_Actual: fv, 
+            Fecha_edicion: fechaEdicion, 
+            Comentarios: comentario 
         };
+        set({ 
+            inventario: { ...inventario, [codigo]: actualizado },
+            productoEditando: null 
+        });
 
-        const nuevoInventario = {
-            ...state.inventario,
-            [codigo]: nuevoProducto
-        };
-        
-        set({ inventario: nuevoInventario, productoEditando: null });
-
-        const respuesta = await InventarioRepository.actualizarProducto(
+        // 2. Persistencia en Capas
+        const res = await InventarioRepository.actualizarProducto(
             codigo,
+            { FV_Actual: fv, Fecha_edicion: fechaEdicion, Comentarios: comentario },
             {
-                FV_Actual: fv,
-                Fecha_edicion: fechaEdicion,
-                Comentarios: comentario
-            },
-            // Info para el historial de auditoría
-            {
-                descripcion: productoPrevio.Descripcion || '',
-                marca: productoPrevio.Marca || '',
-                sku: productoPrevio.SKU || '',
-                fvAnterior: productoPrevio.FV_Actual,
-                accion: comentario && !productoPrevio.Comentarios ? 'COMENTARIO_AGREGADO' : 'FV_ACTUALIZADO',
+                descripcion: original.Descripcion,
+                marca: original.Marca,
+                sku: original.SKU,
+                fvAnterior: original.FV_Actual,
+                accion: comentario && !original.Comentarios ? 'COMENTARIO_AGREGADO' : 'FV_ACTUALIZADO'
             }
         );
 
-        if (!respuesta.exito && !respuesta.isNetworkError) {
-            // Revertir solo si falló la base de datos (no por red, que se encolará)
-            set({ inventario: state.inventario }); 
+        // 3. Manejo de Feedback (Sin rollback si Firebase funcionó)
+        if (!res.exito) {
+            set({ inventario }); // Solo revertimos si Firebase falló (fallo catastrófico)
             reproducirSonido('error');
-            Toast.show({
-                type: 'error',
-                text1: MENSAJES.ERROR_GUARDADO,
-                text2: MENSAJES.ERROR_GUARDADO_DB,
-                visibilityTime: 4000,
-            });
+            Toast.show({ type: 'error', text1: MENSAJES.ERROR_GUARDADO, text2: 'No se pudo guardar en la nube.' });
             return false;
         }
 
         reproducirSonido('success');
         
-        if (respuesta.isNetworkError) {
+        if (res.webhookEncolado) {
             Toast.show({
                 type: 'info',
-                text1: MENSAJES.EXITO_MODO_OFFLINE,
-                text2: MENSAJES.EXITO_MODO_OFFLINE_SUB,
-                visibilityTime: 3500,
+                text1: 'Guardado (Sync pendiente)',
+                text2: 'El cambio está seguro, pero se enviará a Sheets al recuperar conexión.',
+                visibilityTime: 4000
             });
         } else {
             Toast.show({
                 type: 'success',
                 text1: MENSAJES.EXITO_GUARDADO,
                 text2: MENSAJES.EXITO_GUARDADO_SUB(codigo),
-                visibilityTime: 2500,
+                visibilityTime: 2500
             });
         }
+
         return true;
     },
 
-    guardarEdicionDirecta: async (producto: ProductoInventario) => {
-        const state = get();
+    guardarEdicionDirecta: async (producto) => {
+        const { inventario } = get();
         const codigo = String(producto.Cod_Barras).trim();
-        const fv = producto.FV_Actual;
-        const fechaEdicion = new Date().toISOString();
-        const comentario = producto.Comentarios || '';
+        const fecha = new Date().toISOString();
 
-        // Actualización O(1)
-        const nuevoInventario = {
-            ...state.inventario,
-            [codigo]: { ...producto, Fecha_edicion: fechaEdicion }
-        };
+        set({ inventario: { ...inventario, [codigo]: { ...producto, Fecha_edicion: fecha } } });
         
-        set({ inventario: nuevoInventario });
-        
-        const respuesta = await InventarioRepository.actualizarProducto(codigo, {
-            FV_Actual: fv,
-            Fecha_edicion: fechaEdicion,
-            Comentarios: comentario
+        const res = await InventarioRepository.actualizarProducto(codigo, {
+            FV_Actual: producto.FV_Actual,
+            Fecha_edicion: fecha,
+            Comentarios: producto.Comentarios
         });
 
-        if (!respuesta.exito && !respuesta.isNetworkError) {
-            set({ inventario: state.inventario }); 
+        if (!res.exito) {
+            set({ inventario });
             return false;
         }
 

@@ -9,17 +9,12 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbzzR_MZN7wCGawPkKCHgVaw
 const WEBHOOK_QUEUE_KEY = '@webhook_queue_mascotify';
 const AUTH_TOKEN = 'MASCOTIFY_SECURE_TOKEN_2026';
 
-/**
- * Patrón Repositorio: Centraliza el acceso a datos.
- * Desacopla la lógica de Firebase/Sheets del estado global (Zustand).
- */
 export const InventarioRepository = {
 
     // ─────────────────────────────────────────────
-    // INVENTARIO
+    // INVENTARIO (Lectura)
     // ─────────────────────────────────────────────
 
-    /** Suscripción en tiempo real al inventario de productos. */
     suscribir(
         onUpdate: (datos: ProductoInventario[], fromCache: boolean) => void,
         onError: (error: any) => void
@@ -32,169 +27,150 @@ export const InventarioRepository = {
         }, onError);
     },
 
+    // ─────────────────────────────────────────────
+    // ACTUALIZACIÓN (Escritura)
+    // ─────────────────────────────────────────────
+
     /**
-     * Actualización dual (Firebase + Webhook Sheets) con registro automático en historial.
-     * @param infoProducto - Si se provee, registra la entrada en el historial.
+     * Actualiza un producto.
+     * @returns Éxito si Firebase se actualiza. Los fallos del Webhook NO fallan la operación principal.
      */
     async actualizarProducto(
         codigoBarras: string,
         datos: Partial<ProductoInventario>,
-        infoProducto?: {
+        infoAuditoria?: {
             descripcion: string;
             marca: string;
             sku: string;
             fvAnterior?: string;
             accion?: TipoAccionHistorial;
         }
-    ): Promise<{ exito: boolean; isNetworkError?: boolean }> {
+    ): Promise<{ exito: boolean; webhookEncolado: boolean }> {
         try {
-            const ref = doc(dbFirebase, 'productos', String(codigoBarras).trim());
+            const codigoLimpio = String(codigoBarras).trim();
+            const ref = doc(dbFirebase, 'productos', codigoLimpio);
 
-            // 1. Persistencia Inmediata en Firebase (Offline-first)
+            // 1. Persistencia Primaria: Firebase (SDK Offline manejado automáticamente)
             await setDoc(ref, datos, { merge: true });
 
-            // 2. Registrar en historial (fire-and-forget, no bloquea el flujo)
-            if (infoProducto) {
+            // 2. Registro de Auditoría (Línea de tiempo) - Fire and forget
+            if (infoAuditoria) {
                 this.registrarMovimiento({
-                    productoId: codigoBarras,
-                    descripcion: infoProducto.descripcion,
-                    marca: infoProducto.marca,
-                    sku: infoProducto.sku,
-                    accion: infoProducto.accion ?? 'EDICION_COMPLETA',
+                    productoId: codigoLimpio,
+                    descripcion: infoAuditoria.descripcion,
+                    marca: infoAuditoria.marca,
+                    sku: infoAuditoria.sku,
+                    accion: infoAuditoria.accion ?? 'EDICION_COMPLETA',
                     cambios: {
-                        fvAnterior: infoProducto.fvAnterior,
+                        fvAnterior: infoAuditoria.fvAnterior,
                         fvNuevo: datos.FV_Actual,
                         comentario: datos.Comentarios,
                     },
-                }).catch(e => console.warn('[Historial] No se pudo registrar:', e));
+                }).catch(e => console.warn('[Audit] Error:', e));
             }
 
-            // 3. Sincronización con Google Sheets via Webhook
+            // 3. Sincronización Secundaria: Sheets Webhook
             const payload = {
-                codigoBarras,
+                codigoBarras: codigoLimpio,
                 nuevoStock: datos.Stock_Master,
                 nuevoFV: datos.FV_Actual,
                 nuevoFechaEdicion: datos.Fecha_edicion,
                 nuevoComentario: datos.Comentarios,
             };
 
-            return await this.enviarWebhook(payload);
+            const resWebhook = await this.enviarWebhook(payload);
+
+            return { 
+                exito: true, 
+                webhookEncolado: resWebhook.isNetworkError || !resWebhook.exito 
+            };
+
         } catch (error) {
-            console.error('[Repositorio] Error en actualizarProducto:', error);
-            return { exito: false, isNetworkError: false };
+            console.error('[Repo] Error Fatal:', error);
+            return { exito: false, webhookEncolado: false };
         }
     },
 
     // ─────────────────────────────────────────────
-    // HISTORIAL DE AUDITORÍA
+    // HISTORIAL / AUDITORÍA
     // ─────────────────────────────────────────────
 
-    /**
-     * Registra un movimiento en la colección 'historial' de Firestore.
-     * Se llama automáticamente desde actualizarProducto() con fire-and-forget.
-     */
-    async registrarMovimiento(
-        entrada: Omit<EntradaHistorial, 'id' | 'timestamp' | 'dispositivo'>
-    ): Promise<void> {
-        const documento = {
+    async registrarMovimiento(entrada: Omit<EntradaHistorial, 'id' | 'timestamp' | 'dispositivo'>) {
+        const docHistorial = {
             ...entrada,
             timestamp: Date.now(),
             dispositivo: Platform.OS === 'ios' ? '📱 iPhone' : '🤖 Android',
         };
-        await addDoc(collection(dbFirebase, 'historial'), documento);
+        await addDoc(collection(dbFirebase, 'historial'), docHistorial);
     },
 
-    /**
-     * Suscripción en tiempo real a los últimos 50 movimientos del historial.
-     * Ordenados por timestamp descendente (más reciente primero).
-     */
-    suscribirHistorial(
-        onUpdate: (entradas: EntradaHistorial[]) => void,
-        onError: (error: any) => void
-    ) {
-        const q = query(
-            collection(dbFirebase, 'historial'),
-            orderBy('timestamp', 'desc'),
-            limit(50)
-        );
-        return onSnapshot(q, (snapshot) => {
-            const entradas: EntradaHistorial[] = snapshot.docs.map(d => ({
-                id: d.id,
-                ...(d.data() as Omit<EntradaHistorial, 'id'>),
-            }));
-            onUpdate(entradas);
+    suscribirHistorial(onUpdate: (e: EntradaHistorial[]) => void, onError: (e: any) => void) {
+        const q = query(collection(dbFirebase, 'historial'), orderBy('timestamp', 'desc'), limit(50));
+        return onSnapshot(q, snap => {
+            onUpdate(snap.docs.map(d => ({ id: d.id, ...d.data() } as EntradaHistorial)));
         }, onError);
     },
 
     // ─────────────────────────────────────────────
-    // WEBHOOK GOOGLE SHEETS (con cola offline)
+    // COMUNICACIÓN EXTERNA (Webhook)
     // ─────────────────────────────────────────────
 
-    async enviarWebhook(payload: any): Promise<{ exito: boolean; isNetworkError?: boolean }> {
+    async enviarWebhook(payload: any): Promise<{ exito: boolean; isNetworkError: boolean }> {
         try {
             const respuesta = await fetch(API_URL, {
                 method: 'POST',
                 redirect: 'follow',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'text/plain;charset=utf-8',
-                },
+                headers: { 'Accept': 'application/json', 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ accion: 'webhook_modificacion', datos: payload, token: AUTH_TOKEN }),
             });
 
-            const json = JSON.parse(await respuesta.text());
+            const rawText = await respuesta.text();
+            
+            // Si la respuesta no empieza por '{', es un error de texto (App Script Error)
+            if (!rawText.trim().startsWith('{')) {
+                console.warn('[Webhook] Error en Servidor (No JSON):', rawText);
+                await this.encolarWebhook(payload); // Lo encolamos por si acaso fue un error temporal
+                return { exito: false, isNetworkError: false };
+            }
+
+            const json = JSON.parse(rawText);
             if (json.status === 'success') {
                 this.vaciarColaSync();
-                return { exito: true };
+                return { exito: true, isNetworkError: false };
             }
-            return { exito: false };
+
+            console.warn('[Webhook] Respuesta Negativa:', json);
+            return { exito: false, isNetworkError: false };
+
         } catch (error: any) {
-            const isNetwork = error.message?.includes('Network') || error.message?.includes('fetch');
-            if (isNetwork) {
-                await this.encolarWebhook(payload);
-                return { exito: false, isNetworkError: true };
-            }
-            return { exito: false };
+            const esRed = error.message?.includes('Network') || error.message?.includes('fetch');
+            if (esRed) await this.encolarWebhook(payload);
+            return { exito: false, isNetworkError: esRed };
         }
     },
 
-    async encolarWebhook(payload: any): Promise<void> {
-        const queueStr = await AsyncStorage.getItem(WEBHOOK_QUEUE_KEY) || '[]';
-        const cola = JSON.parse(queueStr);
-        cola.push(payload);
-        await AsyncStorage.setItem(WEBHOOK_QUEUE_KEY, JSON.stringify(cola));
+    async encolarWebhook(p: any) {
+        const q = JSON.parse(await AsyncStorage.getItem(WEBHOOK_QUEUE_KEY) || '[]');
+        q.push(p);
+        await AsyncStorage.setItem(WEBHOOK_QUEUE_KEY, JSON.stringify(q));
     },
 
-    async vaciarColaSync(): Promise<void> {
-        try {
-            const queueStr = await AsyncStorage.getItem(WEBHOOK_QUEUE_KEY);
-            if (!queueStr) return;
+    async vaciarColaSync() {
+        const q = JSON.parse(await AsyncStorage.getItem(WEBHOOK_QUEUE_KEY) || '[]');
+        if (q.length === 0) return;
 
-            let cola = JSON.parse(queueStr);
-            if (!Array.isArray(cola) || cola.length === 0) return;
-
-            const restantes = [];
-            for (const item of cola) {
-                try {
-                    const res = await fetch(API_URL, {
-                        method: 'POST',
-                        redirect: 'follow',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'text/plain;charset=utf-8',
-                            'X-Auth-Token': AUTH_TOKEN,
-                        },
-                        body: JSON.stringify({ accion: 'webhook_modificacion', datos: item, token: AUTH_TOKEN }),
-                    });
-                    const json = JSON.parse(await res.text());
-                    if (json.status !== 'success') restantes.push(item);
-                } catch {
-                    restantes.push(item);
-                }
-            }
-            await AsyncStorage.setItem(WEBHOOK_QUEUE_KEY, JSON.stringify(restantes));
-        } catch (err) {
-            console.error('[Repositorio] Error vaciando cola:', err);
+        const restantes = [];
+        for (const item of q) {
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ accion: 'webhook_modificacion', datos: item, token: AUTH_TOKEN }),
+                });
+                const txt = await res.text();
+                if (!txt.includes('"status":"success"')) restantes.push(item);
+            } catch { restantes.push(item); }
         }
-    },
+        await AsyncStorage.setItem(WEBHOOK_QUEUE_KEY, JSON.stringify(restantes));
+    }
 };
