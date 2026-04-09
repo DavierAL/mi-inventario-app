@@ -9,11 +9,19 @@ import { formatearPrecio } from '../../../core/utils/formato';
 import { MENSAJES } from '../../../core/constants/mensajes';
 import { Ionicons } from '@expo/vector-icons';
 
+import withObservables from '@nozbe/with-observables';
+import { database } from '../../../core/database';
+import Producto from '../../../core/database/models/Producto';
+
 const screenWidth = Dimensions.get("window").width;
 
-export const AnalyticsScreen = () => {
+interface Props {
+    productos: Producto[];
+}
+
+const AnalyticsScreenRaw: React.FC<Props> = ({ productos }) => {
     const { colors, isDark } = useTheme();
-    const { saludPorcentaje, capitalPerdido, datosDona, marcasRiesgo, recomendaciones, totalInventario } = useAnalytics();
+    const { saludPorcentaje, capitalPerdido, datosDona, marcasRiesgo, recomendaciones, totalInventario } = useAnalytics(productos);
 
     // Ajustar colores de la dona para modo oscuro
     const datosDonaTematizados = datosDona.map(d => ({
@@ -108,6 +116,13 @@ export const AnalyticsScreen = () => {
         </SafeAreaView>
     );
 };
+
+// Inyección reactiva asíncrona desde SQLite
+const enhance = withObservables([], () => ({
+    productos: database.collections.get<Producto>('productos').query().observe(),
+}));
+
+export const AnalyticsScreen = enhance(AnalyticsScreenRaw);
 
 const styles = StyleSheet.create({
     safeArea: { flex: 1 },

@@ -7,7 +7,9 @@ import { calcularDiasRestantes } from '../../../core/utils/fecha';
 export type FiltroCaducidad = 'TODOS' | 'VENCIDOS' | '30_DIAS' | '90_DIAS';
 export type Ordenamiento = 'MARCA' | 'STOCK' | 'FV';
 
-export const useFiltrosInventario = (inventario: Record<string, ProductoInventario>, busqueda: string) => {
+import Producto from '../../../core/database/models/Producto';
+
+export const useFiltrosInventario = (productos: Producto[], busqueda: string) => {
     const [filtroRapido, setFiltroRapido] = useState<FiltroCaducidad>('TODOS');
     const [ordenamiento, setOrdenamiento] = useState<Ordenamiento>('MARCA');
     
@@ -17,17 +19,15 @@ export const useFiltrosInventario = (inventario: Record<string, ProductoInventar
     const { inventarioProcesado, conteos } = useMemo(() => {
         let vencidos = 0, en30Dias = 0, en90Dias = 0;
         
-        const inventarioArray = Object.values(inventario);
-
         // 1. Calculamos los días restantes y conteos
-        const inventarioConDias = inventarioArray.map(item => {
-            const diasRestantes = calcularDiasRestantes(item.FV_Actual);
+        const inventarioConDias = productos.map(item => {
+            const diasRestantes = calcularDiasRestantes(item.fvActual);
             
             if (diasRestantes < 0) vencidos++;
             else if (diasRestantes <= 30) en30Dias++;
             else if (diasRestantes <= 90) en90Dias++;
 
-            return { ...item, diasRestantes };
+            return { item, diasRestantes };
         });
 
         // 2. Filtramos según botón de caducidad
@@ -39,27 +39,27 @@ export const useFiltrosInventario = (inventario: Record<string, ProductoInventar
         // 3. Aplicamos la búsqueda de texto
         const termino = busquedaDebounced.toLowerCase().trim();
         if (termino) {
-            listaFiltrada = listaFiltrada.filter(p =>
-                String(p.SKU).toLowerCase().includes(termino) ||
-                String(p.Descripcion).toLowerCase().includes(termino) ||
-                String(p.Cod_Barras).toLowerCase().includes(termino)
+            listaFiltrada = listaFiltrada.filter(({ item }) =>
+                String(item.sku).toLowerCase().includes(termino) ||
+                String(item.descripcion).toLowerCase().includes(termino) ||
+                String(item.codBarras).toLowerCase().includes(termino)
             );
         }
 
         // 4. Ordenamiento
         if (ordenamiento === 'MARCA') {
-            listaFiltrada.sort((a, b) => String(a.Marca || '').localeCompare(String(b.Marca || '')));
+            listaFiltrada.sort((a, b) => String(a.item.marca || '').localeCompare(String(b.item.marca || '')));
         } else if (ordenamiento === 'STOCK') {
-            listaFiltrada.sort((a, b) => (Number(b.Stock_Master) || 0) - (Number(a.Stock_Master) || 0));
+            listaFiltrada.sort((a, b) => (Number(b.item.stockMaster) || 0) - (Number(a.item.stockMaster) || 0));
         } else if (ordenamiento === 'FV') {
             listaFiltrada.sort((a, b) => a.diasRestantes - b.diasRestantes);
         }
 
         return { 
-            inventarioProcesado: listaFiltrada, 
+            inventarioProcesado: listaFiltrada.map(i => i.item), 
             conteos: { vencidos, en30Dias, en90Dias } 
         };
-    }, [busquedaDebounced, inventario, filtroRapido, ordenamiento]);
+    }, [busquedaDebounced, productos, filtroRapido, ordenamiento]);
 
     return {
         inventarioProcesado,

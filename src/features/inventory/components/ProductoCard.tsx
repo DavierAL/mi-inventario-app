@@ -3,14 +3,14 @@
 import React, { memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
-import { ProductoInventario } from '../../../core/types/inventario';
+import Producto from '../../../core/database/models/Producto';
 import { formatearFecha } from '../../../core/utils/fecha';
 import { formatearPrecio } from '../../../core/utils/formato';
 import { useTheme } from '../../../core/ui/ThemeContext';
 
 interface Props {
-    item: ProductoInventario;
-    onPress: (producto: ProductoInventario) => void;
+    item: Producto;
+    onPress: (producto: Producto) => void;
 }
 
 const ProductoCardComponent: React.FC<Props> = ({ item, onPress }) => {
@@ -25,9 +25,9 @@ const ProductoCardComponent: React.FC<Props> = ({ item, onPress }) => {
             >
                 {/* Imagen del producto */}
                 <View style={[styles.contenedorImagen, { backgroundColor: colors.inputFondo, borderColor: colors.borde }]}>
-                    {item.Imagen ? (
+                    {item.imagen ? (
                         <Image
-                            source={{ uri: String(item.Imagen) }}
+                            source={{ uri: String(item.imagen) }}
                             style={styles.imagenProducto}
                             contentFit="contain"
                             transition={200}
@@ -41,11 +41,11 @@ const ProductoCardComponent: React.FC<Props> = ({ item, onPress }) => {
                 </View>
             
                 <View style={styles.infoPrincipal}>
-                    <Text style={[styles.textoSKU, { color: colors.primario }]}>{item.SKU}</Text>
-                    <Text style={[styles.textoDescripcion, { color: colors.textoPrincipal }]} numberOfLines={2}>{item.Descripcion}</Text>
-                    <Text style={[styles.textoCodigoBarras, { color: colors.textoSecundario }]}>Cód: {item.Cod_Barras}</Text>
-                    {item.FV_Actual ? (
-                        <Text style={[styles.textoFV, { color: colors.error }]}>FV: {formatearFecha(item.FV_Actual)}</Text>
+                    <Text style={[styles.textoSKU, { color: colors.primario }]}>{item.sku}</Text>
+                    <Text style={[styles.textoDescripcion, { color: colors.textoPrincipal }]} numberOfLines={2}>{item.descripcion}</Text>
+                    <Text style={[styles.textoCodigoBarras, { color: colors.textoSecundario }]}>Cód: {item.codBarras}</Text>
+                    {item.fvActual ? (
+                        <Text style={[styles.textoFV, { color: colors.error }]}>FV: {formatearFecha(item.fvActual)}</Text>
                     ) : null}
                 </View>
 
@@ -53,15 +53,15 @@ const ProductoCardComponent: React.FC<Props> = ({ item, onPress }) => {
                 <View style={[styles.infoPrecios, { borderLeftColor: colors.borde }]}>
                     <View style={styles.filaPrecio}>
                         <Text style={[styles.textoPrecioTitulo, { color: colors.textoSecundario }]}>Web</Text>
-                        <Text style={[styles.textoPrecioNumero, { color: colors.textoPrincipal }]}>{formatearPrecio(item.Precio_Web)}</Text>
+                        <Text style={[styles.textoPrecioNumero, { color: colors.textoPrincipal }]}>{formatearPrecio(item.precioWeb)}</Text>
                     </View>
                     <View style={styles.filaPrecio}>
                         <Text style={[styles.textoPrecioTitulo, { color: colors.textoSecundario }]}>P. Tienda</Text>
-                        <Text style={[styles.textoPrecioNumero, { color: colors.primario }]}>{formatearPrecio(item.Precio_Tienda)}</Text>
+                        <Text style={[styles.textoPrecioNumero, { color: colors.primario }]}>{formatearPrecio(item.precioTienda)}</Text>
                     </View>
                     <View style={[styles.filaStock, { backgroundColor: colors.fondoPrimario }]}>
                         <Text style={[styles.textoStockTitulo, { color: colors.textoSecundario }]}>Stock</Text>
-                        <Text style={[styles.textoStockNumero, { color: colors.exito }]}>{item.Stock_Master}</Text>
+                        <Text style={[styles.textoStockNumero, { color: colors.exito }]}>{item.stockMaster}</Text>
                     </View>
                 </View>
             </TouchableOpacity>
@@ -72,11 +72,11 @@ const ProductoCardComponent: React.FC<Props> = ({ item, onPress }) => {
 export const ProductoCard = memo(ProductoCardComponent, (prevProps, nextProps) => {
     // Rendimiento Extremo: Solo redibujar si cambiaron estas propiedades clave
     return (
-        prevProps.item.FV_Actual === nextProps.item.FV_Actual &&
-        prevProps.item.Stock_Master === nextProps.item.Stock_Master &&
-        prevProps.item.Precio_Web === nextProps.item.Precio_Web &&
-        prevProps.item.Precio_Tienda === nextProps.item.Precio_Tienda &&
-        prevProps.item.Comentarios === nextProps.item.Comentarios
+        prevProps.item.fvActual === nextProps.item.fvActual &&
+        prevProps.item.stockMaster === nextProps.item.stockMaster &&
+        prevProps.item.precioWeb === nextProps.item.precioWeb &&
+        prevProps.item.precioTienda === nextProps.item.precioTienda &&
+        prevProps.item.comentarios === nextProps.item.comentarios
     );
 });
 

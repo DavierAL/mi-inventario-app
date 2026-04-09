@@ -29,6 +29,10 @@ import { MENSAJES } from '../../../core/constants/mensajes';
 import Toast from 'react-native-toast-message';
 import { reproducirSonido } from '../../../core/utils/sonidos';
 
+import withObservables from '@nozbe/with-observables';
+import { database } from '../../../core/database';
+import Producto from '../../../core/database/models/Producto';
+
 const FastList = FlashList as any;
 
 // Habilitar LayoutAnimation en Android
@@ -38,24 +42,31 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 
 type InventarioListNavProp = NativeStackNavigationProp<RootStackParamList, 'InventarioList'>;
 
-export const InventarioListScreen = () => {
+interface ScreenProps {
+    productos: Producto[];
+}
+
+const InventarioListScreenRaw: React.FC<ScreenProps> = ({ productos }) => {
     const { colors, isDark } = useTheme();
     const navigation = useNavigation<InventarioListNavProp>();
 
     const {
-        inventario, cargando, busqueda, setBusqueda,
+        cargando,
         conectarInventario, cargarDatosSync,
         productoEditando, setProductoEditando, guardarEdicion,
         error, modoOffline, lastSync,
         pendientesSync, sincronizandoFondo
     } = useInventarioStore();
 
+    // Tarea 1.1: Estado local para búsqueda
+    const [busqueda, setBusqueda] = useState('');
+
     // LÓGICA DE FILTRADO EXTRAÍDA A UN HOOK PURAMENTE FUNCIONAL
     const { 
         inventarioProcesado, conteos, 
         filtroRapido, setFiltroRapido, 
         ordenamiento, setOrdenamiento 
-    } = useFiltrosInventario(inventario, busqueda);
+    } = useFiltrosInventario(productos, busqueda);
 
     // Wrappers animados: LayoutAnimation + Haptics antes de cambiar filtro/orden
     const cambiarFiltro = useCallback((nuevoFiltro: FiltroCaducidad) => {
@@ -71,9 +82,9 @@ export const InventarioListScreen = () => {
     }, [setOrdenamiento]);
 
     useEffect(() => {
-        const unsub = conectarInventario();
-        return () => unsub();
-    }, [conectarInventario]);
+        // Tarea 3.3.1: Iniciar el motor de sincronización al entrar
+        conectarInventario();
+    }, []);
 
     const [permisoCamara, pedirPermisoCamara] = useCameraPermissions();
     const [refrescando, setRefrescando] = useState(false);
@@ -113,7 +124,7 @@ export const InventarioListScreen = () => {
         navigation.navigate('Scanner');
     };
 
-    if (cargando && Object.keys(inventario).length === 0) {
+    if (cargando && productos.length === 0) {
         const fakeList = [1, 2, 3, 4, 5, 6, 7];
         return (
             <SafeAreaView style={[styles.contenedor, { backgroundColor: colors.fondo }]}>
@@ -146,21 +157,12 @@ export const InventarioListScreen = () => {
         
         if (res.exito) {
             reproducirSonido('success');
-            if (res.webhookEncolado) {
-                Toast.show({
-                    type: 'info',
-                    text1: 'Guardado (Sync pendiente)',
-                    text2: 'El cambio está seguro, pero se enviará a Sheets al recuperar conexión.',
-                    visibilityTime: 4000
-                });
-            } else {
-                Toast.show({
-                    type: 'success',
-                    text1: MENSAJES.EXITO_GUARDADO,
-                    text2: MENSAJES.EXITO_GUARDADO_SUB(res.codigo || ''),
-                    visibilityTime: 2500
-                });
-            }
+            Toast.show({
+                type: 'success',
+                text1: MENSAJES.EXITO_GUARDADO,
+                text2: MENSAJES.EXITO_GUARDADO_SUB(res.codigo || ''),
+                visibilityTime: 2500
+            });
         } else {
             reproducirSonido('error');
             Toast.show({ 
@@ -190,17 +192,35 @@ export const InventarioListScreen = () => {
                 <View style={[styles.cabecera, { backgroundColor: colors.superficie, borderBottomColor: colors.borde }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
                         <Text style={[styles.tituloApp, { color: colors.textoPrincipal }]}>{MENSAJES.TITULO_APP}</Text>
+                        
+                        {/* Indicador de Sincronización Premium */}
+                        <TouchableOpacity 
+                            onPress={() => cargarDatosSync()}
+                            disabled={sincronizandoFondo}
+                            style={[styles.syncBadge, { backgroundColor: isDark ? '#2D3748' : '#EDF2F7' }]}
+                        >
+                            {sincronizandoFondo ? (
+                                <ActivityIndicator size="small" color={colors.primario} style={{ marginRight: 6 }} />
+                            ) : (
+                                <Ionicons 
+                                    name={modoOffline ? "cloud-offline" : "cloud-done"} 
+                                    size={16} 
+                                    color={modoOffline ? colors.error : colors.primario} 
+                                    style={{ marginRight: 6 }} 
+                                />
+                            )}
+                            <Text style={[styles.syncText, { color: colors.textoSecundario }]}>
+                                {sincronizandoFondo ? 'Sincronizando...' : (lastSync ? `Sinc: ${lastSync}` : 'Sin sincronizar')}
+                            </Text>
+                        </TouchableOpacity>
+
                         <TouchableOpacity onPress={() => navigation.navigate('Analytics')}>
                             <Ionicons name="stats-chart" size={26} color={colors.primario} style={{ padding: 4 }} />
                         </TouchableOpacity>
                     </View>
-                    {pendientesSync > 0 && (
-                        <Text style={{ fontSize: 13, color: colors.error, fontWeight: '700', marginTop: -2, marginBottom: 4 }}>
-                            {sincronizandoFondo ? '🔄 Enviando pendientes...' : `⏳ ${pendientesSync} edición(es) por enviar`}
-                        </Text>
-                    )}
+
                     <Text style={[styles.subtituloApp, { color: colors.textoSecundario }]}>
-                        {MENSAJES.PRODUCTOS_REGISTRADOS(inventarioProcesado.length, Object.keys(inventario).length, !!busqueda || filtroRapido !== 'TODOS')}
+                        {MENSAJES.PRODUCTOS_REGISTRADOS(inventarioProcesado.length, productos.length, !!busqueda || filtroRapido !== 'TODOS')}
                     </Text>
                     
                     <View style={[styles.contenedorBuscador, { backgroundColor: colors.fondoBuscador, borderColor: colors.borde }]}>
@@ -297,11 +317,11 @@ export const InventarioListScreen = () => {
                     <FastList
                         ref={listRef}
                         data={inventarioProcesado}
-                        keyExtractor={(item: ProductoInventario) => `${item.Cod_Barras}_${item.SKU}`}
+                        keyExtractor={(item: Producto) => item.id}
                         estimatedItemSize={104}
                         onScroll={handleScroll}
                         scrollEventThrottle={16}
-                        renderItem={({ item }: { item: ProductoInventario }) => (
+                        renderItem={({ item }: { item: Producto }) => (
                             <ProductoCard item={item} onPress={setProductoEditando} />
                         )}
                         refreshControl={
@@ -356,6 +376,13 @@ export const InventarioListScreen = () => {
     );
 };
 
+// Inyección reactiva asíncrona desde SQLite
+const enhance = withObservables([], () => ({
+    productos: database.collections.get<Producto>('productos').query().observe(),
+}));
+
+export const InventarioListScreen = enhance(InventarioListScreenRaw);
+
 const styles = StyleSheet.create({
     contenedor: { flex: 1 },
     areaContenido: { flex: 1 },
@@ -379,11 +406,31 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16,
         borderBottomWidth: 1, marginBottom: 10
     },
-    tituloApp: { fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
-    subtituloApp: { fontSize: 14, marginTop: 4, fontWeight: '500', marginBottom: 14 },
+    tituloApp: { fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
+    subtituloApp: { fontSize: 13, fontWeight: '500', marginBottom: 12 },
+    
+    // Dashboard de Sincronización
+    syncBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 20,
+        marginHorizontal: 8,
+    },
+    syncText: {
+        fontSize: 11,
+        fontWeight: '700',
+    },
+
     contenedorBuscador: {
-        flexDirection: 'row', alignItems: 'center', borderWidth: 1.5,
-        borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 12,
+        height: 48,
+        borderRadius: 14,
+        borderWidth: 1,
+        marginBottom: 8
     },
     iconoBuscador: { fontSize: 16, marginRight: 8 },
     inputBuscador: { flex: 1, fontSize: 15, padding: 0 },

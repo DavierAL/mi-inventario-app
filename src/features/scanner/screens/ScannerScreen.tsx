@@ -13,13 +13,17 @@ import { useInventarioStore } from '../../inventory/store/useInventarioStore';
 import { useTheme } from '../../../core/ui/ThemeContext';
 import { MENSAJES } from '../../../core/constants/mensajes';
 
+import { database } from '../../../core/database';
+import { Q } from '@nozbe/watermelondb';
+import Producto from '../../../core/database/models/Producto';
+
 type ScannerNavProp = NativeStackNavigationProp<RootStackParamList, 'Scanner'>;
 
 export const ScannerScreen = () => {
     const { colors } = useTheme();
     const navigation = useNavigation<ScannerNavProp>();
     const { 
-        inventario, setProductoEditando, productoEditando, 
+        setProductoEditando, productoEditando, 
         guardarEdicion, guardarEdicionDirecta 
     } = useInventarioStore();
     
@@ -56,21 +60,12 @@ export const ScannerScreen = () => {
         
         if (res.exito) {
             reproducirSonido('success');
-            if (res.webhookEncolado) {
-                Toast.show({
-                    type: 'info',
-                    text1: 'Guardado (Sync pendiente)',
-                    text2: 'El cambio está seguro, pero se enviará a Sheets al recuperar conexión.',
-                    visibilityTime: 4000
-                });
-            } else {
-                Toast.show({
-                    type: 'success',
-                    text1: MENSAJES.EXITO_GUARDADO,
-                    text2: MENSAJES.EXITO_GUARDADO_SUB(res.codigo || ''),
-                    visibilityTime: 2500
-                });
-            }
+            Toast.show({
+                type: 'success',
+                text1: MENSAJES.EXITO_GUARDADO,
+                text2: MENSAJES.EXITO_GUARDADO_SUB(res.codigo || ''),
+                visibilityTime: 2500
+            });
         } else {
             reproducirSonido('error');
             Toast.show({ 
@@ -87,51 +82,60 @@ export const ScannerScreen = () => {
 
         const codigoLimpio = String(data).trim();
 
-        // OPTIMIZACIÓN O(1): Búsqueda directa en el Diccionario
-        const productoEncontrado = inventario[codigoLimpio];
-        
-        if (productoEncontrado) {
-            reproducirBeep(true);
+        try {
+            // Tarea 3.4.2: Búsqueda asíncrona en SQLite
+            const productosEncontrados = await database.collections.get<Producto>('productos')
+                .query(Q.where('cod_barras', Q.eq(codigoLimpio)))
+                .fetch();
             
-            if (modoRafaga) {
-                // MODO RÁFAGA: Guardado silencioso de fondo, cámara no se detiene mucho
-                const res = await guardarEdicionDirecta(productoEncontrado);
-                setUltimoEscaneado(productoEncontrado.SKU || codigoLimpio);
+            const productoEncontrado = productosEncontrados.length > 0 ? productosEncontrados[0] : null;
+
+            if (productoEncontrado) {
+                reproducirBeep(true);
                 
-                if (res.exito) {
-                    Toast.show({
-                        type: 'success',
-                        text1: MENSAJES.RAFAGA_PROCESADO,
-                        text2: `${productoEncontrado.Descripcion}`,
-                        position: 'top',
-                        visibilityTime: 1200,
-                    });
+                if (modoRafaga) {
+                    // MODO RÁFAGA: Guardado silencioso de fondo
+                    const res = await guardarEdicionDirecta(productoEncontrado);
+                    setUltimoEscaneado(productoEncontrado.sku || codigoLimpio);
+                    
+                    if (res.exito) {
+                        Toast.show({
+                            type: 'success',
+                            text1: MENSAJES.RAFAGA_PROCESADO,
+                            text2: `${productoEncontrado.descripcion}`,
+                            position: 'top',
+                            visibilityTime: 1200,
+                        });
+                    } else {
+                        Toast.show({
+                            type: 'error',
+                            text1: 'Error en Ráfaga',
+                            text2: 'No se pudo sincronizar el escaneo.',
+                            position: 'top',
+                            visibilityTime: 2000,
+                        });
+                    }
+                    
+                    // En modo ráfaga, habilitamos el escáner rápido de nuevo
+                    setTimeout(() => setProcesandoEscaneo(false), 800);
                 } else {
-                    Toast.show({
-                        type: 'error',
-                        text1: 'Error en Ráfaga',
-                        text2: 'No se pudo sincronizar el escaneo.',
-                        position: 'top',
-                        visibilityTime: 2000,
-                    });
+                    // MODO NORMAL: Abrimos Modal
+                    setProductoEditando(productoEncontrado);
                 }
-                
-                // En modo ráfaga, habilitamos el escáner rápido de nuevo
-                setTimeout(() => setProcesandoEscaneo(false), 800);
             } else {
-                // MODO NORMAL: Abrimos Modal
-                setProductoEditando(productoEncontrado);
+                reproducirBeep(false);
+                Toast.show({
+                    type: 'error',
+                    text1: MENSAJES.ERROR_NO_ENCONTRADO,
+                    text2: MENSAJES.ERROR_NO_ENCONTRADO_SUB(codigoLimpio),
+                    position: 'top',
+                    visibilityTime: 3000,
+                });
+                setTimeout(() => setProcesandoEscaneo(false), 1500);
             }
-        } else {
-            reproducirBeep(false);
-            Toast.show({
-                type: 'error',
-                text1: MENSAJES.ERROR_NO_ENCONTRADO,
-                text2: MENSAJES.ERROR_NO_ENCONTRADO_SUB(codigoLimpio),
-                position: 'top',
-                visibilityTime: 3000,
-            });
-            setTimeout(() => setProcesandoEscaneo(false), 1500);
+        } catch (error) {
+            console.error('[Scanner] Error en búsqueda local:', error);
+            setProcesandoEscaneo(false);
         }
     };
 

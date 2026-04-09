@@ -1,33 +1,28 @@
-// ARCHIVO: src/features/inventory/repository/inventarioRepository.ts
+import { collection, onSnapshot, doc, setDoc, query, orderBy, limit } from 'firebase/firestore';
+import { Platform } from 'react-native';
+import { dbFirebase } from '../../../core/database/firebase';
+import { QueueService, WebhookPayload } from '../../../core/services/QueueService';
+import { ProductoInventario, EntradaHistorial, TipoAccionHistorial } from '../../../core/types/inventario';
+import { database } from '../../../core/database';
+import Movimiento from '../../../core/database/models/Movimiento';
+
 /**
  * InventarioRepository — Director de Orquesta
  * 
  * Responsabilidad: Coordinar las operaciones de datos entre las capas de 
  * infraestructura sin implementar los detalles de ninguna.
  */
-import { collection, onSnapshot, doc, setDoc, query, addDoc, orderBy, limit } from 'firebase/firestore';
-import { Platform } from 'react-native';
-import { dbFirebase } from '../../../core/database/firebase';
-import { QueueService, WebhookPayload } from '../../../core/services/QueueService';
-import { ProductoInventario, EntradaHistorial, TipoAccionHistorial } from '../../../core/types/inventario';
-
-const API_URL = 'https://script.google.com/macros/s/AKfycbzzR_MZN7wCGawPkKCHgVawMVEiMqX-l52tZEBFiJ9W-e2TbAcna66XPEIyj8pYuq279Q/exec';
-const AUTH_TOKEN = 'MASCOTIFY_SECURE_TOKEN_2026';
-
-
 export const InventarioRepository = {
 
     // ─────────────────────────────────────────────
-    // INVENTARIO (Lectura con límite de seguridad)
+    // INVENTARIO (Lectura legado/compatibilidad)
     // ─────────────────────────────────────────────
 
     suscribir(
         onUpdate: (datos: ProductoInventario[], fromCache: boolean) => void,
         onError: (error: any) => void
     ) {
-        const q = query(
-            collection(dbFirebase, 'productos')
-        );
+        const q = query(collection(dbFirebase, 'productos'));
         return onSnapshot(q, (snapshot) => {
             const datos: ProductoInventario[] = [];
             snapshot.forEach((d) => datos.push(d.data() as ProductoInventario));
@@ -57,7 +52,7 @@ export const InventarioRepository = {
             // 1. Persistencia Primaria: Firebase
             await setDoc(ref, datos, { merge: true });
 
-            // 2. Registro de Auditoría — Fire and forget
+            // 2. Registro de Auditoría — Local-First
             if (infoAuditoria) {
                 this.registrarMovimiento({
                     productoId: codigoLimpio,
@@ -96,23 +91,32 @@ export const InventarioRepository = {
     },
 
     // ─────────────────────────────────────────────
-    // HISTORIAL / AUDITORÍA
+    // HISTORIAL / AUDITORÍA (Local-First)
     // ─────────────────────────────────────────────
 
     async registrarMovimiento(entrada: Omit<EntradaHistorial, 'id' | 'timestamp' | 'dispositivo'>) {
-        const docHistorial = {
-            ...entrada,
-            timestamp: Date.now(),
-            dispositivo: Platform.OS === 'ios' ? '📱 iPhone' : '🤖 Android',
-        };
-        await addDoc(collection(dbFirebase, 'historial'), docHistorial);
+        try {
+            await database.write(async () => {
+                await database.get<Movimiento>('movimientos').create((m: Movimiento) => {
+                    m.productoId = entrada.productoId;
+                    m.sku = entrada.sku;
+                    m.descripcion = entrada.descripcion;
+                    m.marca = entrada.marca;
+                    m.accion = entrada.accion;
+                    m.fvAnterior = entrada.cambios.fvAnterior;
+                    m.fvNuevo = entrada.cambios.fvNuevo;
+                    m.comentario = entrada.cambios.comentario;
+                    m.dispositivo = Platform.OS === 'ios' ? '📱 iPhone' : '🤖 Android';
+                });
+            });
+        } catch (error) {
+            console.error('[Repo] Error en SQLite History:', error);
+        }
     },
 
     suscribirHistorial(onUpdate: (e: EntradaHistorial[]) => void, onError: (e: any) => void) {
-        const q = query(collection(dbFirebase, 'historial'), orderBy('timestamp', 'desc'), limit(50));
-        return onSnapshot(q, snap => {
-            onUpdate(snap.docs.map(d => ({ id: d.id, ...d.data() } as EntradaHistorial)));
-        }, onError);
+        // Tarea 4.3: Manejado por withObservables en la UI
+        return () => {}; 
     },
 
     // ─────────────────────────────────────────────
@@ -124,39 +128,32 @@ export const InventarioRepository = {
     },
 
     // ─────────────────────────────────────────────
-    // COMUNICACIÓN EXTERNA (Privado)
-    // ─────────────────────────────────────────────
-
-    // ─────────────────────────────────────────────
-    // COMUNICACIÓN EXTERNA (Webhook) - VERSIÓN BLINDADA PARA APK
+    // COMUNICACIÓN EXTERNA (Webhook)
     // ─────────────────────────────────────────────
     async _enviarWebhook(payload: WebhookPayload): Promise<{ exito: boolean }> {
+        const apiUrl = process.env.EXPO_PUBLIC_API_URL || '';
+        const authToken = process.env.EXPO_PUBLIC_AUTH_TOKEN || '';
+
         return new Promise((resolve) => {
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', API_URL);
-            
+            xhr.open('POST', apiUrl);
             xhr.setRequestHeader('Accept', 'application/json');
             xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
-            xhr.setRequestHeader('X-Auth-Token', AUTH_TOKEN);
+            xhr.setRequestHeader('X-Auth-Token', authToken);
 
             xhr.onload = async () => {
                 const rawText = xhr.responseText;
-                
                 if (!rawText.trim().startsWith('{')) {
-                    console.warn('[Webhook] Error en Servidor (no JSON):', rawText);
                     await QueueService.encolar(payload); 
                     resolve({ exito: false });
                     return;
                 }
-
                 try {
                     const json = JSON.parse(rawText);
                     if (json.status === 'success') {
-                        // Al tener éxito, intentamos procesar el resto de la cola
-                        QueueService.procesarCola().catch(e => console.warn('[Queue] Error auto-procesando:', e));
+                        QueueService.procesarCola().catch(() => {});
                         resolve({ exito: true });
                     } else {
-                        console.warn('[Webhook] Respuesta negativa del servidor:', json);
                         await QueueService.encolar(payload);
                         resolve({ exito: false });
                     }
@@ -165,18 +162,11 @@ export const InventarioRepository = {
                     resolve({ exito: false });
                 }
             };
-
             xhr.onerror = async () => {
-                // Error de red (offline), encolamos
                 await QueueService.encolar(payload);
                 resolve({ exito: false });
             };
-
-            xhr.send(JSON.stringify({ 
-                accion: 'webhook_modificacion', 
-                datos: payload, 
-                token: AUTH_TOKEN 
-            }));
+            xhr.send(JSON.stringify({ accion: 'webhook_modificacion', datos: payload, token: authToken }));
         });
     },
 };

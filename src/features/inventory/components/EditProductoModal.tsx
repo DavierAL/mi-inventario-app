@@ -4,14 +4,14 @@ import { Image } from 'expo-image';
 import Modal from 'react-native-modal';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import * as Haptics from 'expo-haptics';
-import { ProductoInventario } from '../../../core/types/inventario';
+import Producto from '../../../core/database/models/Producto';
 import { formatearFecha } from '../../../core/utils/fecha';
 import { formatearPrecio } from '../../../core/utils/formato';
 import { useTheme } from '../../../core/ui/ThemeContext';
 
 interface Props {
     visible: boolean;
-    producto: ProductoInventario | null;
+    producto: Producto | null;
     onGuardar: (fv: string, fechaEdicion: string, comentario: string) => Promise<void> | void;
     onCancelar: () => void;
 }
@@ -34,9 +34,9 @@ export const EditProductoModal: React.FC<Props> = ({
 
     React.useEffect(() => {
         if (producto) {
-            const fvStr = formatearFecha(producto.FV_Actual);  
+            const fvStr = formatearFecha(producto.fvActual);  
             setFormFV(fvStr);
-            setFormComentario(producto.Comentarios ? String(producto.Comentarios) : '');
+            setFormComentario(producto.comentarios ? String(producto.comentarios) : '');
 
             if (fvStr) {
                 const partes = fvStr.split('/');
@@ -88,16 +88,16 @@ export const EditProductoModal: React.FC<Props> = ({
                     <View style={styles.handleContainer}>
                         <View style={[styles.handleBar, { backgroundColor: colors.borde }]} />
                     </View>
-
+ 
                     {/* SCROLL PARA EVITAR CLIPPING CON TECLADO */}
                     <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
                 {/* Cabecera / Imagen */}
                 <View style={[styles.cabeceraModal, { marginTop: -10 }]}>
                     <View style={[styles.contenedorImagenModal, { backgroundColor: colors.inputDeshabilitado, borderColor: colors.borde }]}>
-                        {producto.Imagen ? (
+                        {producto.imagen ? (
                             <Image
-                                source={{ uri: String(producto.Imagen) }}
+                                source={{ uri: String(producto.imagen) }}
                                 style={styles.imagenModal}
                                 contentFit="contain"
                                 transition={200}
@@ -109,8 +109,8 @@ export const EditProductoModal: React.FC<Props> = ({
                     </View>
                     <View style={styles.infoModal}>
                         <Text style={[styles.modalTitulo, { color: colors.textoPrincipal }]}>Actualizar Inventario</Text>
-                        <Text style={[styles.modalSubtitulo, { color: colors.textoSecundario }]} numberOfLines={2}>{producto.Descripcion}</Text>
-                        <Text style={[styles.modalCod, { color: colors.textoSecundario, backgroundColor: colors.inputDeshabilitado }]}>CÓDIGO: {producto.Cod_Barras}</Text>
+                        <Text style={[styles.modalSubtitulo, { color: colors.textoSecundario }]} numberOfLines={2}>{producto.descripcion}</Text>
+                        <Text style={[styles.modalCod, { color: colors.textoSecundario, backgroundColor: colors.inputDeshabilitado }]}>CÓDIGO: {producto.codBarras}</Text>
                     </View>
                 </View>
 
@@ -118,12 +118,12 @@ export const EditProductoModal: React.FC<Props> = ({
                 <View style={[styles.filaPrecios, { backgroundColor: colors.fondoPrimario }]}>
                     <View style={styles.precioItem}>
                         <Text style={[styles.precioLabel, { color: colors.textoSecundario }]}>Precio Web</Text>
-                        <Text style={[styles.precioValor, { color: colors.textoPrincipal }]}>{formatearPrecio(producto.Precio_Web)}</Text>
+                        <Text style={[styles.precioValor, { color: colors.textoPrincipal }]}>{formatearPrecio(producto.precioWeb)}</Text>
                     </View>
                     <View style={styles.precioDivisor} />
                     <View style={styles.precioItem}>
                         <Text style={[styles.precioLabel, { color: colors.textoSecundario }]}>Precio Tienda</Text>
-                        <Text style={[styles.precioValor, { color: colors.primario }]}>{formatearPrecio(producto.Precio_Tienda)}</Text>
+                        <Text style={[styles.precioValor, { color: colors.primario }]}>{formatearPrecio(producto.precioTienda)}</Text>
                     </View>
                 </View>
 
@@ -133,7 +133,7 @@ export const EditProductoModal: React.FC<Props> = ({
                         <Text style={[styles.label, { color: colors.textoSecundario }]}>Stock Físico</Text>
                         <TextInput
                             style={[styles.input, { backgroundColor: colors.inputDeshabilitado, color: colors.textoSecundario, borderColor: colors.borde }]}
-                            value={String(producto.Stock_Master || 0)}
+                            value={String(producto.stockMaster || 0)}
                             editable={false}
                         />
                     </View>

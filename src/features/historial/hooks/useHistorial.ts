@@ -13,28 +13,32 @@ interface HistorialState {
  * Hook reactivo que expone los últimos 50 movimientos del historial
  * en tiempo real mediante onSnapshot de Firestore.
  */
-export const useHistorial = (): HistorialState => {
-    const [entradas, setEntradas] = useState<EntradaHistorial[]>([]);
-    const [cargando, setCargando] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+import Movimiento from '../../../core/database/models/Movimiento';
 
-    useEffect(() => {
-        const unsubscribe = InventarioRepository.suscribirHistorial(
-            (nuevasEntradas) => {
-                setEntradas(nuevasEntradas);
-                setCargando(false);
-                setError(null);
-            },
-            (err) => {
-                console.error('[useHistorial] Error:', err);
-                setError('No se pudo cargar el historial. Verifica tu conexión.');
-                setCargando(false);
-            }
-        );
+/**
+ * Hook que adapta los modelos de WatermelonDB al formato esperado por la UI (EntradaHistorial)
+ */
+export const useHistorial = (movimientos: Movimiento[]): HistorialState => {
+    const entradas = movimientos.map(m => ({
+        id: m.id,
+        productoId: m.productoId,
+        descripcion: m.descripcion,
+        marca: m.marca,
+        sku: m.sku,
+        accion: m.accion as any,
+        cambios: {
+            fvAnterior: m.fvAnterior,
+            fvNuevo: m.fvNuevo,
+            comentario: m.comentario
+        },
+        timestamp: m.timestamp,
+        dispositivo: m.dispositivo
+    }));
 
-        return () => unsubscribe();
-    }, []);
-
-    return { entradas, cargando, error };
+    return { 
+        entradas, 
+        cargando: false, 
+        error: null 
+    };
 };
 

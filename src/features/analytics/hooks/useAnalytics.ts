@@ -2,38 +2,38 @@ import { useMemo } from 'react';
 import { useInventarioStore } from '../../inventory/store/useInventarioStore';
 import { calcularDiasRestantes } from '../../../core/utils/fecha';
 
-export const useAnalytics = () => {
-  const inventario = useInventarioStore((state) => state.inventario);
+import Producto from '../../../core/database/models/Producto';
 
+export const useAnalytics = (productos: Producto[]) => {
   return useMemo(() => {
     let sanos = 0, riesgo = 0, vencidos = 0;
     let capitalPerdido = 0;
     const conteoMarcasRiesgo: Record<string, number> = {};
     const recomendaciones: string[] = [];
 
-    Object.values(inventario).forEach((item) => {
+    productos.forEach((item) => {
       // Ignorar productos sin FV o sin stock
-      if (!item.FV_Actual || item.Stock_Master <= 0) return;
+      if (!item.fvActual || item.stockMaster <= 0) return;
 
-      const diffDias = calcularDiasRestantes(item.FV_Actual);
+      const diffDias = calcularDiasRestantes(item.fvActual);
       
-      const marca = item.Marca;
+      const marca = item.marca;
 
       if (diffDias < 0) {
-        vencidos += item.Stock_Master;
+        vencidos += item.stockMaster;
         // Sumamos el capital perdido (Precio Tienda * Stock)
-        capitalPerdido += (item.Precio_Tienda * item.Stock_Master);
+        capitalPerdido += (item.precioTienda * item.stockMaster);
         
         // Insight Automático: Retirar del anaquel
-        if (item.Stock_Master >= 5) {
-          recomendaciones.push(`🔴 Acción requerida: Retirar ${item.Stock_Master} unds. de ${item.Descripcion} (Cód: ${item.Cod_Barras}). Producto vencido.`);
+        if (item.stockMaster >= 5) {
+          recomendaciones.push(`🔴 Acción requerida: Retirar ${item.stockMaster} unds. de ${item.descripcion} (Cód: ${item.codBarras}). Producto vencido.`);
         }
       } else if (diffDias <= 30) {
-        riesgo += item.Stock_Master;
+        riesgo += item.stockMaster;
         // Agrupar marcas en riesgo
-        conteoMarcasRiesgo[marca] = (conteoMarcasRiesgo[marca] || 0) + item.Stock_Master;
+        conteoMarcasRiesgo[marca] = (conteoMarcasRiesgo[marca] || 0) + item.stockMaster;
       } else {
-        sanos += item.Stock_Master;
+        sanos += item.stockMaster;
       }
     });
 
@@ -63,6 +63,6 @@ export const useAnalytics = () => {
       recomendaciones,
       totalInventario: totalFisico
     };
-  }, [inventario]);
+  }, [productos]);
 };
 
