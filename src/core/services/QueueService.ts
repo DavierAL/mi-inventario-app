@@ -11,8 +11,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const WEBHOOK_QUEUE_KEY = '@webhook_queue_mascotify';
-const API_URL = 'https://script.google.com/macros/s/AKfycbzzR_MZN7wCGawPkKCHgVawMVEiMqX-l52tZEBFiJ9W-e2TbAcna66XPEIyj8pYuq279Q/exec';
-const AUTH_TOKEN = 'MASCOTIFY_SECURE_TOKEN_2026';
+
+const getApiUrl = () => process.env.EXPO_PUBLIC_API_URL || '';
+const getAuthToken = () => process.env.EXPO_PUBLIC_AUTH_TOKEN || '';
 
 export interface WebhookPayload {
     codigoBarras: string;
@@ -102,13 +103,13 @@ export const QueueService = {
      */
     async _intentarEnvio(payload: WebhookPayload): Promise<boolean> {
         try {
-            const res = await fetch(API_URL, {
+            const res = await fetch(getApiUrl(), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'text/plain;charset=utf-8',
-                    'X-Auth-Token': AUTH_TOKEN,
+                    'X-Auth-Token': getAuthToken(),
                 },
-                body: JSON.stringify({ accion: 'webhook_modificacion', datos: payload, token: AUTH_TOKEN }),
+                body: JSON.stringify({ accion: 'webhook_modificacion', datos: payload, token: getAuthToken() }),
             });
             const txt = await res.text();
             return txt.includes('"status":"success"');

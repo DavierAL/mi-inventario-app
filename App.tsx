@@ -1,36 +1,34 @@
-// ARCHIVO: App.tsx
-import React, { useEffect } from 'react';
+import React, { useCallback } from 'react';
+import { View } from 'react-native';
 import { ThemeProvider } from './src/core/ui/ThemeContext';
 import { AppNavigator } from './src/core/navigation/AppNavigator';
 import Toast from 'react-native-toast-message';
-
 import { useFonts } from 'expo-font';
 import { Ionicons } from '@expo/vector-icons';
 import * as SplashScreen from 'expo-splash-screen';
 
-// Evitar que la pantalla de carga desaparezca automáticamente
+// Prevenimos que el splash se oculte automáticamente
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
-    const [fontsLoaded] = useFonts({
-        ...Ionicons.font,
-    });
+    const [fontsLoaded] = useFonts({ ...Ionicons.font });
 
-    useEffect(() => {
+    // Tarea 4.3: Sincronizar el cierre del SplashScreen con el pintado real
+    const onLayoutRootView = useCallback(async () => {
         if (fontsLoaded) {
-            // Ocultar la pantalla de carga solo cuando los iconos estén listos
-            SplashScreen.hideAsync();
+            // Este callback se ejecuta cuando la vista se ha "pintado"
+            await SplashScreen.hideAsync();
         }
     }, [fontsLoaded]);
 
-    if (!fontsLoaded) {
-        return null; 
-    }
+    if (!fontsLoaded) return null; 
 
     return (
-        <ThemeProvider>
-            <AppNavigator />
-            <Toast />
-        </ThemeProvider>
+        <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+            <ThemeProvider>
+                <AppNavigator />
+                <Toast />
+            </ThemeProvider>
+        </View>
     );
 }
