@@ -1,33 +1,27 @@
-import { createAudioPlayer } from 'expo-audio';
-import type { AudioPlayer } from 'expo-audio';
+import { Audio } from 'expo-av';
 
-let beepSound: AudioPlayer | null = null;
-let successSound: AudioPlayer | null = null;
-let errorSound: AudioPlayer | null = null;
+// Pre-carga en memoria (Module scope)
+const SOUND_FILES = {
+    beep: require('../../../assets/sounds/beep.mp3'),
+    success: require('../../../assets/sounds/success.wav'),
+    error: require('../../../assets/sounds/error.wav')
+};
 
-// Pre-cargar los sonidos usando expo-audio
 export const precargarSonidos = async () => {
-    try {
-        if (!beepSound) beepSound = createAudioPlayer(require('../../../assets/sounds/beep.wav'));
-        if (!successSound) successSound = createAudioPlayer(require('../../../assets/sounds/success.wav'));
-        if (!errorSound) errorSound = createAudioPlayer(require('../../../assets/sounds/error.wav'));
-    } catch (error) {
-        console.warn("No se pudieron cargar los audios locales", error);
-    }
+    // Implementación vacía para compatibilidad, ya que ahora se pre-cargan en el scope del módulo
 };
 
 export const reproducirSonido = async (tipo: 'beep' | 'success' | 'error') => {
     try {
-        let sonido: AudioPlayer | null = null;
-        if (tipo === 'beep') sonido = beepSound;
-        if (tipo === 'success') sonido = successSound;
-        if (tipo === 'error') sonido = errorSound;
-
-        if (sonido) {
-            sonido.seekTo(0);
-            sonido.play();
-        }
+        const { sound } = await Audio.Sound.createAsync(SOUND_FILES[tipo]);
+        await sound.playAsync();
+        
+        sound.setOnPlaybackStatusUpdate((status) => {
+            if (status.isLoaded && status.didJustFinish) {
+                sound.unloadAsync();
+            }
+        });
     } catch (error) {
-        // Ignorar si el audio falla por silenciamiento o falta de carga
+        console.warn('Error al reproducir sonido:', error);
     }
 };

@@ -25,10 +25,11 @@ import { reproducirSonido } from '../../../core/utils/sonidos';
 import withObservables from '@nozbe/with-observables';
 import { Query } from '@nozbe/watermelondb';
 import Producto from '../../../core/database/models/Producto';
+import { ProductoInventario } from '../../../core/types/inventario';
 import { ProductoCard } from '../components/ProductoCard';
 import { SkeletonCard } from '../../../core/ui/SkeletonCard';
 
-const FastList = FlashList as any;
+
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -51,10 +52,11 @@ interface ListaBaseProps {
 const ListaBase = memo(({ productos, onPress, busqueda, onScroll, listRef, refrescando, onRefresh }: ListaBaseProps) => {
     const { colors } = useTheme();
     return (
-        <FastList
-            ref={listRef}
+        <FlashList
+            ref={listRef as any}
             data={productos}
             keyExtractor={(item: Producto) => item.id}
+            // @ts-ignore - Library types for FlashList are currently incompatible with React 19 types in this environment
             estimatedItemSize={104}
             onScroll={onScroll}
             scrollEventThrottle={16}

@@ -3,13 +3,12 @@ import { initializeApp } from 'firebase/app';
 import { initializeFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAba0_atQVGVMFvLleLfIkWyVqMf-Zvins",
-  authDomain: "mascotify-apps.firebaseapp.com",
-  projectId: "mascotify-apps",
-  storageBucket: "mascotify-apps.firebasestorage.app",
-  messagingSenderId: "731974169294",
-  appId: "1:731974169294:web:be18e3e2f7a4a37330d69f",
-  measurementId: "G-701VW815TH"
+    apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID
 };
 
 export const app = initializeApp(firebaseConfig);

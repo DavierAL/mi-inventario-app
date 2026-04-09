@@ -1,10 +1,15 @@
 import { collection, onSnapshot, doc, setDoc, query, orderBy, limit } from 'firebase/firestore';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { dbFirebase } from '../../../core/database/firebase';
 import { QueueService, WebhookPayload } from '../../../core/services/QueueService';
 import { ProductoInventario, EntradaHistorial, TipoAccionHistorial } from '../../../core/types/inventario';
 import { database } from '../../../core/database';
 import Movimiento from '../../../core/database/models/Movimiento';
+
+const API_URL = process.env.EXPO_PUBLIC_SHEETS_WEBHOOK_URL || '';
+const AUTH_TOKEN = process.env.EXPO_PUBLIC_APP_TOKEN || '';
+const WEBHOOK_QUEUE_KEY = '@webhook_queue_mascotify';
 
 /**
  * InventarioRepository — Director de Orquesta
@@ -77,7 +82,7 @@ export const InventarioRepository = {
                 nuevoComentario: datos.Comentarios,
             };
 
-            const resWebhook = await this._enviarWebhook(payload);
+            const resWebhook = await this.enviarWebhook(payload);
 
             return {
                 exito: true,
@@ -123,23 +128,35 @@ export const InventarioRepository = {
     // PUNTO DE ENTRADA PARA EL STORE (Lifecycle)
     // ─────────────────────────────────────────────
 
-    async vaciarColaSync(): Promise<void> {
-        await QueueService.procesarCola();
+    async vaciarColaSync() {
+        const q = JSON.parse(await AsyncStorage.getItem(WEBHOOK_QUEUE_KEY) || '[]');
+        if (q.length === 0) return;
+
+        const restantes: any[] = [];
+        
+        // Procesamiento en paralelo for mayor velocidad usando el método blindado
+        const promesas = q.map(async (item: any) => {
+            const res = await this.enviarWebhook(item);
+            // Si la petición falla, regresamos el item a la cola de restantes
+            if (!res.exito) {
+                restantes.push(item);
+            }
+        });
+
+        await Promise.all(promesas);
+        await AsyncStorage.setItem(WEBHOOK_QUEUE_KEY, JSON.stringify(restantes));
     },
 
     // ─────────────────────────────────────────────
     // COMUNICACIÓN EXTERNA (Webhook)
     // ─────────────────────────────────────────────
-    async _enviarWebhook(payload: WebhookPayload): Promise<{ exito: boolean }> {
-        const apiUrl = process.env.EXPO_PUBLIC_API_URL || '';
-        const authToken = process.env.EXPO_PUBLIC_AUTH_TOKEN || '';
-
+    async enviarWebhook(payload: WebhookPayload): Promise<{ exito: boolean }> {
         return new Promise((resolve) => {
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', apiUrl);
+            xhr.open('POST', API_URL);
             xhr.setRequestHeader('Accept', 'application/json');
             xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
-            xhr.setRequestHeader('X-Auth-Token', authToken);
+            xhr.setRequestHeader('X-Auth-Token', AUTH_TOKEN);
 
             xhr.onload = async () => {
                 const rawText = xhr.responseText;
@@ -166,7 +183,7 @@ export const InventarioRepository = {
                 await QueueService.encolar(payload);
                 resolve({ exito: false });
             };
-            xhr.send(JSON.stringify({ accion: 'webhook_modificacion', datos: payload, token: authToken }));
+            xhr.send(JSON.stringify({ accion: 'webhook_modificacion', datos: payload, token: AUTH_TOKEN }));
         });
     },
 };
