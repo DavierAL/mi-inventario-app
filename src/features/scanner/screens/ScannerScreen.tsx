@@ -1,0 +1,244 @@
+// ARCHIVO: src/screens/ScannerScreen.tsx
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { CameraView } from 'expo-camera';
+import * as Haptics from 'expo-haptics';
+import Toast from 'react-native-toast-message';
+import { EditProductoModal } from '../../inventory/components/EditProductoModal';
+import { precargarSonidos, reproducirSonido } from '../../../core/utils/sonidos';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../../core/types/navigation';
+import { useInventarioStore } from '../../inventory/store/useInventarioStore';
+import { useTheme } from '../../../core/ui/ThemeContext';
+import { MENSAJES } from '../../../core/constants/mensajes';
+
+type ScannerNavProp = NativeStackNavigationProp<RootStackParamList, 'Scanner'>;
+
+export const ScannerScreen = () => {
+    const { colors } = useTheme();
+    const navigation = useNavigation<ScannerNavProp>();
+    const { 
+        inventario, setProductoEditando, productoEditando, 
+        guardarEdicion, guardarEdicionDirecta 
+    } = useInventarioStore();
+    
+    const [procesandoEscaneo, setProcesandoEscaneo] = useState<boolean>(false);
+    const [modoRafaga, setModoRafaga] = useState<boolean>(false);
+    const [ultimoEscaneado, setUltimoEscaneado] = useState<string | null>(null);
+
+    useEffect(() => {
+        // Precargar sonidos cuando se abre el escáner
+        precargarSonidos();
+        
+        if (productoEditando === null && procesandoEscaneo) {
+            const timer = setTimeout(() => setProcesandoEscaneo(false), 500);
+            return () => clearTimeout(timer);
+        }
+    }, [productoEditando]);
+
+    const reproducirBeep = async (exito: boolean) => {
+        try {
+            if (exito) {
+                reproducirSonido('beep');
+                await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            } else {
+                reproducirSonido('error');
+                await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            }
+        } catch (error) {
+            console.log("Audio/Haptic no soportado", error);
+        }
+    };
+
+    const handleGuardar = async (fv: string, fecha: string, com: string) => {
+        const res = await guardarEdicion(fv, fecha, com);
+        
+        if (res.exito) {
+            reproducirSonido('success');
+            if (res.webhookEncolado) {
+                Toast.show({
+                    type: 'info',
+                    text1: 'Guardado (Sync pendiente)',
+                    text2: 'El cambio está seguro, pero se enviará a Sheets al recuperar conexión.',
+                    visibilityTime: 4000
+                });
+            } else {
+                Toast.show({
+                    type: 'success',
+                    text1: MENSAJES.EXITO_GUARDADO,
+                    text2: MENSAJES.EXITO_GUARDADO_SUB(res.codigo || ''),
+                    visibilityTime: 2500
+                });
+            }
+        } else {
+            reproducirSonido('error');
+            Toast.show({ 
+                type: 'error', 
+                text1: MENSAJES.ERROR_GUARDADO, 
+                text2: res.mensajeError || 'No se pudo guardar en la nube.' 
+            });
+        }
+    };
+
+    const manejarCodigoEscaneado = async ({ data }: { data: string }) => {
+        if (procesandoEscaneo) return;
+        setProcesandoEscaneo(true);
+
+        const codigoLimpio = String(data).trim();
+
+        // OPTIMIZACIÓN O(1): Búsqueda directa en el Diccionario
+        const productoEncontrado = inventario[codigoLimpio];
+        
+        if (productoEncontrado) {
+            reproducirBeep(true);
+            
+            if (modoRafaga) {
+                // MODO RÁFAGA: Guardado silencioso de fondo, cámara no se detiene mucho
+                const res = await guardarEdicionDirecta(productoEncontrado);
+                setUltimoEscaneado(productoEncontrado.SKU || codigoLimpio);
+                
+                if (res.exito) {
+                    Toast.show({
+                        type: 'success',
+                        text1: MENSAJES.RAFAGA_PROCESADO,
+                        text2: `${productoEncontrado.Descripcion}`,
+                        position: 'top',
+                        visibilityTime: 1200,
+                    });
+                } else {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Error en Ráfaga',
+                        text2: 'No se pudo sincronizar el escaneo.',
+                        position: 'top',
+                        visibilityTime: 2000,
+                    });
+                }
+                
+                // En modo ráfaga, habilitamos el escáner rápido de nuevo
+                setTimeout(() => setProcesandoEscaneo(false), 800);
+            } else {
+                // MODO NORMAL: Abrimos Modal
+                setProductoEditando(productoEncontrado);
+            }
+        } else {
+            reproducirBeep(false);
+            Toast.show({
+                type: 'error',
+                text1: MENSAJES.ERROR_NO_ENCONTRADO,
+                text2: MENSAJES.ERROR_NO_ENCONTRADO_SUB(codigoLimpio),
+                position: 'top',
+                visibilityTime: 3000,
+            });
+            setTimeout(() => setProcesandoEscaneo(false), 1500);
+        }
+    };
+
+    return (
+        <View style={styles.contenedor}>
+            <CameraView
+                style={StyleSheet.absoluteFillObject}
+                facing="back"
+                onBarcodeScanned={manejarCodigoEscaneado}
+                barcodeScannerSettings={{
+                    barcodeTypes: ['ean13', 'ean8', 'qr', 'upc_a', 'code128'],
+                }}
+            />
+
+            <View style={styles.capa}>
+                {/* Selector de Modo */}
+                <View style={styles.contenedorModos}>
+                    <TouchableOpacity 
+                        style={[styles.botonModo, !modoRafaga && {backgroundColor: colors.primario}]}
+                        onPress={() => setModoRafaga(false)}
+                    >
+                        <Text style={[styles.textoModo, !modoRafaga && styles.textoModoActivo]}>{MENSAJES.MODO_EDICION}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={[styles.botonModo, modoRafaga && {backgroundColor: colors.error}]}
+                        onPress={() => setModoRafaga(true)}
+                    >
+                        <Text style={[styles.textoModo, modoRafaga && styles.textoModoActivo]}>{MENSAJES.MODO_RAFAGA}</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <Text style={styles.textoInfo}>
+                    {modoRafaga ? MENSAJES.ALINEA_RAFAGA : MENSAJES.ALINEA_CODIGO}
+                </Text>
+
+                <View style={styles.marco}>
+                    <View style={[styles.esquina, styles.esquinaTL, {borderColor: modoRafaga ? colors.error : colors.primario}]} />
+                    <View style={[styles.esquina, styles.esquinaTR, {borderColor: modoRafaga ? colors.error : colors.primario}]} />
+                    <View style={[styles.esquina, styles.esquinaBL, {borderColor: modoRafaga ? colors.error : colors.primario}]} />
+                    <View style={[styles.esquina, styles.esquinaBR, {borderColor: modoRafaga ? colors.error : colors.primario}]} />
+                </View>
+
+                {/* Último Escaneado Mini Resumen */}
+                <View style={{ height: 40, justifyContent: 'center' }}>
+                    {modoRafaga && ultimoEscaneado && (
+                        <Text style={{ color: colors.exito, fontWeight: 'bold' }}>âœ“ {ultimoEscaneado}</Text>
+                    )}
+                </View>
+
+                {/* Botón Flotante para Cancelar */}
+                <TouchableOpacity 
+                    style={styles.botonCancelarCerrar} 
+                    onPress={() => navigation.goBack()}
+                >
+                    <Text style={styles.textoBotonCancelar}>{MENSAJES.TERMINAR_LOTE}</Text>
+                </TouchableOpacity>
+            </View>
+
+            <EditProductoModal
+                visible={productoEditando !== null}
+                producto={productoEditando}
+                onGuardar={handleGuardar}
+                onCancelar={() => setProductoEditando(null)}
+            />
+        </View>
+    );
+};
+
+const ESQUINA_SIZE = 40;
+const ESQUINA_GROSOR = 4;
+
+const styles = StyleSheet.create({
+    contenedor: { flex: 1, backgroundColor: '#000' },
+    capa: {
+        flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'space-between', alignItems: 'center',
+        paddingVertical: 80,
+    },
+    textoInfo: {
+        color: '#FFF', fontSize: 16, fontWeight: '700',
+        backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 24, paddingVertical: 12,
+        borderRadius: 24, overflow: 'hidden',
+    },
+    marco: { width: 280, height: 180, position: 'relative' },
+    esquina: { position: 'absolute', width: ESQUINA_SIZE, height: ESQUINA_SIZE, borderColor: '#63B3ED' },
+    esquinaTL: { top: 0, left: 0, borderTopWidth: ESQUINA_GROSOR, borderLeftWidth: ESQUINA_GROSOR, borderTopLeftRadius: 10 },
+    esquinaTR: { top: 0, right: 0, borderTopWidth: ESQUINA_GROSOR, borderRightWidth: ESQUINA_GROSOR, borderTopRightRadius: 10 },
+    esquinaBL: { bottom: 0, left: 0, borderBottomWidth: ESQUINA_GROSOR, borderLeftWidth: ESQUINA_GROSOR, borderBottomLeftRadius: 10 },
+    esquinaBR: { bottom: 0, right: 0, borderBottomWidth: ESQUINA_GROSOR, borderRightWidth: ESQUINA_GROSOR, borderBottomRightRadius: 10 },
+    botonCancelarCerrar: {
+        backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 24, marginTop: 40
+    },
+    textoBotonCancelar: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+    contenedorModos: {
+        flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 24, padding: 4, marginBottom: 20
+    },
+    botonModo: {
+        paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20
+    },
+    botonModoActivo: {
+        backgroundColor: '#3182CE'
+    },
+    textoModo: {
+        color: '#A0AEC0', fontWeight: 'bold', fontSize: 14
+    },
+    textoModoActivo: {
+        color: '#FFF'
+    }
+});
+
