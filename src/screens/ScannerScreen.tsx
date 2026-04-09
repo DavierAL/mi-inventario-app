@@ -11,6 +11,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { useInventarioStore } from '../store/useInventarioStore';
 import { useTheme } from '../context/ThemeContext';
+import { MENSAJES } from '../constants/mensajes';
 
 type ScannerNavProp = NativeStackNavigationProp<RootStackParamList, 'Scanner'>;
 
@@ -55,10 +56,10 @@ export const ScannerScreen = () => {
         setProcesandoEscaneo(true);
 
         const codigoLimpio = String(data).trim();
-        const productoEncontrado = inventario.find(
-            (p) => String(p.Cod_Barras).trim() === codigoLimpio
-        );
 
+        // OPTIMIZACIÓN O(1): Búsqueda directa en el Diccionario
+        const productoEncontrado = inventario[codigoLimpio];
+        
         if (productoEncontrado) {
             reproducirBeep(true);
             
@@ -69,7 +70,7 @@ export const ScannerScreen = () => {
                 
                 Toast.show({
                     type: 'success',
-                    text1: '⚡ Ráfaga: Procesado',
+                    text1: MENSAJES.RAFAGA_PROCESADO,
                     text2: `${productoEncontrado.Descripcion}`,
                     position: 'top',
                     visibilityTime: 1200,
@@ -84,8 +85,8 @@ export const ScannerScreen = () => {
             reproducirBeep(false);
             Toast.show({
                 type: 'error',
-                text1: '❌ No encontrado',
-                text2: `El código ${codigoLimpio} no existe en stock.`,
+                text1: MENSAJES.ERROR_NO_ENCONTRADO,
+                text2: MENSAJES.ERROR_NO_ENCONTRADO_SUB(codigoLimpio),
                 position: 'top',
                 visibilityTime: 3000,
             });
@@ -111,18 +112,18 @@ export const ScannerScreen = () => {
                         style={[styles.botonModo, !modoRafaga && {backgroundColor: colors.primario}]}
                         onPress={() => setModoRafaga(false)}
                     >
-                        <Text style={[styles.textoModo, !modoRafaga && styles.textoModoActivo]}>Modo Edición</Text>
+                        <Text style={[styles.textoModo, !modoRafaga && styles.textoModoActivo]}>{MENSAJES.MODO_EDICION}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
                         style={[styles.botonModo, modoRafaga && {backgroundColor: colors.error}]}
                         onPress={() => setModoRafaga(true)}
                     >
-                        <Text style={[styles.textoModo, modoRafaga && styles.textoModoActivo]}>⚡ Ráfaga</Text>
+                        <Text style={[styles.textoModo, modoRafaga && styles.textoModoActivo]}>{MENSAJES.MODO_RAFAGA}</Text>
                     </TouchableOpacity>
                 </View>
 
                 <Text style={styles.textoInfo}>
-                    {modoRafaga ? 'Alinea para marcaje rápido' : 'Alinea el código en el centro'}
+                    {modoRafaga ? MENSAJES.ALINEA_RAFAGA : MENSAJES.ALINEA_CODIGO}
                 </Text>
 
                 <View style={styles.marco}>
@@ -144,7 +145,7 @@ export const ScannerScreen = () => {
                     style={styles.botonCancelarCerrar} 
                     onPress={() => navigation.goBack()}
                 >
-                    <Text style={styles.textoBotonCancelar}>✕ Terminar Lote</Text>
+                    <Text style={styles.textoBotonCancelar}>{MENSAJES.TERMINAR_LOTE}</Text>
                 </TouchableOpacity>
             </View>
 

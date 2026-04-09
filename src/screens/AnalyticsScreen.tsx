@@ -1,4 +1,3 @@
-// ARCHIVO: src/screens/AnalyticsScreen.tsx
 import React from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -6,14 +5,17 @@ import { PieChart } from 'react-native-chart-kit';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { exportarReportePDF } from '../utils/exportaciones';
 import { useTheme } from '../context/ThemeContext';
+import { formatearPrecio } from '../utils/formato';
+import { MENSAJES } from '../constants/mensajes';
+import { Ionicons } from '@expo/vector-icons';
 
 const screenWidth = Dimensions.get("window").width;
 
 export const AnalyticsScreen = () => {
     const { colors, isDark } = useTheme();
-    const { saludPorcentaje, capitalPerdido, datosDona, marcasRiesgo, recomendaciones } = useAnalytics();
+    const { saludPorcentaje, capitalPerdido, datosDona, marcasRiesgo, recomendaciones, totalInventario } = useAnalytics();
 
-    // Ajustar colores de la dona para modo oscuro si es necesario
+    // Ajustar colores de la dona para modo oscuro
     const datosDonaTematizados = datosDona.map(d => ({
         ...d,
         legendFontColor: colors.textoPrincipal
@@ -22,43 +24,42 @@ export const AnalyticsScreen = () => {
     return (
         <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.fondo }]}>
             <ScrollView style={styles.contenedor}>
-                <Text style={[styles.tituloSec, { color: colors.textoPrincipal }]}>Dashboard Analítico</Text>
+                <Text style={[styles.tituloSec, { color: colors.textoPrincipal }]}>{MENSAJES.DASHBOARD_TITULO}</Text>
 
-                {/* 1. KPIs FINANCIEROS */}
-                <View style={styles.filaKpi}>
-                    <View style={[styles.tarjetaKpi, { backgroundColor: colors.superficie, borderLeftColor: colors.exito, borderLeftWidth: 4 }]}>
-                        <Text style={[styles.kpiLabel, { color: colors.textoSecundario }]}>Salud Inventario</Text>
-                        <Text style={[styles.kpiValor, { color: colors.textoPrincipal }]}>{saludPorcentaje}%</Text>
+                {/* 1. INDICADORES RÁPIDOS */}
+                <View style={styles.filaIndicadores}>
+                    <View style={[styles.tarjetaIndicador, { backgroundColor: colors.superficie }]}>
+                        <Text style={[styles.tituloIndicador, { color: colors.textoSecundario }]}>{MENSAJES.SALUD_LABEL}</Text>
+                        <Text style={[styles.valorIndicador, { color: colors.primario }]}>{saludPorcentaje}%</Text>
                     </View>
-                    <View style={[styles.tarjetaKpi, { backgroundColor: colors.superficie, borderLeftColor: colors.error, borderLeftWidth: 4 }]}>
-                        <Text style={[styles.kpiLabel, { color: colors.textoSecundario }]}>Pérdida Estimada</Text>
-                        <Text style={[styles.kpiValor, { color: colors.error }]}>S/ {capitalPerdido.toFixed(2)}</Text>
+                    <View style={[styles.tarjetaIndicador, { backgroundColor: colors.superficie }]}>
+                        <Text style={[styles.tituloIndicador, { color: colors.textoSecundario }]}>{MENSAJES.PERDIDA_LABEL}</Text>
+                        <Text style={[styles.valorIndicador, { color: colors.error }]}>{formatearPrecio(capitalPerdido)}</Text>
                     </View>
                 </View>
 
-                {/* 2. GRÁFICO DE DONA */}
-                <View style={[styles.tarjetaGrafico, { backgroundColor: colors.superficie }]}>
-                    <Text style={[styles.tituloGrafico, { color: colors.textoPrincipal }]}>Estado del Stock Físico</Text>
+                {/* 2. GRÁFICO DE DONA (ESTADO FÍSICO) */}
+                <View style={[styles.tarjetaGrafico, { backgroundColor: colors.superficie, height: 260 }]}>
+                    <Text style={[styles.tituloGrafico, { color: colors.textoPrincipal }]}>{MENSAJES.STOCK_FISICO_TITULO}</Text>
                     <PieChart
                         data={datosDonaTematizados}
-                        width={screenWidth - 40}
+                        width={screenWidth - 80}
                         height={180}
                         chartConfig={{
-                            color: (opacity = 1) => isDark ? `rgba(255, 255, 255, ${opacity})` : `rgba(0, 0, 0, ${opacity})`,
-                            labelColor: (opacity = 1) => colors.textoPrincipal,
+                            color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
                         }}
                         accessor={"stock"}
                         backgroundColor={"transparent"}
                         paddingLeft={"15"}
-                        absolute // Muestra el número real en lugar de %
+                        absolute
                     />
                 </View>
 
                 {/* 3. BARRAS HORIZONTALES (TOP MARCAS EN RIESGO) */}
                 <View style={[styles.tarjetaGrafico, { backgroundColor: colors.superficie }]}>
-                    <Text style={[styles.tituloGrafico, { color: colors.textoPrincipal }]}>Top Marcas en Riesgo ({'<' }30 días)</Text>
+                    <Text style={[styles.tituloGrafico, { color: colors.textoPrincipal }]}>{MENSAJES.MARCAS_RIESGO_TITULO(30)}</Text>
                     {marcasRiesgo.length === 0 ? (
-                        <Text style={[styles.textoVacio, { color: colors.textoSecundario }]}>¡Excelente! Ninguna marca en riesgo inminente.</Text>
+                        <Text style={[styles.textoVacio, { color: colors.textoSecundario }]}>{MENSAJES.MARCAS_RIESGO_VACIO}</Text>
                     ) : null}
 
                     {marcasRiesgo.map(([marca, cant]) => {
@@ -79,24 +80,31 @@ export const AnalyticsScreen = () => {
                     })}
                 </View>
 
-                {/* 4. PLANES DE ACCIÓN (INSIGHTS) */}
-                <View style={[styles.tarjetaGrafico, { backgroundColor: colors.superficie }]}>
-                    <Text style={[styles.tituloGrafico, { color: colors.textoPrincipal }]}>🧠 Recomendaciones (IA)</Text>
+                {/* 4. RECOMENDACIONES (IA) */}
+                <View style={[styles.seccionIA, { backgroundColor: isDark ? '#1C1C1E' : '#F0F9FF', borderColor: colors.primario, borderWidth: 1, padding: 15, borderRadius: 10, marginBottom: 20 }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                        <Ionicons name="bulb" size={20} color={colors.primario} />
+                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.primario, marginLeft: 8 }}>{MENSAJES.IA_RECOMENDACIONES}</Text>
+                    </View>
                     {recomendaciones.length === 0 ? <Text style={[styles.textoVacio, { color: colors.textoSecundario }]}>Todo bajo control.</Text> : null}
                     {recomendaciones.map((rec, index) => (
-                        <View key={index} style={[styles.insightItem, { backgroundColor: colors.inputFondo, borderColor: colors.borde }]}>
+                        <View key={index} style={[styles.insightItem, { backgroundColor: colors.superficie, borderColor: colors.borde, borderWidth: 1, padding: 10, borderRadius: 8, marginTop: 8 }]}>
                             <Text style={[styles.insightTexto, { color: colors.textoPrincipal }]}>{rec}</Text>
                         </View>
                     ))}
                 </View>
 
-                {/* 5. HERRAMIENTAS GERENCIALES */}
-                <TouchableOpacity style={[styles.botonExportar, { backgroundColor: colors.primario }]} onPress={() => exportarReportePDF(saludPorcentaje, capitalPerdido, recomendaciones)}>
-                    <Text style={styles.textoBoton}>🖨️ Compartir Reporte Gerencial PDF</Text>
-                </TouchableOpacity>
-
-                <View style={{ height: 40 }} />
+                <View style={{ height: 100 }} />
             </ScrollView>
+
+            {/* BOTÓN FLOTANTE: COMPARTIR REPORTE */}
+            <TouchableOpacity 
+                style={styles.botonCompartir}
+                onPress={() => exportarReportePDF(saludPorcentaje, capitalPerdido, recomendaciones)}
+            >
+                <Ionicons name="share-outline" size={22} color="#FFF" />
+                <Text style={styles.textoBotonCompartir}>{MENSAJES.EXPORTAR_PDF}</Text>
+            </TouchableOpacity>
         </SafeAreaView>
     );
 };
@@ -105,10 +113,13 @@ const styles = StyleSheet.create({
     safeArea: { flex: 1 },
     contenedor: { flex: 1, padding: 15 },
     tituloSec: { fontSize: 24, fontWeight: 'bold', marginBottom: 15, marginTop: 10 },
-    filaKpi: { flexDirection: 'row', gap: 10, marginBottom: 15 },
-    tarjetaKpi: { flex: 1, padding: 15, borderRadius: 10, elevation: 2 },
-    kpiLabel: { fontSize: 12, textTransform: 'uppercase', fontWeight: 'bold', marginBottom: 5 },
-    kpiValor: { fontSize: 24, fontWeight: '900' },
+    filaIndicadores: { flexDirection: 'row', gap: 10, marginBottom: 15 },
+    tarjetaIndicador: { 
+        flex: 1, padding: 15, borderRadius: 10, elevation: 2,
+        justifyContent: 'center', alignItems: 'center'
+    },
+    tituloIndicador: { fontSize: 12, textTransform: 'uppercase', fontWeight: 'bold', marginBottom: 5 },
+    valorIndicador: { fontSize: 24, fontWeight: '900' },
     tarjetaGrafico: { padding: 15, borderRadius: 10, elevation: 2, marginBottom: 15 },
     tituloGrafico: { fontSize: 16, fontWeight: 'bold', marginBottom: 10 },
     textoVacio: { fontStyle: 'italic', marginTop: 5 },
@@ -120,6 +131,12 @@ const styles = StyleSheet.create({
     barraRelleno: { height: '100%', borderRadius: 5 },
     insightItem: { padding: 12, borderRadius: 8, marginBottom: 8, borderWidth: 1 },
     insightTexto: { fontSize: 14, lineHeight: 20 },
-    botonExportar: { padding: 15, borderRadius: 10, alignItems: 'center', marginVertical: 10 },
-    textoBoton: { color: 'white', fontWeight: 'bold', fontSize: 16 }
+    seccionIA: { padding: 15, borderRadius: 10, marginBottom: 20, borderWidth: 1 },
+    botonCompartir: {
+        backgroundColor: '#3182CE',
+        position: 'absolute', bottom: 20, right: 20, left: 20,
+        flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
+        padding: 16, borderRadius: 16, elevation: 4
+    },
+    textoBotonCompartir: { color: 'white', fontWeight: 'bold', fontSize: 16, marginLeft: 10 }
 });

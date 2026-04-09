@@ -1,12 +1,13 @@
 // ARCHIVO: src/store/useInventarioStore.ts
 import { create } from 'zustand';
 import { ProductoInventario } from '../types/inventario';
-import { suscribirAInventario, actualizarProducto, vaciarColaWebhooks } from '../services/api';
+import { InventarioRepository } from '../repositories/inventarioRepository';
+import { MENSAJES } from '../constants/mensajes';
 import Toast from 'react-native-toast-message';
 import { reproducirSonido } from '../utils/sonidos';
 
 interface InventarioState {
-    inventario: ProductoInventario[];
+    inventario: Record<string, ProductoInventario>;
     cargando: boolean;
     error: string | null;
     modoOffline: boolean;
@@ -15,45 +16,47 @@ interface InventarioState {
     busqueda: string;
     
     productoEditando: ProductoInventario | null;
-    // Offline Tracking is inherently managed by Firebase, we just keep UI flags
     pendientesSync: number;
     sincronizandoFondo: boolean;
 
     // Acciones
-    conectarInventario: () => () => void; // Retorna función de desconexión
+    conectarInventario: () => () => void;
     setBusqueda: (texto: string) => void;
     setProductoEditando: (producto: ProductoInventario | null) => void;
     guardarEdicion: (fv: string, fechaEdicion: string, comentario: string) => Promise<boolean>;
     guardarEdicionDirecta: (producto: ProductoInventario) => Promise<boolean>;
-    // Carga manual (legacy / forzar refresco visual si offline)
     cargarDatosSync: () => void; 
 }
 
 export const useInventarioStore = create<InventarioState>((set, get) => ({
-    inventario: [],
+    // Estado Inicial
+    inventario: {},
     cargando: true,
     error: null,
     modoOffline: false,
     lastSync: undefined,
-    
     busqueda: '',
-    
     productoEditando: null,
-
     pendientesSync: 0,
     sincronizandoFondo: false,
 
+    // Conexión y Sincronización
     conectarInventario: () => {
         set({ cargando: true, error: null });
         
-        // Limpiamos cola de pendientes al conectar (si hay internet)
-        vaciarColaWebhooks();
+        InventarioRepository.vaciarColaSync();
 
-        // Iniciamos la suscripción onSnapshot
-        const unsubscribe = suscribirAInventario(
+        const unsubscribe = InventarioRepository.suscribir(
             (datos, fromCache) => {
+                // NORMALIZACIÓN O(n): Transformamos arreglo a Diccionario para búsquedas O(1)
+                const inventarioNormalizado = datos.reduce((acc, curr) => {
+                    const key = String(curr.Cod_Barras || curr.SKU).trim();
+                    if (key) acc[key] = curr;
+                    return acc;
+                }, {} as Record<string, ProductoInventario>);
+
                 set({
-                    inventario: datos,
+                    inventario: inventarioNormalizado,
                     modoOffline: fromCache,
                     cargando: false,
                     lastSync: new Date().toLocaleTimeString(),
@@ -62,21 +65,18 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
             },
             (error) => {
                 set({ 
-                    error: 'Error de conexión en tiempo real. Reintentando...',
+                    error: MENSAJES.ERROR_CONEXION_REALTIME,
                     cargando: false 
                 });
             }
         );
 
-        return unsubscribe; // Para usar en useEffect cleanup
+        return unsubscribe;
     },
 
     cargarDatosSync: () => {
-        // En onSnapshot, "cargar" es simplemente esperar la primera emisión.
-        // Mantenemos esta función por compatibilidad con Pull-to-refresh
         set({ cargando: true });
-        // El listener ya está corriendo, el set anterior disparará el skeleton
-        // y onSnapshot refrescará la data apenas la reciba del servidor.
+        // Simulación de "refresco" visual ya que onSnapshot es reactivo
         setTimeout(() => set({ cargando: false }), 500);
     },
 
@@ -84,33 +84,55 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
 
     setProductoEditando: (producto) => set({ productoEditando: producto }),
 
+    // Persistencia O(1)
     guardarEdicion: async (fv: string, fechaEdicion: string, comentario: string) => {
         const state = get();
         if (!state.productoEditando) return false;
 
-        const codigo = state.productoEditando.Cod_Barras;
-        const inventarioPrevio = state.inventario;
+        const codigo = String(state.productoEditando.Cod_Barras).trim();
+        const productoPrevio = state.inventario[codigo];
+        if (!productoPrevio) return false;
 
-        // Actualización optimista. No la revertiremos si es error de red.
-        const nuevoInventario = state.inventario.map(item =>
-            String(item.Cod_Barras).trim() === String(codigo).trim()
-                ? { ...item, FV_Actual: fv, Fecha_edicion: fechaEdicion, Comentarios: comentario }
-                : item
-        );
+        // Actualización Optimista O(1)
+        const nuevoProducto = {
+            ...productoPrevio,
+            FV_Actual: fv,
+            Fecha_edicion: fechaEdicion,
+            Comentarios: comentario
+        };
+
+        const nuevoInventario = {
+            ...state.inventario,
+            [codigo]: nuevoProducto
+        };
         
         set({ inventario: nuevoInventario, productoEditando: null });
 
-        const respuesta = await actualizarProducto(codigo, undefined, fv, fechaEdicion, comentario);
+        const respuesta = await InventarioRepository.actualizarProducto(
+            codigo,
+            {
+                FV_Actual: fv,
+                Fecha_edicion: fechaEdicion,
+                Comentarios: comentario
+            },
+            // Info para el historial de auditoría
+            {
+                descripcion: productoPrevio.Descripcion || '',
+                marca: productoPrevio.Marca || '',
+                sku: productoPrevio.SKU || '',
+                fvAnterior: productoPrevio.FV_Actual,
+                accion: comentario && !productoPrevio.Comentarios ? 'COMENTARIO_AGREGADO' : 'FV_ACTUALIZADO',
+            }
+        );
 
-        // MEJORA: Si falla el webhook por red (isNetworkError), NO revertimos la UI.
-        // El dato ya está en Firebase y se encoló para Google Sheets.
         if (!respuesta.exito && !respuesta.isNetworkError) {
-            set({ inventario: inventarioPrevio }); // Revertir solo si falló Firebase
+            // Revertir solo si falló la base de datos (no por red, que se encolará)
+            set({ inventario: state.inventario }); 
             reproducirSonido('error');
             Toast.show({
                 type: 'error',
-                text1: '❌ Error al guardar',
-                text2: 'No se pudo insertar en la base de datos.',
+                text1: MENSAJES.ERROR_GUARDADO,
+                text2: MENSAJES.ERROR_GUARDADO_DB,
                 visibilityTime: 4000,
             });
             return false;
@@ -121,15 +143,15 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
         if (respuesta.isNetworkError) {
             Toast.show({
                 type: 'info',
-                text1: '✅ Guardado (Modo Offline)',
-                text2: 'Cambio guardado. Se enviará a Excel al recuperar conexión.',
+                text1: MENSAJES.EXITO_MODO_OFFLINE,
+                text2: MENSAJES.EXITO_MODO_OFFLINE_SUB,
                 visibilityTime: 3500,
             });
         } else {
             Toast.show({
                 type: 'success',
-                text1: '✅ Guardado exitoso',
-                text2: `Las modificaciones de ${codigo} se sincronizaron.`,
+                text1: MENSAJES.EXITO_GUARDADO,
+                text2: MENSAJES.EXITO_GUARDADO_SUB(codigo),
                 visibilityTime: 2500,
             });
         }
@@ -138,25 +160,27 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
 
     guardarEdicionDirecta: async (producto: ProductoInventario) => {
         const state = get();
-        const codigo = producto.Cod_Barras;
-        const fv = producto.FV_Actual || '';
-        const fechaEdicion = new Date().toLocaleDateString('es-ES');
+        const codigo = String(producto.Cod_Barras).trim();
+        const fv = producto.FV_Actual;
+        const fechaEdicion = new Date().toISOString();
         const comentario = producto.Comentarios || '';
-        
-        const inventarioPrevio = state.inventario;
-        const nuevoInventario = state.inventario.map(item =>
-            String(item.Cod_Barras).trim() === String(codigo).trim()
-                ? { ...item, FV_Actual: fv, Fecha_edicion: fechaEdicion, Comentarios: comentario }
-                : item
-        );
+
+        // Actualización O(1)
+        const nuevoInventario = {
+            ...state.inventario,
+            [codigo]: { ...producto, Fecha_edicion: fechaEdicion }
+        };
         
         set({ inventario: nuevoInventario });
         
-        const respuesta = await actualizarProducto(codigo, undefined, fv, fechaEdicion, comentario);
+        const respuesta = await InventarioRepository.actualizarProducto(codigo, {
+            FV_Actual: fv,
+            Fecha_edicion: fechaEdicion,
+            Comentarios: comentario
+        });
 
-        // Si falló Firebase (exito false) y no es error de red (el webhook), revertimos.
         if (!respuesta.exito && !respuesta.isNetworkError) {
-            set({ inventario: inventarioPrevio }); 
+            set({ inventario: state.inventario }); 
             return false;
         }
 

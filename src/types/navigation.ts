@@ -3,4 +3,5 @@ export type RootStackParamList = {
     InventarioList: undefined;
     Scanner: undefined;
     Analytics: undefined;
+    Historial: undefined;
 };

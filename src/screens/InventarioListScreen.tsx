@@ -4,11 +4,12 @@ import {
     StyleSheet, Text, View, ActivityIndicator,
     StatusBar, TouchableOpacity, Alert,
     TextInput, RefreshControl, ScrollView,
-    Animated, LayoutAnimation, Platform
+    Animated, LayoutAnimation, Platform, UIManager
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCameraPermissions } from 'expo-camera';
 import { FlashList } from '@shopify/flash-list';
+import * as Haptics from 'expo-haptics';
 import { useDebounce } from '../utils/useDebounce';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -23,8 +24,15 @@ import { useTheme } from '../context/ThemeContext';
 import { useInventarioStore } from '../store/useInventarioStore';
 import { RootStackParamList } from '../types/navigation';
 import { ProductoInventario } from '../types/inventario';
+import { useFiltrosInventario, FiltroCaducidad, Ordenamiento } from '../hooks/useFiltrosInventario';
+import { MENSAJES } from '../constants/mensajes';
 
 const FastList = FlashList as any;
+
+// Habilitar LayoutAnimation en Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 type InventarioListNavProp = NativeStackNavigationProp<RootStackParamList, 'InventarioList'>;
 
@@ -40,8 +48,27 @@ export const InventarioListScreen = () => {
         pendientesSync, sincronizandoFondo
     } = useInventarioStore();
 
+    // LÓGICA DE FILTRADO EXTRAÍDA A UN HOOK PURAMENTE FUNCIONAL
+    const { 
+        inventarioProcesado, conteos, 
+        filtroRapido, setFiltroRapido, 
+        ordenamiento, setOrdenamiento 
+    } = useFiltrosInventario(inventario, busqueda);
+
+    // Wrappers animados: LayoutAnimation + Haptics antes de cambiar filtro/orden
+    const cambiarFiltro = useCallback((nuevoFiltro: FiltroCaducidad) => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        setFiltroRapido(nuevoFiltro);
+    }, [setFiltroRapido]);
+
+    const cambiarOrden = useCallback((nuevoOrden: Ordenamiento) => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        setOrdenamiento(nuevoOrden);
+    }, [setOrdenamiento]);
+
     useEffect(() => {
-        // Conexión tiempo real (onSnapshot)
         const unsub = conectarInventario();
         return () => unsub();
     }, [conectarInventario]);
@@ -49,73 +76,23 @@ export const InventarioListScreen = () => {
     const [permisoCamara, pedirPermisoCamara] = useCameraPermissions();
     const [refrescando, setRefrescando] = useState(false);
     
-    // Retardo artificial para búsquedas
-    const busquedaDebounced = useDebounce(busqueda, 300);
-
-    const [filtroRapido, setFiltroRapido] = useState<'TODOS' | 'VENCIDOS' | '30_DIAS' | '90_DIAS'>('TODOS');
-    const [ordenamiento, setOrdenamiento] = useState<'MARCA' | 'STOCK' | 'FV'>('MARCA');
+    // UI State para el botón flotante
     const [mostrarBotonSubir, setMostrarBotonSubir] = useState(false);
-    
-    // Referencia para scroll
     const listRef = useRef<any>(null);
+    const mostrarRef = useRef(false);
 
     const scrollToTop = () => {
         listRef.current?.scrollToOffset({ offset: 0, animated: true });
     };
 
-    const mostrarRef = useRef(false);
-
     const handleScroll = useCallback((event: any) => {
         const offsetY = event.nativeEvent.contentOffset.y;
         const show = offsetY > 300;
-        
         if (show !== mostrarRef.current) {
             mostrarRef.current = show;
             setMostrarBotonSubir(show);
         }
     }, [mostrarBotonSubir]);
-
-    const { inventarioProcesado, conteos } = useMemo(() => {
-        let vencidos = 0, en30Dias = 0, en90Dias = 0;
-        
-        // 1. Calculamos los días restantes para CADA producto (Lógica Centralizada)
-        const inventarioConDias = inventario.map(item => {
-            const diasRestantes = calcularDiasRestantes(item.FV_Actual);
-            
-            if (diasRestantes < 0) vencidos++;
-            else if (diasRestantes <= 30) en30Dias++;
-            else if (diasRestantes <= 90) en90Dias++;
-
-            return { ...item, diasRestantes };
-        });
-
-        // 2. Filtramos según botón
-        let listaFiltrada = inventarioConDias;
-        if (filtroRapido === 'VENCIDOS') listaFiltrada = listaFiltrada.filter(i => i.diasRestantes < 0);
-        if (filtroRapido === '30_DIAS') listaFiltrada = listaFiltrada.filter(i => i.diasRestantes >= 0 && i.diasRestantes <= 30);
-        if (filtroRapido === '90_DIAS') listaFiltrada = listaFiltrada.filter(i => i.diasRestantes > 30 && i.diasRestantes <= 90);
-
-        // 3. Aplicamos la búsqueda de texto si el usuario escribió algo
-        const termino = busquedaDebounced.toLowerCase().trim();
-        if (termino) {
-            listaFiltrada = listaFiltrada.filter(p =>
-                String(p.SKU).toLowerCase().includes(termino) ||
-                String(p.Descripcion).toLowerCase().includes(termino) ||
-                String(p.Cod_Barras).toLowerCase().includes(termino)
-            );
-        }
-
-        // Ordenamiento principal (sobreescribe el de filtro rápido)
-        if (ordenamiento === 'MARCA') {
-            listaFiltrada.sort((a, b) => String(a.Marca || '').localeCompare(String(b.Marca || '')));
-        } else if (ordenamiento === 'STOCK') {
-            listaFiltrada.sort((a, b) => (Number(b.Stock_Master) || 0) - (Number(a.Stock_Master) || 0));
-        } else if (ordenamiento === 'FV') {
-            listaFiltrada.sort((a, b) => a.diasRestantes - b.diasRestantes);
-        }
-
-        return { inventarioProcesado: listaFiltrada, conteos: { vencidos, en30Dias, en90Dias } };
-    }, [busquedaDebounced, inventario, filtroRapido, ordenamiento]);
 
     const handleRefresh = useCallback(() => {
         setRefrescando(true);
@@ -134,19 +111,14 @@ export const InventarioListScreen = () => {
         navigation.navigate('Scanner');
     };
 
-    const manejarProductoEncontrado = useCallback((producto: ProductoInventario) => {
-        setProductoEditando(producto);
-    }, [setProductoEditando]);
-
-    if (cargando && inventario.length === 0) {
-        // En lugar del spinner solitario, renderizamos Skeletons
+    if (cargando && Object.keys(inventario).length === 0) {
         const fakeList = [1, 2, 3, 4, 5, 6, 7];
         return (
             <SafeAreaView style={[styles.contenedor, { backgroundColor: colors.fondo }]}>
                 <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.superficie} />
                 <View style={[styles.cabecera, { backgroundColor: colors.superficie, borderBottomColor: colors.borde }]}>
-                    <Text style={[styles.tituloApp, { color: colors.textoPrincipal }]}>Inventario Activo</Text>
-                    <Text style={[styles.subtituloApp, { color: colors.textoSecundario }]}>Sincronizando con la nube...</Text>
+                    <Text style={[styles.tituloApp, { color: colors.textoPrincipal }]}>{MENSAJES.TITULO_APP}</Text>
+                    <Text style={[styles.subtituloApp, { color: colors.textoSecundario }]}>{MENSAJES.CARGANDO_INVENTARIO}</Text>
                 </View>
                 <ScrollView style={{ flex: 1, marginTop: 10 }}>
                     {fakeList.map((k) => <SkeletonCard key={k} />)}
@@ -161,7 +133,7 @@ export const InventarioListScreen = () => {
                 <Text style={styles.iconoError}>📡</Text>
                 <Text style={[styles.textoError, { color: colors.textoSecundario }]}>{error}</Text>
                 <TouchableOpacity onPress={() => cargarDatosSync()} style={[styles.botonReintentar, { backgroundColor: colors.primario }]}>
-                    <Text style={styles.textoBotonReintentar}>Reintentar Conexión</Text>
+                    <Text style={styles.textoBotonReintentar}>{MENSAJES.REINTENTAR_CONEXION}</Text>
                 </TouchableOpacity>
             </View>
         );
@@ -175,7 +147,7 @@ export const InventarioListScreen = () => {
                 {modoOffline && (
                     <View style={[styles.bannerOffline, { backgroundColor: colors.bannerOfflineFondo }]}>
                         <Text style={[styles.textoBannerOffline, { color: colors.bannerOfflineTexto }]}>
-                            📵 Caché local · Última sync: {lastSync}
+                            {MENSAJES.MODO_OFFLINE_BANNER(lastSync || '--:--')}
                         </Text>
                         <TouchableOpacity onPress={() => cargarDatosSync()}>
                             <Text style={[styles.botonReconectar, { color: colors.bannerOfflineBoton }]}>Reintentar</Text>
@@ -185,7 +157,7 @@ export const InventarioListScreen = () => {
 
                 <View style={[styles.cabecera, { backgroundColor: colors.superficie, borderBottomColor: colors.borde }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
-                        <Text style={[styles.tituloApp, { color: colors.textoPrincipal }]}>Inventario Activo</Text>
+                        <Text style={[styles.tituloApp, { color: colors.textoPrincipal }]}>{MENSAJES.TITULO_APP}</Text>
                         <TouchableOpacity onPress={() => navigation.navigate('Analytics')}>
                             <Ionicons name="stats-chart" size={26} color={colors.primario} style={{ padding: 4 }} />
                         </TouchableOpacity>
@@ -196,14 +168,14 @@ export const InventarioListScreen = () => {
                         </Text>
                     )}
                     <Text style={[styles.subtituloApp, { color: colors.textoSecundario }]}>
-                        {busqueda || filtroRapido !== 'TODOS' ? `${inventarioProcesado.length} de ` : ''}{inventario.length} productos registrados
+                        {MENSAJES.PRODUCTOS_REGISTRADOS(inventarioProcesado.length, Object.keys(inventario).length, !!busqueda || filtroRapido !== 'TODOS')}
                     </Text>
                     
                     <View style={[styles.contenedorBuscador, { backgroundColor: colors.fondoBuscador, borderColor: colors.borde }]}>
                         <Ionicons name="search-outline" size={20} color={colors.placeholder} style={styles.iconoBuscador} />
                         <TextInput
                             style={[styles.inputBuscador, { color: colors.textoPrincipal }]}
-                            placeholder="Buscar SKU, código o título..."
+                            placeholder={MENSAJES.BUSCAR_PLACEHOLDER}
                             placeholderTextColor={colors.placeholder}
                             value={busqueda}
                             onChangeText={setBusqueda}
@@ -218,44 +190,44 @@ export const InventarioListScreen = () => {
                     </View>
                 </View>
 
-                {/* NUEVO: DASHBOARD DE CADUCIDAD (CARRUSEL) */}
+                {/* DASHBOARD DE CADUCIDAD (CARRUSEL) */}
                 <View style={[styles.contenedorFiltros, { backgroundColor: colors.superficie, borderBottomColor: colors.borde }]}>
                     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingHorizontal: 20 }}>
                         <TouchableOpacity 
                             style={[styles.botonFiltro, filtroRapido === 'TODOS' && [styles.filtroActivo, { borderColor: colors.primario, backgroundColor: colors.primario }]]}
-                            onPress={() => setFiltroRapido('TODOS')}
+                            onPress={() => cambiarFiltro('TODOS')}
                         >
                             <Ionicons name="layers-outline" size={16} color={filtroRapido === 'TODOS' ? 'white' : colors.textoSecundario} />
-                            <Text style={[styles.textoFiltro, { color: colors.textoSecundario }, filtroRapido === 'TODOS' && { color: 'white' }]}> Todos</Text>
+                            <Text style={[styles.textoFiltro, { color: colors.textoSecundario }, filtroRapido === 'TODOS' && { color: 'white' }]}> {MENSAJES.FILTRO_TODOS}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity 
                             style={[styles.botonFiltro, { borderColor: colors.error }, filtroRapido === 'VENCIDOS' && { backgroundColor: colors.error }]}
-                            onPress={() => setFiltroRapido('VENCIDOS')}
+                            onPress={() => cambiarFiltro('VENCIDOS')}
                         >
                             <Ionicons name="alert-circle" size={16} color={filtroRapido === 'VENCIDOS' ? 'white' : colors.error} />
                             <Text style={[styles.textoFiltro, { color: colors.error }, filtroRapido === 'VENCIDOS' && { color: 'white' }]}>
-                                Vencidos: {conteos.vencidos}
+                                {MENSAJES.FILTRO_VENCIDOS}: {conteos.vencidos}
                             </Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity 
                             style={[styles.botonFiltro, { borderColor: '#DD6B20' }, filtroRapido === '30_DIAS' && { backgroundColor: '#DD6B20' }]}
-                            onPress={() => setFiltroRapido('30_DIAS')}
+                            onPress={() => cambiarFiltro('30_DIAS')}
                         >
                             <Ionicons name="time-outline" size={16} color={filtroRapido === '30_DIAS' ? 'white' : '#DD6B20'} />
                             <Text style={[styles.textoFiltro, { color: '#DD6B20' }, filtroRapido === '30_DIAS' && { color: 'white' }]}>
-                                {' <'} 30 d: {conteos.en30Dias}
+                                {MENSAJES.FILTRO_30_DIAS}: {conteos.en30Dias}
                             </Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity 
                             style={[styles.botonFiltro, { borderColor: '#D69E2E' }, filtroRapido === '90_DIAS' && { backgroundColor: '#D69E2E' }]}
-                            onPress={() => setFiltroRapido('90_DIAS')}
+                            onPress={() => cambiarFiltro('90_DIAS')}
                         >
                             <Ionicons name="calendar-outline" size={16} color={filtroRapido === '90_DIAS' ? 'white' : '#D69E2E'} />
                             <Text style={[styles.textoFiltro, { color: '#D69E2E' }, filtroRapido === '90_DIAS' && { color: 'white' }]}>
-                                {' <'} 90 d: {conteos.en90Dias}
+                                {MENSAJES.FILTRO_90_DIAS }: {conteos.en90Dias}
                             </Text>
                         </TouchableOpacity>
                     </ScrollView>
@@ -267,7 +239,7 @@ export const InventarioListScreen = () => {
                     {(['MARCA', 'STOCK', 'FV'] as const).map((opcion) => (
                         <TouchableOpacity
                             key={opcion}
-                            onPress={() => setOrdenamiento(opcion)}
+                            onPress={() => cambiarOrden(opcion)}
                             style={[
                                 styles.botonOrden,
                                 { borderColor: colors.borde },
@@ -283,23 +255,22 @@ export const InventarioListScreen = () => {
                                 styles.textoBotonOrden,
                                 { color: ordenamiento === opcion ? '#FFF' : colors.textoSecundario }
                             ]}>
-                                {opcion === 'MARCA' ? 'Marca' : opcion === 'STOCK' ? 'Stock' : 'Vence'}
+                                {opcion === 'MARCA' ? MENSAJES.ORDEN_MARCA : opcion === 'STOCK' ? MENSAJES.ORDEN_STOCK : MENSAJES.ORDEN_VENCE}
                             </Text>
                         </TouchableOpacity>
                     ))}
                 </View>
 
-                {/* Importante: FlashList necesita de un contenedor con altura implícita o 'flex: 1' */}
                 <View style={{ flex: 1, width: '100%' }}>
                     <FastList
                         ref={listRef}
                         data={inventarioProcesado}
                         keyExtractor={(item: ProductoInventario) => `${item.Cod_Barras}_${item.SKU}`}
-                        estimatedItemSize={104} // Clave del alto rendimiento
+                        estimatedItemSize={104}
                         onScroll={handleScroll}
                         scrollEventThrottle={16}
                         renderItem={({ item }: { item: ProductoInventario }) => (
-                            <ProductoCard item={item} onPress={manejarProductoEncontrado} />
+                            <ProductoCard item={item} onPress={setProductoEditando} />
                         )}
                         refreshControl={
                             <RefreshControl
@@ -313,14 +284,14 @@ export const InventarioListScreen = () => {
                             <View style={styles.listaVacia}>
                                 <Text style={styles.listaVaciaIcono}>🔎</Text>
                                 <Text style={[styles.listaVaciaTexto, { color: colors.textoSecundario }]}>
-                                    {busqueda ? `Sin resultados para "${busqueda}"` : 'Sin inventario'}
+                                    {MENSAJES.SIN_RESULTADOS(busqueda || '')}
                                 </Text>
                             </View>
                         }
                     />
                 </View>
 
-                {/* Botón Flotante para Subir (con opacidad bajita y animación) */}
+                {/* Botón Flotante para Subir */}
                 {mostrarBotonSubir && (
                     <Animated.View style={{ position: 'absolute', bottom: 20, right: 20 }}>
                         <TouchableOpacity
@@ -341,15 +312,14 @@ export const InventarioListScreen = () => {
                 onCancelar={() => setProductoEditando(null)}
             />
 
-            {/* Bottom Bar: Mantenemos la pestaña 'lista' activa, y al pulsar escáner navegamos */}
             <BottomBar 
                 modoActivo="lista" 
                 onTabPress={(tab) => {
                     if (tab === 'escaner') handleBotonEscaner();
                     if (tab === 'lista') scrollToTop();
+                    if (tab === 'historial') navigation.navigate('Historial');
                 }} 
             />
-            
         </SafeAreaView>
     );
 };

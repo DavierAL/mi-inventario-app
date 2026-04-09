@@ -11,7 +11,7 @@ export const useAnalytics = () => {
     const conteoMarcasRiesgo: Record<string, number> = {};
     const recomendaciones: string[] = [];
 
-    inventario.forEach((item) => {
+    Object.values(inventario).forEach((item) => {
       // Ignorar productos sin FV o sin stock
       if (!item.FV_Actual || item.Stock_Master <= 0) return;
 

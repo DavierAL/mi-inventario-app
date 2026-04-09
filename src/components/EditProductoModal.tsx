@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Activity
 import { Image } from 'expo-image';
 import Modal from 'react-native-modal';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import * as Haptics from 'expo-haptics';
 import { ProductoInventario } from '../types/inventario';
 import { formatearFecha } from '../utils/fecha';
 import { formatearPrecio } from '../utils/formato';
@@ -77,8 +78,9 @@ export const EditProductoModal: React.FC<Props> = ({
             avoidKeyboard={Platform.OS === 'ios'}
         >
             <KeyboardAvoidingView 
-                behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} 
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
                 style={{ flex: 1, justifyContent: 'flex-end' }}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
             >
                 <View style={[styles.modalContenedor, { backgroundColor: colors.superficie, maxHeight: '90%' }]}>
                     
@@ -139,7 +141,10 @@ export const EditProductoModal: React.FC<Props> = ({
                         <Text style={[styles.label, { color: colors.textoSecundario }]}>Vencimiento</Text>
                         <TouchableOpacity
                             style={[styles.inputTouchable, { backgroundColor: colors.fondoPrimario, borderColor: colors.primario }]}
-                            onPress={() => setMostrarDatePicker(true)}
+                            onPress={() => {
+                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                setMostrarDatePicker(true);
+                            }}
                         >
                             <Text style={[styles.inputTouchableTexto, { color: colors.textoPrincipal }, !formFV && { color: colors.placeholder }]}>
                                 {formFV || 'Seleccionar...'}
@@ -193,6 +198,7 @@ export const EditProductoModal: React.FC<Props> = ({
                                 isSubmitting && { borderColor: 'transparent' }
                             ]}
                             onPress={() => {
+                                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                                 setIsSubmitting(true);
                                 onGuardar(formFV, formFechaEdicion, formComentario);
                             }}

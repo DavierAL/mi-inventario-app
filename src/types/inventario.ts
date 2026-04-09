@@ -13,3 +13,21 @@ export interface ProductoInventario {
     Comentarios: string;
     Marca: string; // Marcado como obligatorio para evitar validaciones nulas constantes
 }
+
+export type TipoAccionHistorial = 'FV_ACTUALIZADO' | 'COMENTARIO_AGREGADO' | 'RAFAGA_PROCESADA' | 'EDICION_COMPLETA';
+
+export interface EntradaHistorial {
+    id?: string;
+    productoId: string;      // Cod_Barras
+    descripcion: string;     // Nombre del producto
+    marca: string;
+    sku: string;
+    accion: TipoAccionHistorial;
+    cambios: {
+        fvAnterior?: string;
+        fvNuevo?: string;
+        comentario?: string;
+    };
+    timestamp: number;       // Unix ms para ordenar y formatear
+    dispositivo: string;     // Modelo del dispositivo
+}
