@@ -1,6 +1,6 @@
-// ARCHIVO: src/components/EditProductoModal.tsx
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, Image, ActivityIndicator, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, ActivityIndicator, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { Image } from 'expo-image';
 import Modal from 'react-native-modal';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { ProductoInventario } from '../types/inventario';
@@ -97,7 +97,9 @@ export const EditProductoModal: React.FC<Props> = ({
                             <Image
                                 source={{ uri: String(producto.Imagen) }}
                                 style={styles.imagenModal}
-                                resizeMode="contain"
+                                contentFit="contain"
+                                transition={200}
+                                cachePolicy="disk"
                             />
                         ) : (
                             <Text style={styles.imagenModalPlaceholder}>📦</Text>

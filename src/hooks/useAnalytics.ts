@@ -1,15 +1,11 @@
-// ARCHIVO: src/hooks/useAnalytics.ts
 import { useMemo } from 'react';
 import { useInventarioStore } from '../store/useInventarioStore';
-import { formatearFecha } from '../utils/fecha';
+import { calcularDiasRestantes } from '../utils/fecha';
 
 export const useAnalytics = () => {
   const inventario = useInventarioStore((state) => state.inventario);
 
   return useMemo(() => {
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-
     let sanos = 0, riesgo = 0, vencidos = 0;
     let capitalPerdido = 0;
     const conteoMarcasRiesgo: Record<string, number> = {};
@@ -19,14 +15,9 @@ export const useAnalytics = () => {
       // Ignorar productos sin FV o sin stock
       if (!item.FV_Actual || item.Stock_Master <= 0) return;
 
-      const fvFormateada = formatearFecha(item.FV_Actual);
-      if (!fvFormateada.includes('/')) return; // Salvaguarda extra
-
-      const [dia, mes, anio] = fvFormateada.split('/');
-      const fechaVencimiento = new Date(Number(anio), Number(mes) - 1, Number(dia));
-      const diffDias = Math.ceil((fechaVencimiento.getTime() - hoy.getTime()) / (1000 * 3600 * 24));
+      const diffDias = calcularDiasRestantes(item.FV_Actual);
       
-      const marca = item.Marca || 'Sin Marca';
+      const marca = item.Marca;
 
       if (diffDias < 0) {
         vencidos += item.Stock_Master;

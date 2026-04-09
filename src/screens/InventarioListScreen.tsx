@@ -3,7 +3,8 @@ import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import {
     StyleSheet, Text, View, ActivityIndicator,
     StatusBar, TouchableOpacity, Alert,
-    TextInput, RefreshControl, ScrollView
+    TextInput, RefreshControl, ScrollView,
+    Animated, LayoutAnimation, Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCameraPermissions } from 'expo-camera';
@@ -12,7 +13,7 @@ import { useDebounce } from '../utils/useDebounce';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
-import { formatearFecha } from '../utils/fecha';
+import { formatearFecha, calcularDiasRestantes } from '../utils/fecha';
 
 import { ProductoCard } from '../components/ProductoCard';
 import { SkeletonCard } from '../components/SkeletonCard';
@@ -32,21 +33,24 @@ export const InventarioListScreen = () => {
     const navigation = useNavigation<InventarioListNavProp>();
 
     const {
-        inventario, cargando, error, modoOffline, lastSync,
-        busqueda, setBusqueda, cargarDatos,
+        inventario, cargando, busqueda, setBusqueda,
+        conectarInventario, cargarDatosSync,
         productoEditando, setProductoEditando, guardarEdicion,
+        error, modoOffline, lastSync,
         pendientesSync, sincronizandoFondo
     } = useInventarioStore();
+
+    useEffect(() => {
+        // Conexión tiempo real (onSnapshot)
+        const unsub = conectarInventario();
+        return () => unsub();
+    }, [conectarInventario]);
 
     const [permisoCamara, pedirPermisoCamara] = useCameraPermissions();
     const [refrescando, setRefrescando] = useState(false);
     
     // Retardo artificial para búsquedas
     const busquedaDebounced = useDebounce(busqueda, 300);
-
-    useEffect(() => {
-        cargarDatos();
-    }, []);
 
     const [filtroRapido, setFiltroRapido] = useState<'TODOS' | 'VENCIDOS' | '30_DIAS' | '90_DIAS'>('TODOS');
     const [ordenamiento, setOrdenamiento] = useState<'MARCA' | 'STOCK' | 'FV'>('MARCA');
@@ -72,28 +76,16 @@ export const InventarioListScreen = () => {
     }, [mostrarBotonSubir]);
 
     const { inventarioProcesado, conteos } = useMemo(() => {
-        const hoy = new Date();
-        hoy.setHours(0,0,0,0);
-        
         let vencidos = 0, en30Dias = 0, en90Dias = 0;
         
-        // 1. Calculamos los días restantes para CADA producto
+        // 1. Calculamos los días restantes para CADA producto (Lógica Centralizada)
         const inventarioConDias = inventario.map(item => {
-            let diasRestantes = Infinity;
+            const diasRestantes = calcularDiasRestantes(item.FV_Actual);
             
-            if (item.FV_Actual) {
-                const fvFormateada = formatearFecha(item.FV_Actual);
-                const [dia, mes, anio] = fvFormateada.split('/');
-                if(dia && mes && anio) {
-                    const fechaVencimiento = new Date(Number(anio), Number(mes) - 1, Number(dia));
-                    const diferenciaMilisegundos = fechaVencimiento.getTime() - hoy.getTime();
-                    diasRestantes = Math.ceil(diferenciaMilisegundos / (1000 * 3600 * 24));
-                    
-                    if (diasRestantes < 0) vencidos++;
-                    else if (diasRestantes <= 30) en30Dias++;
-                    else if (diasRestantes <= 90) en90Dias++;
-                }
-            }
+            if (diasRestantes < 0) vencidos++;
+            else if (diasRestantes <= 30) en30Dias++;
+            else if (diasRestantes <= 90) en90Dias++;
+
             return { ...item, diasRestantes };
         });
 
@@ -125,11 +117,11 @@ export const InventarioListScreen = () => {
         return { inventarioProcesado: listaFiltrada, conteos: { vencidos, en30Dias, en90Dias } };
     }, [busquedaDebounced, inventario, filtroRapido, ordenamiento]);
 
-    const handleRefresh = async () => {
+    const handleRefresh = useCallback(() => {
         setRefrescando(true);
-        await cargarDatos(true);
+        cargarDatosSync();
         setRefrescando(false);
-    };
+    }, [cargarDatosSync]);
 
     const handleBotonEscaner = async () => {
         if (!permisoCamara?.granted) {
@@ -168,7 +160,7 @@ export const InventarioListScreen = () => {
             <View style={[styles.pantallaCentrada, { backgroundColor: colors.fondo }]}>
                 <Text style={styles.iconoError}>📡</Text>
                 <Text style={[styles.textoError, { color: colors.textoSecundario }]}>{error}</Text>
-                <TouchableOpacity onPress={() => cargarDatos()} style={[styles.botonReintentar, { backgroundColor: colors.primario }]}>
+                <TouchableOpacity onPress={() => cargarDatosSync()} style={[styles.botonReintentar, { backgroundColor: colors.primario }]}>
                     <Text style={styles.textoBotonReintentar}>Reintentar Conexión</Text>
                 </TouchableOpacity>
             </View>
@@ -185,7 +177,7 @@ export const InventarioListScreen = () => {
                         <Text style={[styles.textoBannerOffline, { color: colors.bannerOfflineTexto }]}>
                             📵 Caché local · Última sync: {lastSync}
                         </Text>
-                        <TouchableOpacity onPress={() => cargarDatos()}>
+                        <TouchableOpacity onPress={() => cargarDatosSync()}>
                             <Text style={[styles.botonReconectar, { color: colors.bannerOfflineBoton }]}>Reintentar</Text>
                         </TouchableOpacity>
                     </View>
@@ -208,7 +200,7 @@ export const InventarioListScreen = () => {
                     </Text>
                     
                     <View style={[styles.contenedorBuscador, { backgroundColor: colors.fondoBuscador, borderColor: colors.borde }]}>
-                        <Text style={styles.iconoBuscador}>🔍</Text>
+                        <Ionicons name="search-outline" size={20} color={colors.placeholder} style={styles.iconoBuscador} />
                         <TextInput
                             style={[styles.inputBuscador, { color: colors.textoPrincipal }]}
                             placeholder="Buscar SKU, código o título..."
@@ -220,7 +212,7 @@ export const InventarioListScreen = () => {
                         />
                         {busqueda.length > 0 && (
                             <TouchableOpacity onPress={() => setBusqueda('')}>
-                                <Text style={[styles.botonLimpiar, { color: colors.placeholder }]}>✕</Text>
+                                <Ionicons name="close-circle" size={20} color={colors.placeholder} />
                             </TouchableOpacity>
                         )}
                     </View>
@@ -233,15 +225,17 @@ export const InventarioListScreen = () => {
                             style={[styles.botonFiltro, filtroRapido === 'TODOS' && [styles.filtroActivo, { borderColor: colors.primario, backgroundColor: colors.primario }]]}
                             onPress={() => setFiltroRapido('TODOS')}
                         >
-                            <Text style={[styles.textoFiltro, { color: colors.textoSecundario }, filtroRapido === 'TODOS' && { color: 'white' }]}>📦 Todos</Text>
+                            <Ionicons name="layers-outline" size={16} color={filtroRapido === 'TODOS' ? 'white' : colors.textoSecundario} />
+                            <Text style={[styles.textoFiltro, { color: colors.textoSecundario }, filtroRapido === 'TODOS' && { color: 'white' }]}> Todos</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity 
-                            style={[styles.botonFiltro, { borderColor: '#E53E3E' }, filtroRapido === 'VENCIDOS' && { backgroundColor: '#E53E3E' }]}
+                            style={[styles.botonFiltro, { borderColor: colors.error }, filtroRapido === 'VENCIDOS' && { backgroundColor: colors.error }]}
                             onPress={() => setFiltroRapido('VENCIDOS')}
                         >
-                            <Text style={[styles.textoFiltro, { color: '#E53E3E' }, filtroRapido === 'VENCIDOS' && { color: 'white' }]}>
-                                🔴 Vencidos: {conteos.vencidos}
+                            <Ionicons name="alert-circle" size={16} color={filtroRapido === 'VENCIDOS' ? 'white' : colors.error} />
+                            <Text style={[styles.textoFiltro, { color: colors.error }, filtroRapido === 'VENCIDOS' && { color: 'white' }]}>
+                                Vencidos: {conteos.vencidos}
                             </Text>
                         </TouchableOpacity>
 
@@ -249,8 +243,9 @@ export const InventarioListScreen = () => {
                             style={[styles.botonFiltro, { borderColor: '#DD6B20' }, filtroRapido === '30_DIAS' && { backgroundColor: '#DD6B20' }]}
                             onPress={() => setFiltroRapido('30_DIAS')}
                         >
+                            <Ionicons name="time-outline" size={16} color={filtroRapido === '30_DIAS' ? 'white' : '#DD6B20'} />
                             <Text style={[styles.textoFiltro, { color: '#DD6B20' }, filtroRapido === '30_DIAS' && { color: 'white' }]}>
-                                🟠 {'<'} 30 días: {conteos.en30Dias}
+                                {' <'} 30 d: {conteos.en30Dias}
                             </Text>
                         </TouchableOpacity>
 
@@ -258,8 +253,9 @@ export const InventarioListScreen = () => {
                             style={[styles.botonFiltro, { borderColor: '#D69E2E' }, filtroRapido === '90_DIAS' && { backgroundColor: '#D69E2E' }]}
                             onPress={() => setFiltroRapido('90_DIAS')}
                         >
+                            <Ionicons name="calendar-outline" size={16} color={filtroRapido === '90_DIAS' ? 'white' : '#D69E2E'} />
                             <Text style={[styles.textoFiltro, { color: '#D69E2E' }, filtroRapido === '90_DIAS' && { color: 'white' }]}>
-                                🟡 {'<'} 90 días: {conteos.en90Dias}
+                                {' <'} 90 d: {conteos.en90Dias}
                             </Text>
                         </TouchableOpacity>
                     </ScrollView>
@@ -324,15 +320,17 @@ export const InventarioListScreen = () => {
                     />
                 </View>
 
-                {/* Botón Flotante para Subir (con opacidad bajita) */}
+                {/* Botón Flotante para Subir (con opacidad bajita y animación) */}
                 {mostrarBotonSubir && (
-                    <TouchableOpacity
-                        style={[styles.botonFlotanteSubir, { backgroundColor: colors.superficie, borderColor: colors.borde }]}
-                        onPress={scrollToTop}
-                        activeOpacity={0.7}
-                    >
-                        <Ionicons name="arrow-up" size={24} color={colors.primario} style={{ opacity: 0.6 }} />
-                    </TouchableOpacity>
+                    <Animated.View style={{ position: 'absolute', bottom: 20, right: 20 }}>
+                        <TouchableOpacity
+                            style={[styles.botonFlotanteSubir, { backgroundColor: colors.superficie, borderColor: colors.borde }]}
+                            onPress={scrollToTop}
+                            activeOpacity={0.7}
+                        >
+                            <Ionicons name="arrow-up" size={24} color={colors.primario} style={{ opacity: 0.6 }} />
+                        </TouchableOpacity>
+                    </Animated.View>
                 )}
             </View>
 

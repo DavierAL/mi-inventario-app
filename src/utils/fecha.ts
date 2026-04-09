@@ -30,3 +30,23 @@ export function formatearFecha(valor: string | Date | null | undefined): string 
         return '';
     }
 }
+
+/**
+ * Calcula cuántos días faltan para una fecha determinada comparada con "Hoy".
+ * Centraliza la lógica para que la Lista y Analytics siempre muestren lo mismo.
+ */
+export function calcularDiasRestantes(valor: string | Date | null | undefined): number {
+    if (!valor) return Infinity;
+    
+    const fv = formatearFecha(valor);
+    if (!fv) return Infinity;
+
+    const [dia, mes, anio] = fv.split('/').map(Number);
+    const fechaVencimiento = new Date(anio, mes - 1, dia);
+    
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    const diffMs = fechaVencimiento.getTime() - hoy.getTime();
+    return Math.ceil(diffMs / (1000 * 3600 * 24));
+}

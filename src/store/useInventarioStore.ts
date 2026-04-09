@@ -1,7 +1,7 @@
 // ARCHIVO: src/store/useInventarioStore.ts
 import { create } from 'zustand';
 import { ProductoInventario } from '../types/inventario';
-import { obtenerInventario, actualizarProducto } from '../services/api';
+import { suscribirAInventario, actualizarProducto, vaciarColaWebhooks } from '../services/api';
 import Toast from 'react-native-toast-message';
 import { reproducirSonido } from '../utils/sonidos';
 
@@ -20,11 +20,13 @@ interface InventarioState {
     sincronizandoFondo: boolean;
 
     // Acciones
-    cargarDatos: (refrescando?: boolean) => Promise<void>;
+    conectarInventario: () => () => void; // Retorna función de desconexión
     setBusqueda: (texto: string) => void;
     setProductoEditando: (producto: ProductoInventario | null) => void;
     guardarEdicion: (fv: string, fechaEdicion: string, comentario: string) => Promise<boolean>;
     guardarEdicionDirecta: (producto: ProductoInventario) => Promise<boolean>;
+    // Carga manual (legacy / forzar refresco visual si offline)
+    cargarDatosSync: () => void; 
 }
 
 export const useInventarioStore = create<InventarioState>((set, get) => ({
@@ -41,28 +43,41 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
     pendientesSync: 0,
     sincronizandoFondo: false,
 
-    cargarDatos: async (refrescando = false) => {
-        try {
-            if (!refrescando) set({ cargando: true });
-            
-            set({ error: null });
-            
-            const resultado = await obtenerInventario();
-            
-            // Firebase devuelve los datos puros.
-            set({
-                inventario: resultado.datos,
-                modoOffline: resultado.fromCache,
-                lastSync: resultado.lastSync,
-                cargando: false,
-                pendientesSync: 0 // Gestionado por Firebase interiormente
-            });
-        } catch (err) {
-            set({ 
-                error: 'No se pudo conectar con Firebase.\nVerifica tu conexión a internet inicial.',
-                cargando: false
-            });
-        }
+    conectarInventario: () => {
+        set({ cargando: true, error: null });
+        
+        // Limpiamos cola de pendientes al conectar (si hay internet)
+        vaciarColaWebhooks();
+
+        // Iniciamos la suscripción onSnapshot
+        const unsubscribe = suscribirAInventario(
+            (datos, fromCache) => {
+                set({
+                    inventario: datos,
+                    modoOffline: fromCache,
+                    cargando: false,
+                    lastSync: new Date().toLocaleTimeString(),
+                    error: null
+                });
+            },
+            (error) => {
+                set({ 
+                    error: 'Error de conexión en tiempo real. Reintentando...',
+                    cargando: false 
+                });
+            }
+        );
+
+        return unsubscribe; // Para usar en useEffect cleanup
+    },
+
+    cargarDatosSync: () => {
+        // En onSnapshot, "cargar" es simplemente esperar la primera emisión.
+        // Mantenemos esta función por compatibilidad con Pull-to-refresh
+        set({ cargando: true });
+        // El listener ya está corriendo, el set anterior disparará el skeleton
+        // y onSnapshot refrescará la data apenas la reciba del servidor.
+        setTimeout(() => set({ cargando: false }), 500);
     },
 
     setBusqueda: (texto: string) => set({ busqueda: texto }),

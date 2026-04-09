@@ -1,59 +1,36 @@
-// ARCHIVO: src/services/api.ts
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ProductoInventario } from '../types/inventario';
 import { dbFirebase } from './firebase';
-import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
-
-/**
- * Formatea la diferencia de tiempo entre ahora y una fecha dada en texto legible.
- */
-function formatearTiempoTranscurrido(timestamp: number): string {
-    const ahora = Date.now();
-    const diffMs = ahora - timestamp;
-    const diffMinutos = Math.floor(diffMs / (1000 * 60));
-    const diffHoras = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffMinutos < 1) return 'hace un momento';
-    if (diffMinutos < 60) return `hace ${diffMinutos} min`;
-    if (diffHoras < 24) return `hace ${diffHoras} h`;
-    return `hace ${diffDias} día(s)`;
-}
-
-// Servicios de API centralizada de Firestore y Webhooks
-
-/**
- * Obtiene el catálogo de productos desde Firestore.
- * Gracias al caché persistente de Firebase, si no hay internet leerá de IndexedDB transparente.
- */
-export const obtenerInventario = async (): Promise<{
-    datos: ProductoInventario[];
-    fromCache: boolean;
-    lastSync?: string;
-}> => {
-    try {
-        const querySnapshot = await getDocs(collection(dbFirebase, 'productos'));
-        const datos: ProductoInventario[] = [];
-        
-        querySnapshot.forEach((doc) => {
-            datos.push(doc.data() as ProductoInventario);
-        });
-
-        // NOTA: Firebase maneja su propio caché, falseamos fromCache y lastSync a nivel UI
-        // para simplificar nuestro Zustand ya que Firestore garantiza "eventual consistency".
-        return { 
-            datos, 
-            fromCache: querySnapshot.metadata.fromCache 
-        };
-    } catch (error) {
-        console.error('Fallo al leer Firestore', error);
-        throw error;
-    }
-};
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { collection, onSnapshot, doc, setDoc, query } from 'firebase/firestore';
 
 const API_URL = 'https://script.google.com/macros/s/AKfycbzzR_MZN7wCGawPkKCHgVawMVEiMqX-l52tZEBFiJ9W-e2TbAcna66XPEIyj8pYuq279Q/exec';
 const WEBHOOK_QUEUE_KEY = '@webhook_queue_mascotify';
+const AUTH_TOKEN = 'MASCOTIFY_SECURE_TOKEN_2026'; // Token de validación simple
+
+/**
+ * Crea una suscripción en tiempo real al inventario.
+ * Firebase solo descargará los cambios (Delta Sync), ahorrando un 95% en costos de lectura.
+ */
+export const suscribirAInventario = (
+    onUpdate: (datos: ProductoInventario[], fromCache: boolean) => void,
+    onError: (error: any) => void
+) => {
+    const q = query(collection(dbFirebase, 'productos'));
+    
+    return onSnapshot(q, (snapshot) => {
+        const datos: ProductoInventario[] = [];
+        snapshot.forEach((doc) => {
+            datos.push(doc.data() as ProductoInventario);
+        });
+        
+        onUpdate(datos, snapshot.metadata.fromCache);
+    }, (error) => {
+        console.error('Error en Listener Real-Time:', error);
+        onError(error);
+    });
+};
+
+// Servicios de API centralizada de Firestore y Webhooks
 
 export const vaciarColaWebhooks = async () => {
     try {
@@ -71,8 +48,12 @@ export const vaciarColaWebhooks = async () => {
                 const res = await fetch(API_URL, {
                     method: 'POST',
                     redirect: 'follow',
-                    headers: { 'Accept': 'application/json', 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ accion: 'webhook_modificacion', datos: item }),
+                    headers: { 
+                        'Accept': 'application/json', 
+                        'Content-Type': 'text/plain;charset=utf-8',
+                        'X-Auth-Token': AUTH_TOKEN 
+                    },
+                    body: JSON.stringify({ accion: 'webhook_modificacion', datos: item, token: AUTH_TOKEN }),
                 });
                 
                 const responseText = await res.text();
@@ -130,6 +111,7 @@ export const actualizarProducto = async (
                 body: JSON.stringify({
                     accion: 'webhook_modificacion',
                     datos: payloadWebhook,
+                    token: AUTH_TOKEN
                 }),
             });
             

@@ -10,10 +10,12 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { useInventarioStore } from '../store/useInventarioStore';
+import { useTheme } from '../context/ThemeContext';
 
 type ScannerNavProp = NativeStackNavigationProp<RootStackParamList, 'Scanner'>;
 
 export const ScannerScreen = () => {
+    const { colors } = useTheme();
     const navigation = useNavigation<ScannerNavProp>();
     const { 
         inventario, setProductoEditando, productoEditando, 
@@ -106,13 +108,13 @@ export const ScannerScreen = () => {
                 {/* Selector de Modo */}
                 <View style={styles.contenedorModos}>
                     <TouchableOpacity 
-                        style={[styles.botonModo, !modoRafaga && styles.botonModoActivo]}
+                        style={[styles.botonModo, !modoRafaga && {backgroundColor: colors.primario}]}
                         onPress={() => setModoRafaga(false)}
                     >
                         <Text style={[styles.textoModo, !modoRafaga && styles.textoModoActivo]}>Modo Edición</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
-                        style={[styles.botonModo, modoRafaga && styles.botonModoActivo, modoRafaga && {backgroundColor: '#DD6B20'}]}
+                        style={[styles.botonModo, modoRafaga && {backgroundColor: colors.error}]}
                         onPress={() => setModoRafaga(true)}
                     >
                         <Text style={[styles.textoModo, modoRafaga && styles.textoModoActivo]}>⚡ Ráfaga</Text>
@@ -124,16 +126,16 @@ export const ScannerScreen = () => {
                 </Text>
 
                 <View style={styles.marco}>
-                    <View style={[styles.esquina, styles.esquinaTL, modoRafaga && {borderColor: '#DD6B20'}]} />
-                    <View style={[styles.esquina, styles.esquinaTR, modoRafaga && {borderColor: '#DD6B20'}]} />
-                    <View style={[styles.esquina, styles.esquinaBL, modoRafaga && {borderColor: '#DD6B20'}]} />
-                    <View style={[styles.esquina, styles.esquinaBR, modoRafaga && {borderColor: '#DD6B20'}]} />
+                    <View style={[styles.esquina, styles.esquinaTL, {borderColor: modoRafaga ? colors.error : colors.primario}]} />
+                    <View style={[styles.esquina, styles.esquinaTR, {borderColor: modoRafaga ? colors.error : colors.primario}]} />
+                    <View style={[styles.esquina, styles.esquinaBL, {borderColor: modoRafaga ? colors.error : colors.primario}]} />
+                    <View style={[styles.esquina, styles.esquinaBR, {borderColor: modoRafaga ? colors.error : colors.primario}]} />
                 </View>
 
                 {/* Último Escaneado Mini Resumen */}
                 <View style={{ height: 40, justifyContent: 'center' }}>
                     {modoRafaga && ultimoEscaneado && (
-                        <Text style={{ color: '#48BB78', fontWeight: 'bold' }}>✓ {ultimoEscaneado}</Text>
+                        <Text style={{ color: colors.exito, fontWeight: 'bold' }}>✓ {ultimoEscaneado}</Text>
                     )}
                 </View>
 
