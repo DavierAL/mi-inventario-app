@@ -12,7 +12,7 @@ import { useTheme } from '../context/ThemeContext';
 interface Props {
     visible: boolean;
     producto: ProductoInventario | null;
-    onGuardar: (fv: string, fechaEdicion: string, comentario: string) => void;
+    onGuardar: (fv: string, fechaEdicion: string, comentario: string) => Promise<void> | void;
     onCancelar: () => void;
 }
 
@@ -197,10 +197,17 @@ export const EditProductoModal: React.FC<Props> = ({
                                 { backgroundColor: isSubmitting ? colors.inputDeshabilitado : colors.primario },
                                 isSubmitting && { borderColor: 'transparent' }
                             ]}
-                            onPress={() => {
+                            onPress={async () => {
+                                if (isSubmitting) return;
                                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                                 setIsSubmitting(true);
-                                onGuardar(formFV, formFechaEdicion, formComentario);
+                                try {
+                                    await onGuardar(formFV, formFechaEdicion, formComentario);
+                                } finally {
+                                    // El modal se cierra por cambio de estado en el store, 
+                                    // pero por seguridad limpiamos el estado local si sigue vivo.
+                                    setIsSubmitting(false);
+                                }
                             }}
                             disabled={isSubmitting}
                         >

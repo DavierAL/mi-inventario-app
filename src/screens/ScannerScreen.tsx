@@ -51,7 +51,37 @@ export const ScannerScreen = () => {
         }
     };
 
-    const manejarCodigoEscaneado = ({ data }: { data: string }) => {
+    const handleGuardar = async (fv: string, fecha: string, com: string) => {
+        const res = await guardarEdicion(fv, fecha, com);
+        
+        if (res.exito) {
+            reproducirSonido('success');
+            if (res.webhookEncolado) {
+                Toast.show({
+                    type: 'info',
+                    text1: 'Guardado (Sync pendiente)',
+                    text2: 'El cambio está seguro, pero se enviará a Sheets al recuperar conexión.',
+                    visibilityTime: 4000
+                });
+            } else {
+                Toast.show({
+                    type: 'success',
+                    text1: MENSAJES.EXITO_GUARDADO,
+                    text2: MENSAJES.EXITO_GUARDADO_SUB(res.codigo || ''),
+                    visibilityTime: 2500
+                });
+            }
+        } else {
+            reproducirSonido('error');
+            Toast.show({ 
+                type: 'error', 
+                text1: MENSAJES.ERROR_GUARDADO, 
+                text2: res.mensajeError || 'No se pudo guardar en la nube.' 
+            });
+        }
+    };
+
+    const manejarCodigoEscaneado = async ({ data }: { data: string }) => {
         if (procesandoEscaneo) return;
         setProcesandoEscaneo(true);
 
@@ -65,16 +95,27 @@ export const ScannerScreen = () => {
             
             if (modoRafaga) {
                 // MODO RÁFAGA: Guardado silencioso de fondo, cámara no se detiene mucho
-                guardarEdicionDirecta(productoEncontrado);
+                const res = await guardarEdicionDirecta(productoEncontrado);
                 setUltimoEscaneado(productoEncontrado.SKU || codigoLimpio);
                 
-                Toast.show({
-                    type: 'success',
-                    text1: MENSAJES.RAFAGA_PROCESADO,
-                    text2: `${productoEncontrado.Descripcion}`,
-                    position: 'top',
-                    visibilityTime: 1200,
-                });
+                if (res.exito) {
+                    Toast.show({
+                        type: 'success',
+                        text1: MENSAJES.RAFAGA_PROCESADO,
+                        text2: `${productoEncontrado.Descripcion}`,
+                        position: 'top',
+                        visibilityTime: 1200,
+                    });
+                } else {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Error en Ráfaga',
+                        text2: 'No se pudo sincronizar el escaneo.',
+                        position: 'top',
+                        visibilityTime: 2000,
+                    });
+                }
+                
                 // En modo ráfaga, habilitamos el escáner rápido de nuevo
                 setTimeout(() => setProcesandoEscaneo(false), 800);
             } else {
@@ -152,7 +193,7 @@ export const ScannerScreen = () => {
             <EditProductoModal
                 visible={productoEditando !== null}
                 producto={productoEditando}
-                onGuardar={guardarEdicion}
+                onGuardar={handleGuardar}
                 onCancelar={() => setProductoEditando(null)}
             />
         </View>

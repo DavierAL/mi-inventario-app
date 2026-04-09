@@ -26,6 +26,8 @@ import { RootStackParamList } from '../types/navigation';
 import { ProductoInventario } from '../types/inventario';
 import { useFiltrosInventario, FiltroCaducidad, Ordenamiento } from '../hooks/useFiltrosInventario';
 import { MENSAJES } from '../constants/mensajes';
+import Toast from 'react-native-toast-message';
+import { reproducirSonido } from '../utils/sonidos';
 
 const FastList = FlashList as any;
 
@@ -138,6 +140,36 @@ export const InventarioListScreen = () => {
             </View>
         );
     }
+
+    const handleGuardar = async (fv: string, fecha: string, com: string) => {
+        const res = await guardarEdicion(fv, fecha, com);
+        
+        if (res.exito) {
+            reproducirSonido('success');
+            if (res.webhookEncolado) {
+                Toast.show({
+                    type: 'info',
+                    text1: 'Guardado (Sync pendiente)',
+                    text2: 'El cambio está seguro, pero se enviará a Sheets al recuperar conexión.',
+                    visibilityTime: 4000
+                });
+            } else {
+                Toast.show({
+                    type: 'success',
+                    text1: MENSAJES.EXITO_GUARDADO,
+                    text2: MENSAJES.EXITO_GUARDADO_SUB(res.codigo || ''),
+                    visibilityTime: 2500
+                });
+            }
+        } else {
+            reproducirSonido('error');
+            Toast.show({ 
+                type: 'error', 
+                text1: MENSAJES.ERROR_GUARDADO, 
+                text2: res.mensajeError || 'No se pudo guardar en la nube.' 
+            });
+        }
+    };
 
     return (
         <SafeAreaView style={[styles.contenedor, { backgroundColor: colors.fondo }]}>
@@ -308,7 +340,7 @@ export const InventarioListScreen = () => {
             <EditProductoModal
                 visible={productoEditando !== null}
                 producto={productoEditando}
-                onGuardar={guardarEdicion}
+                onGuardar={handleGuardar}
                 onCancelar={() => setProductoEditando(null)}
             />
 

@@ -1,12 +1,22 @@
 // ARCHIVO: src/repositories/inventarioRepository.ts
-import AsyncStorage from '@react-native-async-storage/async-storage';
+/**
+ * InventarioRepository — Director de Orquesta
+ * 
+ * Responsabilidad: Coordinar las operaciones de datos entre las capas de 
+ * infraestructura sin implementar los detalles de ninguna.
+ * 
+ * Sabe QUÉ hacer, pero delega el CÓMO a:
+ *   - Firebase SDK:     Persistencia primaria (online/offline)
+ *   - QueueService:     Cola de webhooks fallidos (AsyncStorage)
+ *   - Webhook endpoint: Sincronización secundaria con Google Sheets
+ */
 import { collection, onSnapshot, doc, setDoc, query, addDoc, orderBy, limit } from 'firebase/firestore';
 import { Platform } from 'react-native';
 import { dbFirebase } from '../services/firebase';
+import { QueueService, WebhookPayload } from '../services/QueueService';
 import { ProductoInventario, EntradaHistorial, TipoAccionHistorial } from '../types/inventario';
 
 const API_URL = 'https://script.google.com/macros/s/AKfycbzzR_MZN7wCGawPkKCHgVawMVEiMqX-l52tZEBFiJ9W-e2TbAcna66XPEIyj8pYuq279Q/exec';
-const WEBHOOK_QUEUE_KEY = '@webhook_queue_mascotify';
 const AUTH_TOKEN = 'MASCOTIFY_SECURE_TOKEN_2026';
 
 export const InventarioRepository = {
@@ -32,8 +42,16 @@ export const InventarioRepository = {
     // ─────────────────────────────────────────────
 
     /**
-     * Actualiza un producto.
-     * @returns Éxito si Firebase se actualiza. Los fallos del Webhook NO fallan la operación principal.
+     * Actualiza un producto en todas las capas de persistencia.
+     * 
+     * Flujo:
+     * 1. Firebase → Persistencia primaria (garantía offline del SDK)
+     * 2. Audit log  → Fire and forget (no bloquea la operación)
+     * 3. Webhook    → Sincronización con Sheets (delega fallo al QueueService)
+     * 
+     * @returns { exito: boolean; webhookEncolado: boolean }
+     *   - exito: false SOLO si Firebase falló (error catastrófico)
+     *   - webhookEncolado: true si Sheets falló y el payload está en cola offline
      */
     async actualizarProducto(
         codigoBarras: string,
@@ -50,10 +68,10 @@ export const InventarioRepository = {
             const codigoLimpio = String(codigoBarras).trim();
             const ref = doc(dbFirebase, 'productos', codigoLimpio);
 
-            // 1. Persistencia Primaria: Firebase (SDK Offline manejado automáticamente)
+            // 1. Persistencia Primaria: Firebase
             await setDoc(ref, datos, { merge: true });
 
-            // 2. Registro de Auditoría (Línea de tiempo) - Fire and forget
+            // 2. Registro de Auditoría — Fire and forget
             if (infoAuditoria) {
                 this.registrarMovimiento({
                     productoId: codigoLimpio,
@@ -70,7 +88,7 @@ export const InventarioRepository = {
             }
 
             // 3. Sincronización Secundaria: Sheets Webhook
-            const payload = {
+            const payload: WebhookPayload = {
                 codigoBarras: codigoLimpio,
                 nuevoStock: datos.Stock_Master,
                 nuevoFV: datos.FV_Actual,
@@ -78,15 +96,15 @@ export const InventarioRepository = {
                 nuevoComentario: datos.Comentarios,
             };
 
-            const resWebhook = await this.enviarWebhook(payload);
+            const resWebhook = await this._enviarWebhook(payload);
 
-            return { 
-                exito: true, 
-                webhookEncolado: resWebhook.isNetworkError || !resWebhook.exito 
+            return {
+                exito: true,
+                webhookEncolado: !resWebhook.exito,
             };
 
         } catch (error) {
-            console.error('[Repo] Error Fatal:', error);
+            console.error('[Repo] Error Fatal en Firebase:', error);
             return { exito: false, webhookEncolado: false };
         }
     },
@@ -112,65 +130,65 @@ export const InventarioRepository = {
     },
 
     // ─────────────────────────────────────────────
-    // COMUNICACIÓN EXTERNA (Webhook)
+    // PUNTO DE ENTRADA PARA EL STORE (Lifecycle)
     // ─────────────────────────────────────────────
 
-    async enviarWebhook(payload: any): Promise<{ exito: boolean; isNetworkError: boolean }> {
+    /**
+     * Delega el procesamiento de la cola pendiente al QueueService.
+     * Llamado al iniciar la app cuando hay conectividad.
+     */
+    async vaciarColaSync(): Promise<void> {
+        await QueueService.procesarCola();
+    },
+
+    // ─────────────────────────────────────────────
+    // COMUNICACIÓN EXTERNA (Privado — solo para uso interno del Repo)
+    // ─────────────────────────────────────────────
+
+    /**
+     * Intenta enviar el webhook a Sheets. Si falla por red, delega el
+     * almacenamiento al QueueService. El Repo no sabe CÓMO se almacena.
+     * @private
+     */
+    async _enviarWebhook(payload: WebhookPayload): Promise<{ exito: boolean }> {
         try {
             const respuesta = await fetch(API_URL, {
                 method: 'POST',
                 redirect: 'follow',
-                headers: { 'Accept': 'application/json', 'Content-Type': 'text/plain;charset=utf-8' },
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'text/plain;charset=utf-8',
+                    'X-Auth-Token': AUTH_TOKEN,
+                },
                 body: JSON.stringify({ accion: 'webhook_modificacion', datos: payload, token: AUTH_TOKEN }),
             });
 
             const rawText = await respuesta.text();
-            
-            // Si la respuesta no empieza por '{', es un error de texto (App Script Error)
+
+            // Respuesta no-JSON = error del App Script
             if (!rawText.trim().startsWith('{')) {
-                console.warn('[Webhook] Error en Servidor (No JSON):', rawText);
-                await this.encolarWebhook(payload); // Lo encolamos por si acaso fue un error temporal
-                return { exito: false, isNetworkError: false };
+                console.warn('[Webhook] Error en servidor (no JSON):', rawText);
+                await QueueService.encolar(payload);
+                return { exito: false };
             }
 
             const json = JSON.parse(rawText);
             if (json.status === 'success') {
-                this.vaciarColaSync();
-                return { exito: true, isNetworkError: false };
+                // Éxito: aprovechamos para vaciar items pendientes en background
+                QueueService.procesarCola().catch(e => console.warn('[Queue] Error auto-procesando:', e));
+                return { exito: true };
             }
 
-            console.warn('[Webhook] Respuesta Negativa:', json);
-            return { exito: false, isNetworkError: false };
+            console.warn('[Webhook] Respuesta negativa del servidor:', json);
+            await QueueService.encolar(payload);
+            return { exito: false };
 
         } catch (error: any) {
             const esRed = error.message?.includes('Network') || error.message?.includes('fetch');
-            if (esRed) await this.encolarWebhook(payload);
-            return { exito: false, isNetworkError: esRed };
+            if (esRed) {
+                await QueueService.encolar(payload);
+            }
+            return { exito: false };
         }
     },
-
-    async encolarWebhook(p: any) {
-        const q = JSON.parse(await AsyncStorage.getItem(WEBHOOK_QUEUE_KEY) || '[]');
-        q.push(p);
-        await AsyncStorage.setItem(WEBHOOK_QUEUE_KEY, JSON.stringify(q));
-    },
-
-    async vaciarColaSync() {
-        const q = JSON.parse(await AsyncStorage.getItem(WEBHOOK_QUEUE_KEY) || '[]');
-        if (q.length === 0) return;
-
-        const restantes = [];
-        for (const item of q) {
-            try {
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                    body: JSON.stringify({ accion: 'webhook_modificacion', datos: item, token: AUTH_TOKEN }),
-                });
-                const txt = await res.text();
-                if (!txt.includes('"status":"success"')) restantes.push(item);
-            } catch { restantes.push(item); }
-        }
-        await AsyncStorage.setItem(WEBHOOK_QUEUE_KEY, JSON.stringify(restantes));
-    }
 };

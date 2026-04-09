@@ -3,8 +3,17 @@ import { create } from 'zustand';
 import { ProductoInventario } from '../types/inventario';
 import { InventarioRepository } from '../repositories/inventarioRepository';
 import { MENSAJES } from '../constants/mensajes';
-import Toast from 'react-native-toast-message';
-import { reproducirSonido } from '../utils/sonidos';
+
+/**
+ * DTO (Data Transfer Object) para el resultado de las operaciones de inventario.
+ * Permite que la capa de UI decida qué feedback (Toast, Sonidos) mostrar.
+ */
+export interface ResultadoOperacion {
+    exito: boolean;
+    webhookEncolado?: boolean;
+    codigo?: string;
+    mensajeError?: string;
+}
 
 interface InventarioState {
     inventario: Record<string, ProductoInventario>;
@@ -21,8 +30,8 @@ interface InventarioState {
     conectarInventario: () => () => void;
     setBusqueda: (texto: string) => void;
     setProductoEditando: (producto: ProductoInventario | null) => void;
-    guardarEdicion: (fv: string, fechaEdicion: string, comentario: string) => Promise<boolean>;
-    guardarEdicionDirecta: (producto: ProductoInventario) => Promise<boolean>;
+    guardarEdicion: (fv: string, fechaEdicion: string, comentario: string) => Promise<ResultadoOperacion>;
+    guardarEdicionDirecta: (producto: ProductoInventario) => Promise<ResultadoOperacion>;
     cargarDatosSync: () => void; 
 }
 
@@ -71,11 +80,11 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
 
     guardarEdicion: async (fv, fechaEdicion, comentario) => {
         const { productoEditando, inventario } = get();
-        if (!productoEditando) return false;
+        if (!productoEditando) return { exito: false, mensajeError: 'No hay producto seleccionado' };
 
         const codigo = String(productoEditando.Cod_Barras).trim();
         const original = inventario[codigo];
-        if (!original) return false;
+        if (!original) return { exito: false, mensajeError: 'Producto no encontrado en el mapa local' };
 
         // 1. Actualización Optimista
         const actualizado: ProductoInventario = { 
@@ -102,33 +111,18 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
             }
         );
 
-        // 3. Manejo de Feedback (Sin rollback si Firebase funcionó)
+        // 3. Rollback si Firebase falló (fallo catastrófico en persistencia offline)
         if (!res.exito) {
-            set({ inventario }); // Solo revertimos si Firebase falló (fallo catastrófico)
-            reproducirSonido('error');
-            Toast.show({ type: 'error', text1: MENSAJES.ERROR_GUARDADO, text2: 'No se pudo guardar en la nube.' });
-            return false;
+            set({ inventario }); 
+            return { exito: false, codigo };
         }
 
-        reproducirSonido('success');
-        
-        if (res.webhookEncolado) {
-            Toast.show({
-                type: 'info',
-                text1: 'Guardado (Sync pendiente)',
-                text2: 'El cambio está seguro, pero se enviará a Sheets al recuperar conexión.',
-                visibilityTime: 4000
-            });
-        } else {
-            Toast.show({
-                type: 'success',
-                text1: MENSAJES.EXITO_GUARDADO,
-                text2: MENSAJES.EXITO_GUARDADO_SUB(codigo),
-                visibilityTime: 2500
-            });
-        }
-
-        return true;
+        // 4. Retorno puro del estado de la operación (DTO)
+        return { 
+            exito: true, 
+            webhookEncolado: res.webhookEncolado, 
+            codigo 
+        };
     },
 
     guardarEdicionDirecta: async (producto) => {
@@ -136,6 +130,7 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
         const codigo = String(producto.Cod_Barras).trim();
         const fecha = new Date().toISOString();
 
+        // Actualización optimista
         set({ inventario: { ...inventario, [codigo]: { ...producto, Fecha_edicion: fecha } } });
         
         const res = await InventarioRepository.actualizarProducto(codigo, {
@@ -146,9 +141,9 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
 
         if (!res.exito) {
             set({ inventario });
-            return false;
+            return { exito: false, codigo };
         }
 
-        return true;
+        return { exito: true, codigo, webhookEncolado: res.webhookEncolado };
     }
 }));
