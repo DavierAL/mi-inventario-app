@@ -1,5 +1,5 @@
 // ARCHIVO: src/screens/InventarioListScreen.tsx
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import {
     StyleSheet, Text, View, ActivityIndicator,
     StatusBar, TouchableOpacity, Alert,
@@ -35,7 +35,7 @@ export const InventarioListScreen = () => {
         inventario, cargando, error, modoOffline, lastSync,
         busqueda, setBusqueda, cargarDatos,
         productoEditando, setProductoEditando, guardarEdicion,
-        pendientesSync, sincronizandoFondo, iniciarListenerInternet
+        pendientesSync, sincronizandoFondo
     } = useInventarioStore();
 
     const [permisoCamara, pedirPermisoCamara] = useCameraPermissions();
@@ -46,10 +46,30 @@ export const InventarioListScreen = () => {
 
     useEffect(() => {
         cargarDatos();
-        iniciarListenerInternet();
     }, []);
 
     const [filtroRapido, setFiltroRapido] = useState<'TODOS' | 'VENCIDOS' | '30_DIAS' | '90_DIAS'>('TODOS');
+    const [ordenamiento, setOrdenamiento] = useState<'MARCA' | 'STOCK' | 'FV'>('MARCA');
+    const [mostrarBotonSubir, setMostrarBotonSubir] = useState(false);
+    
+    // Referencia para scroll
+    const listRef = useRef<any>(null);
+
+    const scrollToTop = () => {
+        listRef.current?.scrollToOffset({ offset: 0, animated: true });
+    };
+
+    const mostrarRef = useRef(false);
+
+    const handleScroll = useCallback((event: any) => {
+        const offsetY = event.nativeEvent.contentOffset.y;
+        const show = offsetY > 300;
+        
+        if (show !== mostrarRef.current) {
+            mostrarRef.current = show;
+            setMostrarBotonSubir(show);
+        }
+    }, [mostrarBotonSubir]);
 
     const { inventarioProcesado, conteos } = useMemo(() => {
         const hoy = new Date();
@@ -93,13 +113,17 @@ export const InventarioListScreen = () => {
             );
         }
 
-        // Ordenar rápido para que los que expiran primero salgan arriba, solo si estamos en un filtro activo
-        if (filtroRapido !== 'TODOS') {
+        // Ordenamiento principal (sobreescribe el de filtro rápido)
+        if (ordenamiento === 'MARCA') {
+            listaFiltrada.sort((a, b) => String(a.Marca || '').localeCompare(String(b.Marca || '')));
+        } else if (ordenamiento === 'STOCK') {
+            listaFiltrada.sort((a, b) => (Number(b.Stock_Master) || 0) - (Number(a.Stock_Master) || 0));
+        } else if (ordenamiento === 'FV') {
             listaFiltrada.sort((a, b) => a.diasRestantes - b.diasRestantes);
         }
 
         return { inventarioProcesado: listaFiltrada, conteos: { vencidos, en30Dias, en90Dias } };
-    }, [busquedaDebounced, inventario, filtroRapido]);
+    }, [busquedaDebounced, inventario, filtroRapido, ordenamiento]);
 
     const handleRefresh = async () => {
         setRefrescando(true);
@@ -241,12 +265,43 @@ export const InventarioListScreen = () => {
                     </ScrollView>
                 </View>
 
+                {/* BOTONES DE ORDENAMIENTO */}
+                <View style={[styles.contenedorOrden, { backgroundColor: colors.fondo, borderBottomColor: colors.borde }]}>
+                    <Text style={[styles.etiquetaOrden, { color: colors.textoSecundario }]}>Ordenar:</Text>
+                    {(['MARCA', 'STOCK', 'FV'] as const).map((opcion) => (
+                        <TouchableOpacity
+                            key={opcion}
+                            onPress={() => setOrdenamiento(opcion)}
+                            style={[
+                                styles.botonOrden,
+                                { borderColor: colors.borde },
+                                ordenamiento === opcion && { backgroundColor: colors.primario, borderColor: colors.primario }
+                            ]}
+                        >
+                            <Ionicons
+                                name={opcion === 'MARCA' ? 'pricetag-outline' : opcion === 'STOCK' ? 'cube-outline' : 'calendar-outline'}
+                                size={13}
+                                color={ordenamiento === opcion ? '#FFF' : colors.textoSecundario}
+                            />
+                            <Text style={[
+                                styles.textoBotonOrden,
+                                { color: ordenamiento === opcion ? '#FFF' : colors.textoSecundario }
+                            ]}>
+                                {opcion === 'MARCA' ? 'Marca' : opcion === 'STOCK' ? 'Stock' : 'Vence'}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+
                 {/* Importante: FlashList necesita de un contenedor con altura implícita o 'flex: 1' */}
                 <View style={{ flex: 1, width: '100%' }}>
                     <FastList
+                        ref={listRef}
                         data={inventarioProcesado}
                         keyExtractor={(item: ProductoInventario) => `${item.Cod_Barras}_${item.SKU}`}
                         estimatedItemSize={104} // Clave del alto rendimiento
+                        onScroll={handleScroll}
+                        scrollEventThrottle={16}
                         renderItem={({ item }: { item: ProductoInventario }) => (
                             <ProductoCard item={item} onPress={manejarProductoEncontrado} />
                         )}
@@ -268,6 +323,17 @@ export const InventarioListScreen = () => {
                         }
                     />
                 </View>
+
+                {/* Botón Flotante para Subir (con opacidad bajita) */}
+                {mostrarBotonSubir && (
+                    <TouchableOpacity
+                        style={[styles.botonFlotanteSubir, { backgroundColor: colors.superficie, borderColor: colors.borde }]}
+                        onPress={scrollToTop}
+                        activeOpacity={0.7}
+                    >
+                        <Ionicons name="arrow-up" size={24} color={colors.primario} style={{ opacity: 0.6 }} />
+                    </TouchableOpacity>
+                )}
             </View>
 
             <EditProductoModal
@@ -282,6 +348,7 @@ export const InventarioListScreen = () => {
                 modoActivo="lista" 
                 onTabPress={(tab) => {
                     if (tab === 'escaner') handleBotonEscaner();
+                    if (tab === 'lista') scrollToTop();
                 }} 
             />
             
@@ -344,5 +411,48 @@ const styles = StyleSheet.create({
     textoFiltro: {
         fontWeight: 'bold',
         fontSize: 13,
+    },
+    contenedorOrden: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 8,
+        gap: 8,
+        borderBottomWidth: 1,
+    },
+    etiquetaOrden: {
+        fontSize: 12,
+        fontWeight: '600',
+        marginRight: 4,
+    },
+    botonOrden: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        borderWidth: 1.5,
+        borderRadius: 20,
+        paddingHorizontal: 12,
+        paddingVertical: 5,
+    },
+    textoBotonOrden: {
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    botonFlotanteSubir: {
+        position: 'absolute',
+        bottom: 20,
+        right: 20,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        borderWidth: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 3,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+        opacity: 0.8, // Opacidad bajita como pidió el usuario
     }
 });

@@ -1,12 +1,7 @@
 // ARCHIVO: src/services/api.ts
-
-import { ProductoInventario, RespuestaAPI } from '../types/inventario';
-import { guardarCatalogoEnDB, leerCatalogoDesdeDB, initDB } from './db';
-
-const API_URL = 'https://script.google.com/macros/s/AKfycbyykgRWrpkmAedMW57GZWMQmIAs_Pu8XLRlS7EaIzViBLOH7FGQIqy3WY9_UMZPJfVIow/exec';
-
-// Inicializar la DB nada más cargar el módulo
-initDB().catch(e => console.error("Fallo al inicializar DB nativa", e));
+import { ProductoInventario } from '../types/inventario';
+import { dbFirebase } from './firebase';
+import { collection, getDocs, doc, setDoc } from 'firebase/firestore';
 
 /**
  * Formatea la diferencia de tiempo entre ahora y una fecha dada en texto legible.
@@ -24,11 +19,11 @@ function formatearTiempoTranscurrido(timestamp: number): string {
     return `hace ${diffDias} día(s)`;
 }
 
-// AsyncStorage helpers removidos (Reemplazados por SQLite)
+// Servicios de API centralizada de Firestore y Webhooks
 
 /**
- * Obtiene el catálogo de productos.
- * Primero intenta la API. Si falla, usa la Base de Datos local.
+ * Obtiene el catálogo de productos desde Firestore.
+ * Gracias al caché persistente de Firebase, si no hay internet leerá de IndexedDB transparente.
  */
 export const obtenerInventario = async (): Promise<{
     datos: ProductoInventario[];
@@ -36,38 +31,71 @@ export const obtenerInventario = async (): Promise<{
     lastSync?: string;
 }> => {
     try {
-        const respuesta = await fetch(`${API_URL}?action=leerInventario`);
+        const querySnapshot = await getDocs(collection(dbFirebase, 'productos'));
+        const datos: ProductoInventario[] = [];
         
-        const json: RespuestaAPI = await respuesta.json();
+        querySnapshot.forEach((doc) => {
+            datos.push(doc.data() as ProductoInventario);
+        });
 
-        if (json.status === 'success' && json.data) {
-            // Guardamos velozmente masivo con SQLite
-            await guardarCatalogoEnDB(json.data);
-            return { datos: json.data, fromCache: false };
-        } else {
-            throw new Error(json.message || 'Error desconocido al leer la base de datos');
-        }
+        // NOTA: Firebase maneja su propio caché, falseamos fromCache y lastSync a nivel UI
+        // para simplificar nuestro Zustand ya que Firestore garantiza "eventual consistency".
+        return { 
+            datos, 
+            fromCache: querySnapshot.metadata.fromCache 
+        };
     } catch (error) {
-        console.warn('Fallo la API, intentando Base de Datos local...', error);
-
-        // Intentamos el caché en SQLite offline
-        const cache = await leerCatalogoDesdeDB();
-        if (cache) {
-            return { 
-                datos: cache.datos, 
-                fromCache: true, 
-                lastSync: formatearTiempoTranscurrido(cache.timestamp) 
-            };
-        }
-
-        // Sin API ni caché: lanzamos el error para que la UI lo muestre
+        console.error('Fallo al leer Firestore', error);
         throw error;
     }
 };
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const API_URL = 'https://script.google.com/macros/s/AKfycbzzR_MZN7wCGawPkKCHgVawMVEiMqX-l52tZEBFiJ9W-e2TbAcna66XPEIyj8pYuq279Q/exec';
+const WEBHOOK_QUEUE_KEY = '@webhook_queue_mascotify';
+
+export const vaciarColaWebhooks = async () => {
+    try {
+        const queueStr = await AsyncStorage.getItem(WEBHOOK_QUEUE_KEY);
+        if (!queueStr) return;
+        
+        let cola = JSON.parse(queueStr);
+        if (!Array.isArray(cola) || cola.length === 0) return;
+
+        console.log(`Despachando cola de Webhooks: ${cola.length} pendientes...`);
+        let restantes = [];
+        
+        for (const item of cola) {
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    redirect: 'follow',
+                    headers: { 'Accept': 'application/json', 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({ accion: 'webhook_modificacion', datos: item }),
+                });
+                
+                const responseText = await res.text();
+                let json = JSON.parse(responseText);
+                if (json.status !== 'success') {
+                    console.error('Error procesando webhook de cola:', json.message);
+                }
+            } catch (e) {
+                // Si vuelve a fallar la red, lo conservamos.
+                restantes.push(item);
+            }
+        }
+        
+        await AsyncStorage.setItem(WEBHOOK_QUEUE_KEY, JSON.stringify(restantes));
+    } catch(err) {
+        console.error("Fallo vaciando cola de webhooks", err);
+    }
+};
+
 /**
- * Actualiza datos de un producto específico (Petición POST).
- * El stock queda excluido intencionalmente (se gestionará en un módulo aparte).
+ * Actualiza datos de un producto específico.
+ * PASO 1: Guarda en Firebase local (Milisegundos, protección Offline nativa).
+ * PASO 2: Dispara Webhook directo a Google Sheets. (Detecta caídas de red para la cola externa).
  */
 export const actualizarProducto = async (
     codigoBarras: string,
@@ -77,51 +105,59 @@ export const actualizarProducto = async (
     nuevoComentario?: string
 ): Promise<{ exito: boolean; isNetworkError?: boolean }> => {
     try {
-        const respuesta = await fetch(API_URL, {
-            method: 'POST',
-            redirect: 'follow',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'text/plain;charset=utf-8',
-            },
-            body: JSON.stringify({
-                accion: 'actualizarDatoManual',
-                datos: {
-                    codigoBarras,
-                    nuevoStock,
-                    nuevoFV,
-                    nuevoFechaEdicion,
-                    nuevoComentario,
-                },
-            }),
-        });
+        const ref = doc(dbFirebase, 'productos', String(codigoBarras).trim());
         
-        const responseText = await respuesta.text();
-        let json: RespuestaAPI;
+        const updateData: any = {};
+        if (nuevoFV !== undefined) updateData.FV_Actual = nuevoFV;
+        if (nuevoFechaEdicion !== undefined) updateData.Fecha_edicion = nuevoFechaEdicion;
+        if (nuevoComentario !== undefined) updateData.Comentarios = nuevoComentario;
+        if (nuevoStock !== undefined) updateData.Stock_Master = nuevoStock;
+
+        // 1. Guardado Inmediato Firebase (Offline-first garantizado)
+        await setDoc(ref, updateData, { merge: true });
+
+        const payloadWebhook = { codigoBarras, nuevoStock, nuevoFV, nuevoFechaEdicion, nuevoComentario };
+
+        // 2. Notificación Directa a Excel (Webhook)
         try {
-            json = JSON.parse(responseText);
-        } catch (parseError) {
-            console.error('El servidor no devolvió JSON. Devolvió:', responseText);
-            // Si el servidor (Google) escupió HTML por un colapso en lugar del JSON,
-            // lo mandamos a la cola para reintentar luego en lugar de perder el dato.
-            return { exito: false, isNetworkError: true };
+            const respuesta = await fetch(API_URL, {
+                method: 'POST',
+                redirect: 'follow',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'text/plain;charset=utf-8',
+                },
+                body: JSON.stringify({
+                    accion: 'webhook_modificacion',
+                    datos: payloadWebhook,
+                }),
+            });
+            
+            const responseText = await respuesta.text();
+            let json = JSON.parse(responseText);
+            if (json.status !== 'success') {
+                 console.error('Error del webhook:', json.message);
+            }
+            // Si funciona, de paso vaciamos correos viejos
+            vaciarColaWebhooks();
+        } catch (fetchError: any) {
+            const isNetwork = fetchError.message === 'Aborted' || fetchError.message?.includes('Network') || fetchError.message?.includes('fetch') || fetchError.message?.includes('OKHTTP');
+            if (isNetwork) {
+                 // GUARDAMOS EN UNA COLA SECRETA EL WEBHOOK FALLIDO
+                 const queueStr = await AsyncStorage.getItem(WEBHOOK_QUEUE_KEY) || '[]';
+                 const cola = JSON.parse(queueStr);
+                 cola.push(payloadWebhook);
+                 await AsyncStorage.setItem(WEBHOOK_QUEUE_KEY, JSON.stringify(cola));
+                 
+                 return { exito: false, isNetworkError: true };
+            } else {
+                 return { exito: false, isNetworkError: false };
+            }
         }
 
-        if (json.status === 'success') {
-            return { exito: true };
-        } else {
-            console.error('Error del servidor:', json.message);
-            return { exito: false, isNetworkError: false }; // 👈 Especifico que fue el backend
-        }
+        return { exito: true };
     } catch (error: any) {
-        const isNetwork = error.message === 'Aborted' || error.message?.includes('Network') || error.message?.includes('fetch') || error.message?.includes('OKHTTP');
-        
-        if (isNetwork) {
-            console.warn(`📡 Background Sync pausado automáticamente por latencia/timeout: ${error.message} (Se reintentará silenciosamente luego)`);
-        } else {
-            console.error('Error Crítico en actualizarProducto:', error.message);
-        }
-        
-        return { exito: false, isNetworkError: isNetwork };
+        console.error('Error Crítico en actualizarProducto Firebase:', error.message);
+        return { exito: false, isNetworkError: false };
     }
 };

@@ -1,9 +1,7 @@
 // ARCHIVO: src/store/useInventarioStore.ts
 import { create } from 'zustand';
-import NetInfo from '@react-native-community/netinfo';
 import { ProductoInventario } from '../types/inventario';
 import { obtenerInventario, actualizarProducto } from '../services/api';
-import { agregarACola, obtenerCola, removerDeCola } from '../services/offlineQueue';
 import Toast from 'react-native-toast-message';
 import { reproducirSonido } from '../utils/sonidos';
 
@@ -17,8 +15,7 @@ interface InventarioState {
     busqueda: string;
     
     productoEditando: ProductoInventario | null;
-    
-    // Offline Tracking
+    // Offline Tracking is inherently managed by Firebase, we just keep UI flags
     pendientesSync: number;
     sincronizandoFondo: boolean;
 
@@ -28,11 +25,7 @@ interface InventarioState {
     setProductoEditando: (producto: ProductoInventario | null) => void;
     guardarEdicion: (fv: string, fechaEdicion: string, comentario: string) => Promise<boolean>;
     guardarEdicionDirecta: (producto: ProductoInventario) => Promise<boolean>;
-    iniciarListenerInternet: () => void;
-    sincronizarColaPendientes: () => Promise<void>;
 }
-
-let internetListenerRegistrado = false;
 
 export const useInventarioStore = create<InventarioState>((set, get) => ({
     inventario: [],
@@ -55,42 +48,18 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
             set({ error: null });
             
             const resultado = await obtenerInventario();
-            const pendientes = await obtenerCola();
             
-            // ⭐️ FIX MÁSTER: Fusionar la caché nativa/online con la Cola de Pendientes.
-            // Si Google (o el caché) nos manda datos "Viejos" porque aún no se ha mandado la cola,
-            // sobre-escribimos en RAM visualmente la versión con las ediciones locales.
-            let inventarioFinal = resultado.datos;
-            if (pendientes.length > 0) {
-                inventarioFinal = inventarioFinal.map(prod => {
-                    const edicionPendiente = pendientes.slice().reverse().find(p => p.codigoBarras === prod.Cod_Barras);
-                    if (edicionPendiente) {
-                        return {
-                            ...prod,
-                            FV_Actual: edicionPendiente.nuevoFV || prod.FV_Actual,
-                            Fecha_edicion: edicionPendiente.nuevoFechaEdicion || prod.Fecha_edicion,
-                            Comentarios: edicionPendiente.nuevoComentario || prod.Comentarios
-                        };
-                    }
-                    return prod;
-                });
-            }
-
+            // Firebase devuelve los datos puros.
             set({
-                inventario: inventarioFinal,
+                inventario: resultado.datos,
                 modoOffline: resultado.fromCache,
                 lastSync: resultado.lastSync,
                 cargando: false,
-                pendientesSync: pendientes.length
+                pendientesSync: 0 // Gestionado por Firebase interiormente
             });
-            
-            // Si cargó y hay red, intentamos enviar cola.
-            if (!resultado.fromCache && pendientes.length > 0) {
-                get().sincronizarColaPendientes();
-            }
         } catch (err) {
             set({ 
-                error: 'No se pudo conectar con la base de datos.\nVerifica tu conexión a internet.',
+                error: 'No se pudo conectar con Firebase.\nVerifica tu conexión a internet inicial.',
                 cargando: false
             });
         }
@@ -118,47 +87,37 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
 
         const respuesta = await actualizarProducto(codigo, undefined, fv, fechaEdicion, comentario);
 
-        // Si falló por mala conexión, encolamos el request de manera silenciosa!
-        if (!respuesta.exito && respuesta.isNetworkError) {
-            await agregarACola({
-                codigoBarras: codigo,
-                nuevoFV: fv,
-                nuevoFechaEdicion: fechaEdicion,
-                nuevoComentario: comentario
-            });
-            const pendientes = await obtenerCola();
-            set({ pendientesSync: pendientes.length });
-            
-            reproducirSonido('success');
-            Toast.show({
-                type: 'info',
-                text1: '📥 Guardado en cola offline',
-                text2: 'Se enviará cuando recuperes la conexión.',
-                visibilityTime: 3000,
-            });
-            return true; // Mentimos a la UI, le decimos "Sí guardó" en el teléfono de momento. 
-        }
-
-        // Si falló y no era problema de red (servidor rechazó)
+        // MEJORA: Si falla el webhook por red (isNetworkError), NO revertimos la UI.
+        // El dato ya está en Firebase y se encoló para Google Sheets.
         if (!respuesta.exito && !respuesta.isNetworkError) {
-            set({ inventario: inventarioPrevio }); // Revertir
+            set({ inventario: inventarioPrevio }); // Revertir solo si falló Firebase
             reproducirSonido('error');
             Toast.show({
                 type: 'error',
-                text1: '❌ Error de servidor',
-                text2: 'No se pudo guardar la modificación.',
+                text1: '❌ Error al guardar',
+                text2: 'No se pudo insertar en la base de datos.',
                 visibilityTime: 4000,
             });
             return false;
         }
 
         reproducirSonido('success');
-        Toast.show({
-            type: 'success',
-            text1: '✅ Guardado con éxito',
-            text2: `Las modificaciones de ${codigo} se sincronizaron.`,
-            visibilityTime: 2500,
-        });
+        
+        if (respuesta.isNetworkError) {
+            Toast.show({
+                type: 'info',
+                text1: '✅ Guardado (Modo Offline)',
+                text2: 'Cambio guardado. Se enviará a Excel al recuperar conexión.',
+                visibilityTime: 3500,
+            });
+        } else {
+            Toast.show({
+                type: 'success',
+                text1: '✅ Guardado exitoso',
+                text2: `Las modificaciones de ${codigo} se sincronizaron.`,
+                visibilityTime: 2500,
+            });
+        }
         return true;
     },
 
@@ -180,70 +139,12 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
         
         const respuesta = await actualizarProducto(codigo, undefined, fv, fechaEdicion, comentario);
 
-        if (!respuesta.exito && respuesta.isNetworkError) {
-            await agregarACola({ codigoBarras: codigo, nuevoFV: fv, nuevoFechaEdicion: fechaEdicion, nuevoComentario: comentario });
-            const pendientes = await obtenerCola();
-            set({ pendientesSync: pendientes.length });
-            return true;
-        }
-
+        // Si falló Firebase (exito false) y no es error de red (el webhook), revertimos.
         if (!respuesta.exito && !respuesta.isNetworkError) {
-            set({ inventario: inventarioPrevio }); // Revertir
+            set({ inventario: inventarioPrevio }); 
             return false;
         }
 
         return true;
-    },
-
-    sincronizarColaPendientes: async () => {
-        if (get().sincronizandoFondo) return;
-        
-        const cola = await obtenerCola();
-        if (cola.length === 0) return;
-
-        set({ sincronizandoFondo: true });
-
-        for (const item of cola) {
-            const respuesta = await actualizarProducto(
-                item.codigoBarras,
-                undefined,
-                item.nuevoFV,
-                item.nuevoFechaEdicion,
-                item.nuevoComentario
-            );
-            
-            // Solo si tiene éxito verdadero lo quitamos de la cola de pendientes
-            if (respuesta.exito) {
-                await removerDeCola(item.id);
-            } else if (!respuesta.isNetworkError) {
-                // Si dió error del sistema y NO de internet, es mejor borrarlo 
-                // para que no tranque el sistema.
-                await removerDeCola(item.id);
-            }
-        }
-
-        const colaRestante = await obtenerCola();
-        
-        // Al terminar de vaciar, actualizamos silenciosamente desde la nube para asegurar 
-        // consistencia de los datos ya que Google Sheets ya tiene las verdades absolutas.
-        if (colaRestante.length === 0 && !get().modoOffline) {
-            get().cargarDatos(true);
-        }
-
-        set({ sincronizandoFondo: false, pendientesSync: colaRestante.length });
-    },
-
-    iniciarListenerInternet: () => {
-        if (internetListenerRegistrado) return;
-        internetListenerRegistrado = true;
-
-        NetInfo.addEventListener(state => {
-            if (state.isConnected && state.isInternetReachable) {
-                const pendientes = get().pendientesSync;
-                if (pendientes > 0) {
-                    get().sincronizarColaPendientes();
-                }
-            }
-        });
     }
 }));
