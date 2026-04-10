@@ -27,7 +27,6 @@ const CONFIG_ACCION: Record<TipoAccionHistorial, {
 }> = {
     FV_ACTUALIZADO:    { icono: 'calendar',       color: '#3182CE', label: 'Fecha Actualizada' },
     COMENTARIO_AGREGADO: { icono: 'chatbubble',   color: '#805AD5', label: 'Nota Agregada'     },
-    RAFAGA_PROCESADA:  { icono: 'flash',          color: '#DD6B20', label: 'Ráfaga'            },
     EDICION_COMPLETA:  { icono: 'create',         color: '#38A169', label: 'Edición Completa'  },
 };
 

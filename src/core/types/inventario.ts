@@ -14,7 +14,7 @@ export interface ProductoInventario {
     Marca: string; // Marcado como obligatorio para evitar validaciones nulas constantes
 }
 
-export type TipoAccionHistorial = 'FV_ACTUALIZADO' | 'COMENTARIO_AGREGADO' | 'RAFAGA_PROCESADA' | 'EDICION_COMPLETA';
+export type TipoAccionHistorial = 'FV_ACTUALIZADO' | 'COMENTARIO_AGREGADO' | 'EDICION_COMPLETA';
 
 export interface EntradaHistorial {
     id?: string;

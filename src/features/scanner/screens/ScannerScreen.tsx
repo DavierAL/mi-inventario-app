@@ -24,12 +24,10 @@ export const ScannerScreen = () => {
     const navigation = useNavigation<ScannerNavProp>();
     const { 
         setProductoEditando, productoEditando, 
-        guardarEdicion, guardarEdicionDirecta 
+        guardarEdicion 
     } = useInventarioStore();
     
     const [procesandoEscaneo, setProcesandoEscaneo] = useState<boolean>(false);
-    const [modoRafaga, setModoRafaga] = useState<boolean>(false);
-    const [ultimoEscaneado, setUltimoEscaneado] = useState<string | null>(null);
 
     useEffect(() => {
         // Precargar sonidos cuando se abre el escáner
@@ -92,36 +90,8 @@ export const ScannerScreen = () => {
 
             if (productoEncontrado) {
                 reproducirBeep(true);
-                
-                if (modoRafaga) {
-                    // MODO RÁFAGA: Guardado silencioso de fondo
-                    const res = await guardarEdicionDirecta(productoEncontrado);
-                    setUltimoEscaneado(productoEncontrado.sku || codigoLimpio);
-                    
-                    if (res.exito) {
-                        Toast.show({
-                            type: 'success',
-                            text1: MENSAJES.RAFAGA_PROCESADO,
-                            text2: `${productoEncontrado.descripcion}`,
-                            position: 'top',
-                            visibilityTime: 1200,
-                        });
-                    } else {
-                        Toast.show({
-                            type: 'error',
-                            text1: 'Error en Ráfaga',
-                            text2: 'No se pudo sincronizar el escaneo.',
-                            position: 'top',
-                            visibilityTime: 2000,
-                        });
-                    }
-                    
-                    // En modo ráfaga, habilitamos el escáner rápido de nuevo
-                    setTimeout(() => setProcesandoEscaneo(false), 800);
-                } else {
-                    // MODO NORMAL: Abrimos Modal
-                    setProductoEditando(productoEncontrado);
-                }
+                // MODO NORMAL: Abrimos Modal
+                setProductoEditando(productoEncontrado);
             } else {
                 reproducirBeep(false);
                 Toast.show({
@@ -151,39 +121,19 @@ export const ScannerScreen = () => {
             />
 
             <View style={styles.capa}>
-                {/* Selector de Modo */}
-                <View style={styles.contenedorModos}>
-                    <TouchableOpacity 
-                        style={[styles.botonModo, !modoRafaga && {backgroundColor: colors.primario}]}
-                        onPress={() => setModoRafaga(false)}
-                    >
-                        <Text style={[styles.textoModo, !modoRafaga && styles.textoModoActivo]}>{MENSAJES.MODO_EDICION}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                        style={[styles.botonModo, modoRafaga && {backgroundColor: colors.error}]}
-                        onPress={() => setModoRafaga(true)}
-                    >
-                        <Text style={[styles.textoModo, modoRafaga && styles.textoModoActivo]}>{MENSAJES.MODO_RAFAGA}</Text>
-                    </TouchableOpacity>
-                </View>
-
                 <Text style={styles.textoInfo}>
-                    {modoRafaga ? MENSAJES.ALINEA_RAFAGA : MENSAJES.ALINEA_CODIGO}
+                    {MENSAJES.ALINEA_CODIGO}
                 </Text>
 
                 <View style={styles.marco}>
-                    <View style={[styles.esquina, styles.esquinaTL, {borderColor: modoRafaga ? colors.error : colors.primario}]} />
-                    <View style={[styles.esquina, styles.esquinaTR, {borderColor: modoRafaga ? colors.error : colors.primario}]} />
-                    <View style={[styles.esquina, styles.esquinaBL, {borderColor: modoRafaga ? colors.error : colors.primario}]} />
-                    <View style={[styles.esquina, styles.esquinaBR, {borderColor: modoRafaga ? colors.error : colors.primario}]} />
+                    <View style={[styles.esquina, styles.esquinaTL, {borderColor: colors.primario}]} />
+                    <View style={[styles.esquina, styles.esquinaTR, {borderColor: colors.primario}]} />
+                    <View style={[styles.esquina, styles.esquinaBL, {borderColor: colors.primario}]} />
+                    <View style={[styles.esquina, styles.esquinaBR, {borderColor: colors.primario}]} />
                 </View>
 
-                {/* Último Escaneado Mini Resumen */}
-                <View style={{ height: 40, justifyContent: 'center' }}>
-                    {modoRafaga && ultimoEscaneado && (
-                        <Text style={{ color: colors.exito, fontWeight: 'bold' }}>âœ“ {ultimoEscaneado}</Text>
-                    )}
-                </View>
+                {/* Último Escaneado Mini Resumen - Eliminado Ráfaga */}
+                <View style={{ height: 40 }} />
 
                 {/* Botón Flotante para Cancelar */}
                 <TouchableOpacity 
@@ -228,21 +178,6 @@ const styles = StyleSheet.create({
     botonCancelarCerrar: {
         backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 24, marginTop: 40
     },
-    textoBotonCancelar: { color: '#FFF', fontSize: 16, fontWeight: '700' },
-    contenedorModos: {
-        flexDirection: 'row', backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 24, padding: 4, marginBottom: 20
-    },
-    botonModo: {
-        paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20
-    },
-    botonModoActivo: {
-        backgroundColor: '#3182CE'
-    },
-    textoModo: {
-        color: '#A0AEC0', fontWeight: 'bold', fontSize: 14
-    },
-    textoModoActivo: {
-        color: '#FFF'
-    }
+    textoBotonCancelar: { color: '#FFF', fontSize: 16, fontWeight: '700' }
 });
 

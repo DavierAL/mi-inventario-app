@@ -36,11 +36,8 @@ export const MENSAJES = {
 
     // Escáner
     MODO_EDICION: 'Modo Edición',
-    MODO_RAFAGA: '⚡ Ráfaga',
     ALINEA_CODIGO: 'Alinea el código en el centro',
-    ALINEA_RAFAGA: 'Alinea para marcaje rápido',
     TERMINAR_LOTE: '✕ Terminar Lote',
-    RAFAGA_PROCESADO: '⚡ Ráfaga: Procesado',
 
     // Analíticas
     DASHBOARD_TITULO: 'Dashboard Analítico',

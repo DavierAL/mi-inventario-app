@@ -29,7 +29,6 @@ interface InventarioState {
     conectarInventario: () => void;
     setProductoEditando: (producto: Producto | null) => void;
     guardarEdicion: (fv: string, fechaEdicion: string, comentario: string) => Promise<ResultadoOperacion>;
-    guardarEdicionDirecta: (producto: Producto) => Promise<ResultadoOperacion>;
     cargarDatosSync: () => void; 
 }
 
@@ -109,41 +108,6 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
         } catch (error) {
             console.error('[Store] Error al guardar en SQLite:', error);
             return { exito: false, mensajeError: 'Error al persistir localmente' };
-        }
-    },
-
-    guardarEdicionDirecta: async (producto) => {
-        const codigo = producto.codBarras;
-        const fecha = new Date().toISOString();
-
-        try {
-            // 1. Actualizar SQLite
-            await database.write(async () => {
-                await producto.update((p: Producto) => {
-                    p.fechaEdicion = fecha;
-                });
-            });
-
-            // 2. Puente a Firebase y Sheets
-            InventarioRepository.actualizarProducto(
-                codigo,
-                {
-                    Fecha_edicion: fecha,
-                    Stock_Master: producto.stockMaster,
-                    FV_Actual: producto.fvActual
-                },
-                {
-                    descripcion: producto.descripcion,
-                    marca: producto.marca,
-                    sku: producto.sku,
-                    accion: 'RAFAGA_PROCESADA'
-                }
-            ).catch(e => console.warn('[Store] Error en ráfaga:', e));
-
-            syncConFirebase().catch(e => console.warn('[Sync] Background error:', e));
-            return { exito: true, codigo };
-        } catch (error) {
-            return { exito: false, codigo };
         }
     }
 }));

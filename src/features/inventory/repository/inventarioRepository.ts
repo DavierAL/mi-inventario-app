@@ -117,8 +117,7 @@ export const InventarioRepository = {
                     m.fvNuevo = entrada.cambios.fvNuevo;
                     m.comentario = entrada.cambios.comentario;
                     m.dispositivo = Platform.OS === 'ios' ? '📱 iPhone' : '🤖 Android';
-                    // WatermelonDB @date espera un objeto Date, lo convertirá a ms en la DB
-                    (m as any).timestamp = new Date(); 
+                    m.timestamp = Date.now(); 
                 });
                 console.log('[Audit] Movimiento registrado con éxito en SQLite');
             });
