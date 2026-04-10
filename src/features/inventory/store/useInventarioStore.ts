@@ -68,8 +68,10 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
         if (!productoEditando) return { exito: false, mensajeError: 'No hay producto seleccionado' };
 
         const codigo = productoEditando.codBarras;
+        const fvAnterior = productoEditando.fvActual;
 
         try {
+            // 1. ACTUALIZAR SQLITE (Para que la interfaz cambie al instante sin lag)
             await database.write(async () => {
                 await productoEditando.update((p: Producto) => {
                     p.fvActual = fv;
@@ -78,20 +80,27 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
                 });
             });
 
-            // Registro de Auditoría Local-First
-            InventarioRepository.registrarMovimiento({
-                productoId: codigo,
-                sku: productoEditando.sku,
-                descripcion: productoEditando.descripcion,
-                marca: productoEditando.marca,
-                accion: (comentario && !productoEditando.comentarios) ? 'COMENTARIO_AGREGADO' : 'FV_ACTUALIZADO',
-                cambios: {
-                    fvAnterior: productoEditando.fvActual,
-                    fvNuevo: fv,
-                    comentario: comentario
-                }
-            }).catch(e => console.warn('[Store] Audit error:', e));
+            // 2. PUENTE A FIREBASE Y GOOGLE SHEETS (Usando el Repositorio original)
+            const accion: TipoAccionHistorial = (comentario && !productoEditando.comentarios) ? 'COMENTARIO_AGREGADO' : 'FV_ACTUALIZADO';
             
+            InventarioRepository.actualizarProducto(
+                codigo,
+                {
+                    FV_Actual: fv,
+                    Fecha_edicion: fechaEdicion,
+                    Comentarios: comentario,
+                    Stock_Master: productoEditando.stockMaster // 👈 Vital para que el Webhook mande el stock
+                },
+                {
+                    descripcion: productoEditando.descripcion,
+                    marca: productoEditando.marca,
+                    sku: productoEditando.sku,
+                    fvAnterior: fvAnterior,
+                    accion: accion
+                }
+            ).catch(e => console.warn('[Store] Error en actualizarProducto:', e));
+            
+            // 3. Sincronización secundaria en 2do plano
             syncConFirebase().catch(e => console.warn('[Sync] Background error:', e));
 
             set({ productoEditando: null });
@@ -108,20 +117,28 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
         const fecha = new Date().toISOString();
 
         try {
+            // 1. Actualizar SQLite
             await database.write(async () => {
                 await producto.update((p: Producto) => {
                     p.fechaEdicion = fecha;
                 });
             });
 
-            InventarioRepository.registrarMovimiento({
-                productoId: codigo,
-                sku: producto.sku,
-                descripcion: producto.descripcion,
-                marca: producto.marca,
-                accion: 'RAFAGA_PROCESADA',
-                cambios: { fvNuevo: producto.fvActual }
-            }).catch(() => {});
+            // 2. Puente a Firebase y Sheets
+            InventarioRepository.actualizarProducto(
+                codigo,
+                {
+                    Fecha_edicion: fecha,
+                    Stock_Master: producto.stockMaster,
+                    FV_Actual: producto.fvActual
+                },
+                {
+                    descripcion: producto.descripcion,
+                    marca: producto.marca,
+                    sku: producto.sku,
+                    accion: 'RAFAGA_PROCESADA'
+                }
+            ).catch(e => console.warn('[Store] Error en ráfaga:', e));
 
             syncConFirebase().catch(e => console.warn('[Sync] Background error:', e));
             return { exito: true, codigo };

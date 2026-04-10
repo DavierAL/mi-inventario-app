@@ -33,7 +33,15 @@ const CONFIG_ACCION: Record<TipoAccionHistorial, {
 
 // ─── Helper de timestamp relativo ──────────────────────────────────────────
 
-const formatearTiempoRelativo = (timestamp: number): string => {
+const obtenerTimestamp = (valor: any): number => {
+    if (!valor) return Date.now();
+    if (typeof valor === 'number') return valor;
+    if (valor instanceof Date) return valor.getTime(); // 👈 El secreto para WatermelonDB
+    return new Date(valor).getTime();
+};
+
+const formatearTiempoRelativo = (rawTimestamp: any): string => {
+    const timestamp = obtenerTimestamp(rawTimestamp);
     const diffMs = Date.now() - timestamp;
     const diffMin = Math.floor(diffMs / 60_000);
     const diffHrs = Math.floor(diffMs / 3_600_000);
@@ -46,7 +54,8 @@ const formatearTiempoRelativo = (timestamp: number): string => {
     return `Hace ${diffDias} días`;
 };
 
-const formatearHora = (timestamp: number): string => {
+const formatearHora = (rawTimestamp: any): string => {
+    const timestamp = obtenerTimestamp(rawTimestamp);
     return new Date(timestamp).toLocaleTimeString('es-ES', {
         hour: '2-digit', minute: '2-digit'
     });

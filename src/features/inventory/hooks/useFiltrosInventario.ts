@@ -22,7 +22,7 @@ export const useFiltrosInventario = (busqueda: string) => {
     const queryProductos = useMemo(() => {
         const conditions: Q.Clause[] = [];
 
-        // 1. Condición de Búsqueda (LIKE)
+        // 1. Condición de Búsqueda
         const termino = busquedaDebounced.toLowerCase().trim();
         if (termino) {
             conditions.push(
@@ -34,27 +34,14 @@ export const useFiltrosInventario = (busqueda: string) => {
             );
         }
 
-        // 2. Condición de Filtros Especiales
-        if (filtroRapido === 'VENCIDOS') {
-            // Nota: Aquí se asume que fv_actual se guarda de forma que SQLite pueda comparar 
-            // (por ejemplo, ISO o similar). Ajustar según el formato real.
-            // Para este ejemplo, solo mostramos cómo se estructuraría:
-            // conditions.push(Q.where('fv_actual', Q.lt(new Date().toISOString())));
-        } else if (filtroRapido === '30_DIAS') {
-             // Lógica de fecha similar...
-        }
+        // 2. Ordenamiento
+        if (ordenamiento === 'MARCA') conditions.push(Q.sortBy('marca', Q.asc));
+        else if (ordenamiento === 'STOCK') conditions.push(Q.sortBy('stock_master', Q.desc));
+        else if (ordenamiento === 'FV') conditions.push(Q.sortBy('fv_actual', Q.asc));
 
-        // 3. Ordenamiento delegado a la Base de Datos
-        if (ordenamiento === 'MARCA') {
-            conditions.push(Q.sortBy('marca', Q.asc));
-        } else if (ordenamiento === 'STOCK') {
-            conditions.push(Q.sortBy('stock_master', Q.desc));
-        } else if (ordenamiento === 'FV') {
-            conditions.push(Q.sortBy('fv_actual', Q.asc));
-        }
-
+        // Retornamos la Query pura (el filtro de fechas lo haremos en RxJS)
         return database.collections.get<Producto>('productos').query(...conditions);
-    }, [busquedaDebounced, filtroRapido, ordenamiento]);
+    }, [busquedaDebounced, ordenamiento]); // Quita filtroRapido de estas dependencias
 
     return {
         queryProductos, // Retorna un objeto Query de WatermelonDB

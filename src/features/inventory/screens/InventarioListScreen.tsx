@@ -28,6 +28,8 @@ import Producto from '../../../core/database/models/Producto';
 import { ProductoInventario } from '../../../core/types/inventario';
 import { ProductoCard } from '../components/ProductoCard';
 import { SkeletonCard } from '../../../core/ui/SkeletonCard';
+import { map } from 'rxjs/operators';
+import { calcularDiasRestantes } from '../../../core/utils/fecha';
 
 
 
@@ -83,8 +85,21 @@ const ListaBase = memo(({ productos, onPress, busqueda, onScroll, listRef, refre
     );
 });
 
-const ListaReactiva = withObservables(['query'], ({ query }: { query: Query<Producto> }) => ({
-    productos: query.observe(),
+const ListaReactiva = withObservables(['query', 'filtroRapido'], ({ query, filtroRapido }: { query: Query<Producto>, filtroRapido: FiltroCaducidad }) => ({
+    productos: query.observe().pipe(
+        map(productos => {
+            if (filtroRapido === 'TODOS') return productos;
+            
+            // Filtramos en memoria (ultra rápido con RxJS)
+            return productos.filter(p => {
+                const dias = calcularDiasRestantes(p.fvActual);
+                if (filtroRapido === 'VENCIDOS') return dias < 0;
+                if (filtroRapido === '30_DIAS') return dias >= 0 && dias <= 30;
+                if (filtroRapido === '90_DIAS') return dias > 30 && dias <= 90;
+                return true;
+            });
+        })
+    )
 }))(ListaBase);
 
 // ─── Pantalla Principal ───────────────────────────────────────────────────
@@ -241,9 +256,10 @@ export const InventarioListScreen = () => {
                 </View>
 
                 <View style={{ flex: 1, width: '100%' }}>
-                    {/* LISTA REACTIVA: Inyectamos la Query */}
+                    {/* LISTA REACTIVA: Inyectamos la Query y el Filtro */}
                     <ListaReactiva 
                         query={queryProductos} 
+                        filtroRapido={filtroRapido} 
                         onPress={setProductoEditando} 
                         busqueda={busqueda}
                         onScroll={handleScroll}
