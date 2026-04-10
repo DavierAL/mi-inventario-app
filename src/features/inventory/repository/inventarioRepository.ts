@@ -112,6 +112,7 @@ export const InventarioRepository = {
                     m.fvNuevo = entrada.cambios.fvNuevo;
                     m.comentario = entrada.cambios.comentario;
                     m.dispositivo = Platform.OS === 'ios' ? '📱 iPhone' : '🤖 Android';
+                    m.timestamp = Date.now();
                 });
             });
         } catch (error) {

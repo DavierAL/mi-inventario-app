@@ -34,10 +34,18 @@ const CONFIG_ACCION: Record<TipoAccionHistorial, {
 // ─── Helper de timestamp relativo ──────────────────────────────────────────
 
 const obtenerTimestamp = (valor: any): number => {
-    if (!valor) return Date.now();
+    // Si no hay valor o es 0 (error de guardado previo), devolvemos el tiempo actual
+    if (!valor || valor === 0) return Date.now();
+    
     if (typeof valor === 'number') return valor;
-    if (valor instanceof Date) return valor.getTime(); // 👈 El secreto para WatermelonDB
-    return new Date(valor).getTime();
+    
+    if (valor instanceof Date) {
+        const time = valor.getTime();
+        return isNaN(time) ? Date.now() : time;
+    }
+
+    const parsed = new Date(valor).getTime();
+    return isNaN(parsed) ? Date.now() : parsed;
 };
 
 const formatearTiempoRelativo = (rawTimestamp: any): string => {
