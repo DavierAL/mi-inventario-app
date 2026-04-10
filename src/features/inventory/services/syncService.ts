@@ -21,19 +21,33 @@ export async function syncConFirebase() {
 
       snapshot.forEach((snapshotDoc) => {
         const data = snapshotDoc.data();
+        
+        // Helper defensivo para manejar inconsistencia de mayúsculas en Firestore
+        const getVal = (key: string) => data[key] ?? data[key.toLowerCase()] ?? data[key.charAt(0).toUpperCase() + key.slice(1)];
+
+        const codBarras = getVal('Cod_Barras');
+        const sku = getVal('SKU');
+        const desc = getVal('Descripcion');
+
+        // VALIDACIÓN CRÍTICA: No aceptar objetos corruptos que borrarían la DB local
+        if (!codBarras && !sku && !desc) {
+          console.warn(`[Sync] Saltando doc ${snapshotDoc.id} por falta de campos críticos.`);
+          return;
+        }
+
         updated.push({
           id: snapshotDoc.id,
-          cod_barras: data.Cod_Barras,
-          sku: data.SKU,
-          descripcion: data.Descripcion,
-          stock_master: data.Stock_Master,
-          precio_web: data.Precio_Web,
-          precio_tienda: data.Precio_Tienda,
-          fv_actual: data.FV_Actual,
-          fecha_edicion: data.Fecha_edicion,
-          comentarios: data.Comentarios,
-          marca: data.Marca,
-          imagen: data.Imagen,
+          cod_barras: codBarras,
+          sku: sku,
+          descripcion: desc,
+          stock_master: getVal('Stock_Master') ?? 0,
+          precio_web: getVal('Precio_Web') ?? 0,
+          precio_tienda: getVal('Precio_Tienda') ?? 0,
+          fv_actual: getVal('FV_Actual'),
+          fecha_edicion: getVal('Fecha_edicion'),
+          comentarios: getVal('Comentarios'),
+          marca: getVal('Marca'),
+          imagen: getVal('Imagen'),
           created_at: data.created_at || Date.now(),
           updated_at: data.server_updated_at || Date.now()
         });
