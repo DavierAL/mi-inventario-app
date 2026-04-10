@@ -52,14 +52,9 @@ export const InventarioRepository = {
     ): Promise<{ exito: boolean; webhookEncolado: boolean }> {
         try {
             const codigoLimpio = String(codigoBarras).trim();
-            const ref = doc(dbFirebase, 'productos', codigoLimpio);
-
-            // 1. Persistencia Primaria: Firebase
-            await setDoc(ref, datos, { merge: true });
-
-            // 2. Registro de Auditoría — Local-First
+            // 1. Registro de Auditoría Local — PRIORIDAD MÁXIMA (Local-First)
             if (infoAuditoria) {
-                this.registrarMovimiento({
+                InventarioRepository.registrarMovimiento({
                     productoId: codigoLimpio,
                     descripcion: infoAuditoria.descripcion,
                     marca: infoAuditoria.marca,
@@ -70,10 +65,20 @@ export const InventarioRepository = {
                         fvNuevo: datos.FV_Actual,
                         comentario: datos.Comentarios,
                     },
-                }).catch(e => console.warn('[Audit] Error:', e));
+                }).catch(e => console.warn('[Audit] Error local:', e));
             }
 
-            // 3. Sincronización Secundaria: Sheets Webhook
+            // 2. Metadatos de Sincronización para Firestore
+            const datosConMeta = {
+                ...datos,
+                server_updated_at: Date.now() // gatillo para el motor de sincronización
+            };
+
+            // 3. Persistencia en la Nube: Firebase
+            const ref = doc(dbFirebase, 'productos', codigoLimpio);
+            await setDoc(ref, datosConMeta, { merge: true });
+
+            // 4. Sincronización Secundaria: Sheets Webhook
             const payload: WebhookPayload = {
                 codigoBarras: codigoLimpio,
                 nuevoStock: datos.Stock_Master,
@@ -82,7 +87,7 @@ export const InventarioRepository = {
                 nuevoComentario: datos.Comentarios,
             };
 
-            const resWebhook = await this.enviarWebhook(payload);
+            const resWebhook = await InventarioRepository.enviarWebhook(payload);
 
             return {
                 exito: true,
@@ -112,8 +117,10 @@ export const InventarioRepository = {
                     m.fvNuevo = entrada.cambios.fvNuevo;
                     m.comentario = entrada.cambios.comentario;
                     m.dispositivo = Platform.OS === 'ios' ? '📱 iPhone' : '🤖 Android';
-                    m.timestamp = Date.now();
+                    // WatermelonDB @date espera un objeto Date, lo convertirá a ms en la DB
+                    (m as any).timestamp = new Date(); 
                 });
+                console.log('[Audit] Movimiento registrado con éxito en SQLite');
             });
         } catch (error) {
             console.error('[Repo] Error en SQLite History:', error);

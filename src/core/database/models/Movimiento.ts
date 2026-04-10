@@ -14,5 +14,5 @@ export default class Movimiento extends Model {
   @text('comentario') comentario?: string;
   @text('dispositivo') dispositivo!: string;
   
-  @readonly @date('timestamp') timestamp!: number;
+  @date('timestamp') timestamp!: number;
 }
