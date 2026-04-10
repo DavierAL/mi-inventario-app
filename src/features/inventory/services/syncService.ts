@@ -1,6 +1,6 @@
 import { synchronize } from '@nozbe/watermelondb/sync';
 import { database } from '../../../core/database';
-import { collection, query, where, getDocs, writeBatch, doc, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, getDocsFromServer, writeBatch, doc, limit } from 'firebase/firestore';
 import { dbFirebase } from '../../../core/database/firebase';
 
 export async function syncConFirebase() {
@@ -12,11 +12,24 @@ export async function syncConFirebase() {
 
       const productosRef = collection(dbFirebase, 'productos');
       // Importante: Requerimos el campo 'server_updated_at' en Firestore para sync eficiente
-      const q = query(productosRef, where('server_updated_at', '>', timestamp));
-      const snapshot = await getDocs(q);
+      let snapshot;
+      try {
+        // En Modular SDK (v9+), usamos getDocsFromServer para obligar a ignorar el caché
+        const qTodos = query(productosRef);
+        snapshot = await getDocsFromServer(qTodos);
+        console.log("=====> CHIVATO SYNC: Docs Reales del Servidor:", snapshot.size);
+
+        if (!snapshot.empty) {
+          console.log("=====> CHIVATO SYNC: Primer producto:", snapshot.docs[0].data().Descripcion);
+        }
+      } catch (error) {
+        console.log("=====> CHIVATO ERROR MORTAL FIREBASE:", error);
+        // Fallback al comportamiento original si falla el chivato
+        snapshot = await getDocs(q);
+      }
 
       const updated: any[] = [];
-      const deleted: string[] = []; 
+      const deleted: string[] = [];
 
       snapshot.forEach((snapshotDoc) => {
         const data = snapshotDoc.data();
@@ -80,7 +93,7 @@ export async function syncConFirebase() {
         const allMovChanges = [...movimientosChanges.created, ...movimientosChanges.updated];
         allMovChanges.forEach((record: any) => {
           // Usamos addDoc indirectamente mediante setDoc con ID de Watermelon o un ID nuevo
-          const ref = doc(collection(dbFirebase, 'historial')); 
+          const ref = doc(collection(dbFirebase, 'historial'));
           batch.set(ref, {
             productoId: record.producto_id,
             sku: record.sku,
@@ -88,9 +101,9 @@ export async function syncConFirebase() {
             marca: record.marca,
             accion: record.accion,
             cambios: {
-                fvAnterior: record.fv_anterior,
-                fvNuevo: record.fv_nuevo,
-                comentario: record.comentario
+              fvAnterior: record.fv_anterior,
+              fvNuevo: record.fv_nuevo,
+              comentario: record.comentario
             },
             dispositivo: record.dispositivo,
             timestamp: record.timestamp
