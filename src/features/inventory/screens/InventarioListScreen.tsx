@@ -110,7 +110,7 @@ export const InventarioListScreen = () => {
 
     const {
         cargando,
-        conectarInventario, cargarDatosSync,
+        conectarInventario, cargarDatosSync, repararBaseDeDatos,
         productoEditando, setProductoEditando, guardarEdicion,
         error, modoOffline, lastSync,
         sincronizandoFondo
@@ -168,12 +168,33 @@ export const InventarioListScreen = () => {
         }
     };
 
+    const handleReparar = () => {
+        Alert.alert(
+            "Reparar Base de Datos",
+            "¿Deseas forzar una descarga completa? Esto arreglará productos sin SKU o imagen, pero consumirá más datos.",
+            [
+                { text: "Cancelar", style: "cancel" },
+                { 
+                    text: "Sincronizar Todo", 
+                    onPress: async () => {
+                        Toast.show({ type: 'info', text1: 'Iniciando reparación...', text2: 'Esto tomará unos segundos' });
+                        await repararBaseDeDatos();
+                        Toast.show({ type: 'success', text1: 'Sincronización completa' });
+                    } 
+                }
+            ]
+        );
+    };
+
     if (error) {
         return (
             <View style={[styles.pantallaCentrada, { backgroundColor: colors.fondo }]}>
-                <Text style={styles.textoError}>{error}</Text>
+                <Text style={[styles.textoError, { color: colors.textoPrincipal }]}>{error}</Text>
                 <TouchableOpacity onPress={() => cargarDatosSync()} style={[styles.botonReintentar, { backgroundColor: colors.primario }]}>
                     <Text style={styles.textoBotonReintentar}>{MENSAJES.REINTENTAR_CONEXION}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleReparar} style={{ marginTop: 20 }}>
+                    <Text style={{ color: colors.primario, fontWeight: 'bold' }}>Forzar Resincronización Total</Text>
                 </TouchableOpacity>
             </View>
         );
@@ -198,6 +219,7 @@ export const InventarioListScreen = () => {
                         
                         <TouchableOpacity 
                             onPress={() => cargarDatosSync()}
+                            onLongPress={handleReparar}
                             disabled={sincronizandoFondo}
                             style={[styles.syncBadge, { backgroundColor: isDark ? '#2D3748' : '#EDF2F7' }]}
                         >

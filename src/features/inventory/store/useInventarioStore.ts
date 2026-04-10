@@ -29,7 +29,8 @@ interface InventarioState {
     conectarInventario: () => void;
     setProductoEditando: (producto: Producto | null) => void;
     guardarEdicion: (fv: string, fechaEdicion: string, comentario: string) => Promise<ResultadoOperacion>;
-    cargarDatosSync: () => void; 
+    cargarDatosSync: () => void;
+    repararBaseDeDatos: () => Promise<void>;
 }
 
 export const useInventarioStore = create<InventarioState>((set, get) => ({
@@ -58,6 +59,22 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
                 sincronizandoFondo: false, 
                 lastSync: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) 
             }));
+    },
+
+    repararBaseDeDatos: async () => {
+        set({ sincronizandoFondo: true, error: null });
+        try {
+            await syncConFirebase({ forceFull: true });
+            set({ 
+                lastSync: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
+                error: null 
+            });
+        } catch (err) {
+            console.error("Repair Sync Error:", err);
+            set({ error: "No se pudo completar la reparación." });
+        } finally {
+            set({ sincronizandoFondo: false });
+        }
     },
 
     setProductoEditando: (productoEditando) => set({ productoEditando }),

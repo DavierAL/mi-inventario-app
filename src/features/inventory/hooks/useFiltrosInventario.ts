@@ -29,7 +29,8 @@ export const useFiltrosInventario = (busqueda: string) => {
                 Q.or(
                     Q.where('descripcion', Q.like(`%${Q.sanitizeLikeString(termino)}%`)),
                     Q.where('sku', Q.like(`%${Q.sanitizeLikeString(termino)}%`)),
-                    Q.where('cod_barras', Q.like(`%${Q.sanitizeLikeString(termino)}%`))
+                    Q.where('cod_barras', Q.like(`%${Q.sanitizeLikeString(termino)}%`)),
+                    Q.where('marca', Q.like(`%${Q.sanitizeLikeString(termino)}%`))
                 )
             );
         }

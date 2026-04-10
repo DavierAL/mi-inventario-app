@@ -42,6 +42,7 @@ const ProductoCardComponent: React.FC<Props> = ({ item, onPress }) => {
             
                 <View style={styles.infoPrincipal}>
                     <Text style={[styles.textoSKU, { color: colors.primario }]}>{item.sku}</Text>
+                    <Text style={[styles.textoMarca, { color: colors.textoSecundario }]}>{item.marca}</Text>
                     <Text style={[styles.textoDescripcion, { color: colors.textoPrincipal }]} numberOfLines={2}>{item.descripcion}</Text>
                     <Text style={[styles.textoCodigoBarras, { color: colors.textoSecundario }]}>Cód: {item.codBarras}</Text>
                     {item.fvActual ? (
@@ -76,7 +77,8 @@ export const ProductoCard = memo(ProductoCardComponent, (prevProps, nextProps) =
         prevProps.item.stockMaster === nextProps.item.stockMaster &&
         prevProps.item.precioWeb === nextProps.item.precioWeb &&
         prevProps.item.precioTienda === nextProps.item.precioTienda &&
-        prevProps.item.comentarios === nextProps.item.comentarios
+        prevProps.item.comentarios === nextProps.item.comentarios &&
+        prevProps.item.marca === nextProps.item.marca
     );
 });
 
@@ -125,6 +127,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         textTransform: 'uppercase',
         marginBottom: 2,
+    },
+    textoMarca: {
+        fontSize: 11,
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        opacity: 0.7,
+        marginBottom: 1
     },
     textoDescripcion: {
         fontSize: 15,

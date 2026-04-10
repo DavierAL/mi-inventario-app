@@ -3,12 +3,17 @@ import { database } from '../../../core/database';
 import { collection, query, where, getDocs, writeBatch, doc, limit } from 'firebase/firestore';
 import { dbFirebase } from '../../../core/database/firebase';
 
-export async function syncConFirebase() {
+export async function syncConFirebase(options: { forceFull?: boolean } = {}) {
   await synchronize({
     database,
     // 1. PULL: Descargar cambios desde la nube (Firestore)
     pullChanges: async ({ lastPulledAt }: { lastPulledAt?: number }) => {
-      const timestamp = lastPulledAt ? lastPulledAt : 0;
+      // Si forzamos sincronización completa o es la primera vez, empezamos en 0
+      const timestamp = options.forceFull ? 0 : (lastPulledAt ? lastPulledAt : 0);
+      
+      if (options.forceFull) {
+        console.log("=====> SYNC RECOVERY: Forzando descarga completa desde el servidor...");
+      }
 
       const productosRef = collection(dbFirebase, 'productos');
       // Importante: Requerimos el campo 'server_updated_at' en Firestore para sync eficiente
