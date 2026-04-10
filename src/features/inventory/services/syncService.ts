@@ -16,8 +16,14 @@ export async function syncConFirebase(options: { forceFull?: boolean } = {}) {
       }
 
       const productosRef = collection(dbFirebase, 'productos');
-      // Importante: Requerimos el campo 'server_updated_at' en Firestore para sync eficiente
-      const q = query(productosRef, where('server_updated_at', '>', timestamp));
+      
+      // CAMBIO CRÍTICO: Si el timestamp es 0 (Rescate), NO filtramos por server_updated_at.
+      // Esto es vital porque si inyectaste productos con AppScript sin ese campo, 
+      // Firestore NO los devolvería con un filtro "where".
+      const q = timestamp > 0 
+        ? query(productosRef, where('server_updated_at', '>', timestamp))
+        : query(productosRef);
+
       const snapshot = await getDocs(q);
 
 
