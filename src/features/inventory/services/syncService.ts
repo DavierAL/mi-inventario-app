@@ -1,6 +1,6 @@
 import { synchronize } from '@nozbe/watermelondb/sync';
 import { database } from '../../../core/database';
-import { collection, query, where, getDocs, getDocsFromServer, writeBatch, doc, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, writeBatch, doc, limit } from 'firebase/firestore';
 import { dbFirebase } from '../../../core/database/firebase';
 
 export async function syncConFirebase() {
@@ -12,21 +12,9 @@ export async function syncConFirebase() {
 
       const productosRef = collection(dbFirebase, 'productos');
       // Importante: Requerimos el campo 'server_updated_at' en Firestore para sync eficiente
-      let snapshot;
-      try {
-        // En Modular SDK (v9+), usamos getDocsFromServer para obligar a ignorar el caché
-        const qTodos = query(productosRef);
-        snapshot = await getDocsFromServer(qTodos);
-        console.log("=====> CHIVATO SYNC: Docs Reales del Servidor:", snapshot.size);
+      const q = query(productosRef, where('server_updated_at', '>', timestamp));
+      const snapshot = await getDocs(q);
 
-        if (!snapshot.empty) {
-          console.log("=====> CHIVATO SYNC: Primer producto:", snapshot.docs[0].data().Descripcion);
-        }
-      } catch (error) {
-        console.log("=====> CHIVATO ERROR MORTAL FIREBASE:", error);
-        // Fallback al comportamiento original si falla el chivato
-        snapshot = await getDocs(q);
-      }
 
       const updated: any[] = [];
       const deleted: string[] = [];
