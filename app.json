@@ -25,6 +25,7 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.davier.miinventarioapp",
       "versionCode": 1,
+      "softwareKeyboardLayoutMode": "resize",
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"

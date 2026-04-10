@@ -75,12 +75,12 @@ export const EditProductoModal: React.FC<Props> = ({
             onSwipeComplete={onCancelar}
             swipeDirection="down"
             style={styles.modalBase}
-            avoidKeyboard={Platform.OS === 'ios'}
+            avoidKeyboard={true}
         >
             <KeyboardAvoidingView 
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+                behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} 
                 style={{ flex: 1, justifyContent: 'flex-end' }}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
             >
                 <View style={[styles.modalContenedor, { backgroundColor: colors.superficie, maxHeight: '90%' }]}>
                     
