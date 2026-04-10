@@ -22,7 +22,6 @@ export const AppNavigator = () => {
                 <Stack.Screen
                     name="Analytics"
                     component={AnalyticsScreen}
-                    options={{ headerShown: true, title: 'Dashboard BI' }}
                 />
                 <Stack.Screen
                     name="Historial"
