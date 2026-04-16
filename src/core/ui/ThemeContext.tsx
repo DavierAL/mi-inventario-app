@@ -19,7 +19,7 @@ export const useTheme = () => useContext(ThemeContext);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const systemColorScheme = useColorScheme();
-    const [theme, setTheme] = useState<ThemeType>('light');
+    const [theme, setTheme] = useState<ThemeType>('dark');
 
     useEffect(() => {
         // Cargar preferencia guardada

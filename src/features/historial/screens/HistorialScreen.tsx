@@ -23,11 +23,12 @@ const FastList = FlashList as any;
 const CONFIG_ACCION: Record<TipoAccionHistorial, {
     icono: string;
     color: string;
+    colorDark: string;
     label: string;
 }> = {
-    FV_ACTUALIZADO:    { icono: 'calendar',       color: '#3182CE', label: 'Fecha Actualizada' },
-    COMENTARIO_AGREGADO: { icono: 'chatbubble',   color: '#805AD5', label: 'Nota Agregada'     },
-    EDICION_COMPLETA:  { icono: 'create',         color: '#38A169', label: 'Edición Completa'  },
+    FV_ACTUALIZADO:    { icono: 'calendar',   color: '#0075de', colorDark: '#62aef0', label: 'Fecha Actualizada'  },
+    COMENTARIO_AGREGADO: { icono: 'chatbubble', color: '#391c57', colorDark: '#9b6dff', label: 'Nota Agregada'   },
+    EDICION_COMPLETA:  { icono: 'create',      color: '#1aae39', colorDark: '#22c55e', label: 'Edición Completa' },
 };
 
 // ─── Helper de timestamp relativo ──────────────────────────────────────────
@@ -99,24 +100,25 @@ interface EntradaCardProps {
 const EntradaCard = React.memo(({ entrada, esUltima }: EntradaCardProps) => {
     const { colors, isDark } = useTheme();
     const cfg = CONFIG_ACCION[entrada.accion] ?? CONFIG_ACCION.EDICION_COMPLETA;
+    const color = isDark ? cfg.colorDark : cfg.color;
 
     return (
         <View style={styles.entradaContenedor}>
             <View style={styles.timelineIzquierda}>
-                <View style={[styles.timelineCirculo, { backgroundColor: cfg.color + '22', borderColor: cfg.color }]}>
-                    <Ionicons name={cfg.icono as any} size={16} color={cfg.color} />
+                <View style={[styles.timelineCirculo, { backgroundColor: color + '22', borderColor: color }]}>
+                    <Ionicons name={cfg.icono as any} size={16} color={color} />
                 </View>
                 {!esUltima && (
                     <View style={[styles.timelineLinea, { backgroundColor: colors.borde }]} />
                 )}
             </View>
 
-            <View style={[styles.tarjeta, { backgroundColor: colors.superficie }]}>
+            <View style={[styles.tarjeta, { backgroundColor: colors.superficie, borderColor: colors.borde }]}>
                 <View style={styles.tarjetaCabecera}>
-                    <View style={[styles.badgeAccion, { backgroundColor: cfg.color + '18' }]}>
-                        <Text style={[styles.badgeTexto, { color: cfg.color }]}>{cfg.label}</Text>
+                    <View style={[styles.badgeAccion, { backgroundColor: color + '18' }]}>
+                        <Text style={[styles.badgeTexto, { color }]}>{cfg.label}</Text>
                     </View>
-                    <Text style={[styles.tiempoTexto, { color: colors.textoSecundario }]}>
+                    <Text style={[styles.tiempoTexto, { color: colors.textoTerciario }]}>
                         {formatearTiempoRelativo(entrada.timestamp)}
                     </Text>
                 </View>
@@ -131,23 +133,23 @@ const EntradaCard = React.memo(({ entrada, esUltima }: EntradaCardProps) => {
                         <Text style={[styles.cambioValorAntiguo, { color: colors.error }]}>
                             {entrada.cambios.fvAnterior}
                         </Text>
-                        <Ionicons name="arrow-forward" size={12} color={colors.textoSecundario} style={{ marginHorizontal: 4 }} />
-                        <Text style={[styles.cambioValorNuevo, { color: '#38A169' }]}>
+                        <Ionicons name="arrow-forward" size={12} color={colors.textoTerciario} style={{ marginHorizontal: 4 }} />
+                        <Text style={[styles.cambioValorNuevo, { color: colors.exito }]}>
                             {entrada.cambios.fvNuevo}
                         </Text>
                     </View>
                 )}
                 {entrada.cambios?.comentario && (
-                    <Text style={[styles.comentarioTexto, { color: colors.textoSecundario, backgroundColor: isDark ? '#2D3748' : '#F7FAFC' }]} numberOfLines={2}>
+                    <Text style={[styles.comentarioTexto, { color: colors.textoSecundario, backgroundColor: colors.superficieAlta }]} numberOfLines={2}>
                         💬 {entrada.cambios.comentario}
                     </Text>
                 )}
 
                 <View style={styles.tarjetaFooter}>
-                    <Text style={[styles.footerTexto, { color: colors.textoSecundario }]}>
+                    <Text style={[styles.footerTexto, { color: colors.textoTerciario }]}>
                         {entrada.sku} · {entrada.marca}
                     </Text>
-                    <Text style={[styles.footerTexto, { color: colors.textoSecundario }]}>
+                    <Text style={[styles.footerTexto, { color: colors.textoTerciario }]}>
                         {entrada.dispositivo} · {formatearHora(entrada.timestamp)}
                     </Text>
                 </View>
@@ -175,7 +177,7 @@ const HistorialScreenRaw: React.FC<ScreenProps> = ({ movimientos }) => {
         <SafeAreaView style={[styles.contenedor, { backgroundColor: colors.fondo }]}>
             <View style={[styles.cabecera, { backgroundColor: colors.superficie, borderBottomColor: colors.borde }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.botonVolver}>
-                    <Ionicons name="chevron-back" size={26} color={colors.primario} />
+                    <Ionicons name="arrow-back" size={22} color={colors.textoPrincipal} />
                 </TouchableOpacity>
                 <View>
                     <Text style={[styles.tituloCabecera, { color: colors.textoPrincipal }]}>Historial</Text>
@@ -213,7 +215,10 @@ const HistorialScreenRaw: React.FC<ScreenProps> = ({ movimientos }) => {
                     renderItem={renderItem}
                     contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 }}
                     ListHeaderComponent={
-                        <View style={[styles.bannerInfo, { backgroundColor: isDark ? '#1A202C' : '#EBF8FF', borderColor: colors.primario }]}>
+                        <View style={[styles.bannerInfo, {
+                            backgroundColor: colors.fondoPrimario,
+                            borderColor: colors.primario,
+                        }]}>
                             <Ionicons name="information-circle-outline" size={16} color={colors.primario} />
                             <Text style={[styles.bannerTexto, { color: colors.primario }]}>
                                 Auditoría Local-First · Sincronizada automáticamente
@@ -255,10 +260,10 @@ const styles = StyleSheet.create({
     timelineIzquierda: { alignItems: 'center', marginRight: 14, width: 36 },
     timelineCirculo: { width: 36, height: 36, borderRadius: 18, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
     timelineLinea: { width: 2, flex: 1, marginTop: 6, borderRadius: 1 },
-    tarjeta: { flex: 1, borderRadius: 14, padding: 14, elevation: 2, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 4, marginBottom: 4 },
+    tarjeta: { flex: 1, borderRadius: 12, padding: 14, borderWidth: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 9, elevation: 2, marginBottom: 4 },
     tarjetaCabecera: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-    badgeAccion: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-    badgeTexto: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3 },
+    badgeAccion: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 9999 },
+    badgeTexto: { fontSize: 11, fontWeight: '600', letterSpacing: 0.125 },
     tiempoTexto: { fontSize: 12, fontWeight: '500' },
     descripcionTexto: { fontSize: 14, fontWeight: '600', lineHeight: 20, marginBottom: 8 },
     filaCambio: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },

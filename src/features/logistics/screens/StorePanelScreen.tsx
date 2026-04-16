@@ -1,14 +1,7 @@
 // ARCHIVO: src/features/logistics/screens/StorePanelScreen.tsx
 /**
  * StorePanelScreen — Panel de la tienda para recepcionar pedidos.
- *
- * Flujo:
- *  1. (Opcional) Escanear QR del pedido → carga datos desde SQLite local.
- *  2. Capturar foto POD (Proof of Delivery).
- *  3. Guardar URI local + encolar job de upload en QueueService.
- *  4. Si hay red → procesarTodo() inmediato; si no → queda en cola offline.
- *
- * Diseño: Notion Design System (warm white bg, whisper borders, Notion Blue CTAs).
+ * Diseño: Notion Design System — dark-mode-first, warm charcoal surfaces, whisper borders.
  */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
@@ -19,13 +12,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import * as FileSystem from 'expo-file-system';
-import { CameraView, useCameraPermissions, CameraType } from 'expo-camera';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import NetInfo from '@react-native-community/netinfo';
 import { Q } from '@nozbe/watermelondb';
 import Toast from 'react-native-toast-message';
-import * as Haptics2 from 'expo-haptics';
 
 import { database } from '../../../core/database';
 import Pedido, { EstadoPedido } from '../../../core/database/models/Pedido';
@@ -38,22 +30,22 @@ import { useLogisticsSync } from '../hooks/useLogisticsSync';
 type StorePanelNavProp = NativeStackNavigationProp<RootStackParamList, 'StorePanel'>;
 type StorePanelRoute = RouteProp<RootStackParamList, 'StorePanel'>;
 
-// ─── Colores por estado ───────────────────────────────────────────────────────
+// ─── Badge config por estado ──────────────────────────────────────────────────
 
-const ESTADO_BADGE: Record<EstadoPedido, { bg: string; text: string; label: string }> = {
-    Pendiente:  { bg: '#fff4ed', text: '#dd5b00', label: 'Pendiente' },
-    Picking:    { bg: '#f5f0ff', text: '#391c57', label: 'Picking' },
-    En_Tienda:  { bg: '#f2f9ff', text: '#097fe8', label: 'En Tienda' },
-    Entregado:  { bg: '#f0fdf4', text: '#1aae39', label: 'Entregado' },
+const ESTADO_BADGE: Record<EstadoPedido, { bg: string; bgDark: string; text: string; label: string }> = {
+    Pendiente:  { bg: '#fff4ed', bgDark: '#2d1a0a', text: '#dd5b00', label: 'Pendiente' },
+    Picking:    { bg: '#f5f0ff', bgDark: '#1e1028', text: '#9b6dff', label: 'Picking' },
+    En_Tienda:  { bg: '#f2f9ff', bgDark: '#0f2035', text: '#62aef0', label: 'En Tienda' },
+    Entregado:  { bg: '#f0fdf4', bgDark: '#0a1f12', text: '#22c55e', label: 'Entregado' },
 };
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 
 export const StorePanelScreen = () => {
-    const { isDark } = useTheme();
+    const { colors, isDark } = useTheme();
     const navigation = useNavigation<StorePanelNavProp>();
     const route = useRoute<StorePanelRoute>();
-    const { cargando: sincronizando } = useLogisticsSync();
+    const { } = useLogisticsSync();
 
     const [permisoCamera, pedirPermiso] = useCameraPermissions();
     const [pedido, setPedido] = useState<Pedido | null>(null);
@@ -62,14 +54,12 @@ export const StorePanelScreen = () => {
     const [procesando, setProcesando] = useState(false);
     const [fotoUri, setFotoUri] = useState<string | null>(null);
     const [qrEscaneado, setQrEscaneado] = useState(false);
+    const [isCameraReady, setIsCameraReady] = useState(false);
     const cameraRef = useRef<CameraView>(null);
 
-    // Si vino con pedidoId desde PickingScreen, cargarlo directamente
     useEffect(() => {
         const pedidoId = route.params?.pedidoId;
-        if (pedidoId) {
-            cargarPedidoPorId(pedidoId);
-        }
+        if (pedidoId) cargarPedidoPorId(pedidoId);
     }, [route.params?.pedidoId]);
 
     const cargarPedidoPorId = async (id: string) => {
@@ -94,12 +84,10 @@ export const StorePanelScreen = () => {
             } else {
                 Toast.show({ type: 'error', text1: 'Pedido no encontrado', text2: codPedido });
             }
-        } catch (err) {
+        } catch {
             Toast.show({ type: 'error', text1: 'Error al buscar pedido' });
         }
     };
-
-    // ─── Escaneo QR ───────────────────────────────────────────────────────────
 
     const handleAbrirEscaner = async () => {
         if (!permisoCamera?.granted) {
@@ -114,13 +102,11 @@ export const StorePanelScreen = () => {
     };
 
     const handleQrEscaneado = useCallback(({ data }: { data: string }) => {
-        if (qrEscaneado) return; // evitar múltiples disparos
+        if (qrEscaneado) return;
         setQrEscaneado(true);
         setModoEscaner(false);
         cargarPedidoPorCodigo(data.trim());
     }, [qrEscaneado]);
-
-    // ─── Captura de foto POD ──────────────────────────────────────────────────
 
     const handleAbrirCamara = async () => {
         if (!permisoCamera?.granted) {
@@ -130,36 +116,36 @@ export const StorePanelScreen = () => {
                 return;
             }
         }
+        setIsCameraReady(false); // Reset on open so we wait again
         setModoFoto(true);
     };
 
     const handleCapturarFoto = async () => {
-        if (!cameraRef.current) return;
+        if (!cameraRef.current || !isCameraReady) {
+            Toast.show({ type: 'error', text1: 'Cámara no lista', text2: 'Espera un momento e intenta de nuevo' });
+            return;
+        }
         try {
             setProcesando(true);
             const foto = await cameraRef.current.takePictureAsync({
-                quality: 0.7,
+                quality: 0.75,
                 base64: false,
-                skipProcessing: false,
+                skipProcessing: true, // más rápido y evita crashes en algunos dispositivos
             });
-            if (!foto?.uri) throw new Error('No se obtuvo URI de la foto');
-
-            // Mover a directorio permanente con nombre único
+            if (!foto?.uri) throw new Error('URI de foto nula');
             const destino = `${FileSystem.documentDirectory}pod_${pedido?.id ?? 'tmp'}_${Date.now()}.jpg`;
             await FileSystem.moveAsync({ from: foto.uri, to: destino });
-
             setFotoUri(destino);
             setModoFoto(false);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             Toast.show({ type: 'success', text1: 'Foto capturada', text2: 'Lista para guardar' });
-        } catch (err) {
-            Toast.show({ type: 'error', text1: 'Error al capturar foto' });
+        } catch (e: any) {
+            console.error('[POD Camera Error]:', e?.message ?? e);
+            Toast.show({ type: 'error', text1: 'Error al capturar foto', text2: e?.message ?? 'Intenta de nuevo' });
         } finally {
             setProcesando(false);
         }
     };
-
-    // ─── Confirmar entrega (guarda local + encola upload) ─────────────────────
 
     const handleConfirmarEntrega = async () => {
         if (!pedido) return;
@@ -167,41 +153,31 @@ export const StorePanelScreen = () => {
             Alert.alert('Foto requerida', 'Toma una foto de evidencia antes de confirmar.');
             return;
         }
-
         try {
             setProcesando(true);
-
-            // 1. Actualizar SQLite local de forma inmediata (Local-First)
             await database.write(async () => {
                 await pedido.update((p) => {
                     p.estado = 'Entregado';
                     p.podLocalUri = fotoUri;
                 });
             });
-
-            // 2. Encolar job de upload (Storage → Firestore → delete local)
             const storagePath = `pedidos/${pedido.codPedido}/pod_${Date.now()}.jpg`;
             await QueueService.encolarFoto({
                 pedidoId: pedido.id,
+                codPedido: pedido.codPedido,
                 localUri: fotoUri,
                 storagePath,
             });
-
-            // 3. Intentar procesar inmediatamente si hay red
             const net = await NetInfo.fetch();
-            if (net.isConnected) {
-                QueueService.procesarColaFotos().catch(() => {});
-            }
-
+            if (net.isConnected) QueueService.procesarColaFotos().catch(() => {});
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             Toast.show({
                 type: 'success',
                 text1: 'Entrega confirmada',
                 text2: net.isConnected ? 'Subiendo evidencia...' : 'Se sincronizará cuando haya red',
             });
-
             navigation.goBack();
-        } catch (err) {
+        } catch {
             Toast.show({ type: 'error', text1: 'Error al confirmar entrega' });
         } finally {
             setProcesando(false);
@@ -220,11 +196,11 @@ export const StorePanelScreen = () => {
                         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
                         onBarcodeScanned={handleQrEscaneado}
                     />
-                    <SafeAreaView style={styles.escaner_overlay}>
-                        <View style={styles.escaner_marco} />
-                        <Text style={styles.escaner_hint}>Apunta al QR del pedido</Text>
+                    <SafeAreaView style={styles.escanerOverlay}>
+                        <View style={styles.escanerMarco} />
+                        <Text style={styles.escanerHint}>Apunta al QR del pedido</Text>
                         <TouchableOpacity
-                            style={styles.escaner_cerrar}
+                            style={styles.escanerCerrar}
                             onPress={() => setModoEscaner(false)}
                         >
                             <Ionicons name="close-circle" size={48} color="#fff" />
@@ -241,18 +217,23 @@ export const StorePanelScreen = () => {
         return (
             <Modal visible animationType="slide" onRequestClose={() => setModoFoto(false)}>
                 <View style={{ flex: 1, backgroundColor: '#000' }}>
-                    <CameraView ref={cameraRef} style={{ flex: 1 }} facing="back" />
-                    <SafeAreaView style={styles.camara_overlay}>
-                        <TouchableOpacity
-                            style={styles.camara_cerrar}
-                            onPress={() => setModoFoto(false)}
-                        >
+                    <CameraView
+                        ref={cameraRef}
+                        style={{ flex: 1 }}
+                        facing="back"
+                        onCameraReady={() => setIsCameraReady(true)}
+                    />
+                    <SafeAreaView style={styles.camaraOverlay}>
+                        <TouchableOpacity style={styles.camaraCerrar} onPress={() => setModoFoto(false)}>
                             <Ionicons name="close-circle" size={44} color="#fff" />
                         </TouchableOpacity>
                         <TouchableOpacity
-                            style={styles.camara_disparador}
+                            style={[
+                                styles.camaraDisparador,
+                                !isCameraReady && { opacity: 0.4 },
+                            ]}
                             onPress={handleCapturarFoto}
-                            disabled={procesando}
+                            disabled={procesando || !isCameraReady}
                             activeOpacity={0.8}
                         >
                             {procesando
@@ -260,7 +241,9 @@ export const StorePanelScreen = () => {
                                 : <Ionicons name="camera" size={36} color="#0075de" />
                             }
                         </TouchableOpacity>
-                        <Text style={styles.camara_hint}>Fotografía la evidencia de entrega</Text>
+                        <Text style={styles.camaraHint}>
+                            {isCameraReady ? 'Fotografía la evidencia de entrega' : 'Iniciando cámara...'}
+                        </Text>
                     </SafeAreaView>
                 </View>
             </Modal>
@@ -272,25 +255,31 @@ export const StorePanelScreen = () => {
     const badge = pedido ? (ESTADO_BADGE[pedido.estado] ?? ESTADO_BADGE.En_Tienda) : null;
 
     return (
-        <SafeAreaView style={styles.contenedor}>
-            <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor="#f6f5f4" />
+        <SafeAreaView style={[styles.contenedor, { backgroundColor: colors.fondo }]}>
+            <StatusBar
+                barStyle={isDark ? 'light-content' : 'dark-content'}
+                backgroundColor={colors.fondo}
+            />
 
             {/* Cabecera */}
-            <View style={styles.cabecera}>
+            <View style={[styles.cabecera, {
+                backgroundColor: colors.superficie,
+                borderBottomColor: colors.borde,
+            }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={22} color="rgba(0,0,0,0.95)" />
+                    <Ionicons name="arrow-back" size={22} color={colors.textoPrincipal} />
                 </TouchableOpacity>
                 <View style={{ flex: 1 }}>
-                    <Text style={styles.titulo}>Panel Tienda</Text>
-                    <Text style={styles.subtitulo}>Recepción y Entrega POD</Text>
+                    <Text style={[styles.titulo, { color: colors.textoPrincipal }]}>Panel Tienda</Text>
+                    <Text style={[styles.subtitulo, { color: colors.textoSecundario }]}>Recepción y Entrega POD</Text>
                 </View>
                 <TouchableOpacity
-                    style={styles.btnEscaner}
+                    style={[styles.btnEscaner, { backgroundColor: colors.fondoPrimario }]}
                     onPress={handleAbrirEscaner}
                     activeOpacity={0.85}
                 >
-                    <Ionicons name="qr-code-outline" size={18} color="#0075de" />
-                    <Text style={styles.btnEscanerText}>Escanear</Text>
+                    <Ionicons name="qr-code-outline" size={18} color={colors.primario} />
+                    <Text style={[styles.btnEscanerText, { color: colors.primario }]}>Escanear</Text>
                 </TouchableOpacity>
             </View>
 
@@ -299,13 +288,13 @@ export const StorePanelScreen = () => {
                 {/* Sin pedido cargado */}
                 {!pedido && (
                     <View style={styles.placeholderCard}>
-                        <Ionicons name="cube-outline" size={56} color="#a39e98" />
-                        <Text style={styles.placeholderTitulo}>Sin pedido cargado</Text>
-                        <Text style={styles.placeholderSubtexto}>
+                        <Ionicons name="cube-outline" size={56} color={colors.textoTerciario} />
+                        <Text style={[styles.placeholderTitulo, { color: colors.textoPrincipal }]}>Sin pedido cargado</Text>
+                        <Text style={[styles.placeholderSubtexto, { color: colors.textoSecundario }]}>
                             Escanea el QR del pedido o selecciónalo desde el Panel de Picking.
                         </Text>
                         <TouchableOpacity
-                            style={[styles.btnPrimario, { marginTop: 24, alignSelf: 'center' }]}
+                            style={[styles.btnPrimario, styles.btnGrande, { marginTop: 24, alignSelf: 'center', backgroundColor: colors.primario }]}
                             onPress={handleAbrirEscaner}
                         >
                             <Ionicons name="qr-code-outline" size={16} color="#fff" style={{ marginRight: 8 }} />
@@ -314,48 +303,50 @@ export const StorePanelScreen = () => {
                     </View>
                 )}
 
-                {/* Datos del pedido cargado */}
+                {/* Datos del pedido */}
                 {pedido && (
                     <>
-                        {/* Tarjeta de datos */}
-                        <View style={styles.card}>
+                        <View style={[styles.card, {
+                            backgroundColor: colors.superficie,
+                            borderColor: colors.borde,
+                        }]}>
                             <View style={styles.cardHeader}>
                                 <View style={{ flex: 1 }}>
-                                    <Text style={styles.cardLabel}>Código de Pedido</Text>
-                                    <Text style={styles.cardValor}>{pedido.codPedido}</Text>
+                                    <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Código de Pedido</Text>
+                                    <Text style={[styles.cardValor, { color: colors.textoPrincipal }]}>{pedido.codPedido}</Text>
                                 </View>
                                 {badge && (
-                                    <View style={[styles.badge, { backgroundColor: badge.bg }]}>
+                                    <View style={[styles.badge, { backgroundColor: isDark ? badge.bgDark : badge.bg }]}>
                                         <Text style={[styles.badgeText, { color: badge.text }]}>{badge.label}</Text>
                                     </View>
                                 )}
                             </View>
 
-                            <View style={styles.divider} />
+                            <View style={[styles.divider, { backgroundColor: colors.borde }]} />
 
                             <View style={styles.infoRow}>
-                                <Ionicons name="person-outline" size={15} color="#a39e98" />
+                                <Ionicons name="person-outline" size={15} color={colors.textoTerciario} />
                                 <View style={{ marginLeft: 8 }}>
-                                    <Text style={styles.cardLabel}>Cliente</Text>
-                                    <Text style={styles.cardValor}>{pedido.cliente}</Text>
+                                    <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Cliente</Text>
+                                    <Text style={[styles.cardValor, { color: colors.textoPrincipal }]}>{pedido.cliente}</Text>
                                 </View>
                             </View>
 
                             {pedido.operador && (
                                 <View style={[styles.infoRow, { marginTop: 8 }]}>
-                                    <Ionicons name="briefcase-outline" size={15} color="#a39e98" />
+                                    <Ionicons name="briefcase-outline" size={15} color={colors.textoTerciario} />
                                     <View style={{ marginLeft: 8 }}>
-                                        <Text style={styles.cardLabel}>Operador</Text>
-                                        <Text style={styles.cardValor}>{pedido.operador}</Text>
+                                        <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Operador</Text>
+                                        <Text style={[styles.cardValor, { color: colors.textoPrincipal }]}>{pedido.operador}</Text>
                                     </View>
                                 </View>
                             )}
 
                             {pedido.notas && (
                                 <>
-                                    <View style={styles.divider} />
-                                    <Text style={styles.cardLabel}>Notas</Text>
-                                    <Text style={[styles.cardValor, { fontWeight: '400', color: '#615d59', marginTop: 4 }]}>
+                                    <View style={[styles.divider, { backgroundColor: colors.borde }]} />
+                                    <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Notas</Text>
+                                    <Text style={[styles.cardValor, { fontWeight: '400', color: colors.textoSecundario, marginTop: 4 }]}>
                                         {pedido.notas}
                                     </Text>
                                 </>
@@ -363,32 +354,41 @@ export const StorePanelScreen = () => {
                         </View>
 
                         {/* Sección POD */}
-                        <Text style={styles.seccionTitulo}>Evidencia de Entrega (POD)</Text>
+                        <Text style={[styles.seccionTitulo, { color: colors.textoPrincipal }]}>Evidencia de Entrega (POD)</Text>
 
                         {fotoUri ? (
-                            /* Foto capturada — muestra nombre de archivo y botón de reemplazar */
-                            <View style={[styles.card, { flexDirection: 'row', alignItems: 'center' }]}>
-                                <View style={styles.fotoCheck}>
-                                    <Ionicons name="checkmark-circle" size={32} color="#1aae39" />
+                            <View style={[styles.card, {
+                                backgroundColor: colors.superficie,
+                                borderColor: colors.borde,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                            }]}>
+                                <View style={[styles.fotoCheck, { backgroundColor: isDark ? '#0a1f12' : '#f0fdf4' }]}>
+                                    <Ionicons name="checkmark-circle" size={32} color="#22c55e" />
                                 </View>
                                 <View style={{ flex: 1, marginLeft: 12 }}>
-                                    <Text style={styles.cardValor}>Foto capturada</Text>
-                                    <Text style={styles.cardLabel} numberOfLines={1}>
+                                    <Text style={[styles.cardValor, { color: colors.textoPrincipal }]}>Foto capturada</Text>
+                                    <Text style={[styles.cardLabel, { color: colors.textoTerciario }]} numberOfLines={1}>
                                         {fotoUri.split('/').pop()}
                                     </Text>
                                 </View>
                                 <TouchableOpacity onPress={handleAbrirCamara}>
-                                    <Ionicons name="camera-outline" size={22} color="#615d59" />
+                                    <Ionicons name="camera-outline" size={22} color={colors.textoSecundario} />
                                 </TouchableOpacity>
                             </View>
                         ) : (
                             <TouchableOpacity
-                                style={styles.fotoPlaceholder}
+                                style={[styles.fotoPlaceholder, {
+                                    backgroundColor: colors.superficie,
+                                    borderColor: colors.borde,
+                                }]}
                                 onPress={handleAbrirCamara}
                                 activeOpacity={0.85}
                             >
-                                <Ionicons name="camera-outline" size={40} color="#a39e98" />
-                                <Text style={styles.fotoPlaceholderText}>Toca para capturar evidencia</Text>
+                                <Ionicons name="camera-outline" size={40} color={colors.textoTerciario} />
+                                <Text style={[styles.fotoPlaceholderText, { color: colors.textoTerciario }]}>
+                                    Toca para capturar evidencia
+                                </Text>
                             </TouchableOpacity>
                         )}
 
@@ -398,7 +398,7 @@ export const StorePanelScreen = () => {
                                 style={[
                                     styles.btnPrimario,
                                     styles.btnGrande,
-                                    !fotoUri && styles.btnDeshabilitado,
+                                    { backgroundColor: !fotoUri ? colors.textoTerciario : colors.primario },
                                 ]}
                                 onPress={handleConfirmarEntrega}
                                 disabled={!fotoUri || procesando}
@@ -415,9 +415,15 @@ export const StorePanelScreen = () => {
                         )}
 
                         {pedido.estado === 'Entregado' && (
-                            <View style={[styles.card, { flexDirection: 'row', alignItems: 'center', gap: 12 }]}>
-                                <Ionicons name="checkmark-circle" size={28} color="#1aae39" />
-                                <Text style={[styles.cardValor, { color: '#1aae39' }]}>Pedido entregado con éxito</Text>
+                            <View style={[styles.card, {
+                                backgroundColor: colors.superficie,
+                                borderColor: colors.borde,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 12,
+                            }]}>
+                                <Ionicons name="checkmark-circle" size={28} color="#22c55e" />
+                                <Text style={[styles.cardValor, { color: '#22c55e' }]}>Pedido entregado con éxito</Text>
                             </View>
                         )}
                     </>
@@ -439,7 +445,7 @@ export const StorePanelScreen = () => {
 
 // ─── Estilos ──────────────────────────────────────────────────────────────────
 
-const SHADOW = {
+const CARD_SHADOW = {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -448,41 +454,35 @@ const SHADOW = {
 };
 
 const styles = StyleSheet.create({
-    contenedor: { flex: 1, backgroundColor: '#f6f5f4' },
+    contenedor: { flex: 1 },
     cabecera: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingTop: 16,
         paddingBottom: 16,
-        backgroundColor: '#ffffff',
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(0,0,0,0.1)',
     },
     backBtn: { marginRight: 12, padding: 4 },
     titulo: {
         fontSize: 22,
         fontWeight: '700',
-        color: 'rgba(0,0,0,0.95)',
         letterSpacing: -0.25,
     },
     subtitulo: {
         fontSize: 14,
         fontWeight: '400',
-        color: '#615d59',
         marginTop: 1,
     },
     btnEscaner: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#f2f9ff',
         borderRadius: 9999,
         paddingHorizontal: 12,
         paddingVertical: 6,
         gap: 4,
     },
     btnEscanerText: {
-        color: '#0075de',
         fontSize: 13,
         fontWeight: '600',
     },
@@ -492,12 +492,10 @@ const styles = StyleSheet.create({
         paddingBottom: 32,
     },
     card: {
-        backgroundColor: '#ffffff',
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.1)',
         padding: 16,
-        ...SHADOW,
+        ...CARD_SHADOW,
     },
     cardHeader: {
         flexDirection: 'row',
@@ -506,18 +504,15 @@ const styles = StyleSheet.create({
     cardLabel: {
         fontSize: 12,
         fontWeight: '500',
-        color: '#a39e98',
         marginBottom: 2,
     },
     cardValor: {
         fontSize: 16,
         fontWeight: '700',
-        color: 'rgba(0,0,0,0.95)',
         letterSpacing: -0.1,
     },
     divider: {
         height: 1,
-        backgroundColor: 'rgba(0,0,0,0.1)',
         marginVertical: 12,
     },
     infoRow: {
@@ -538,33 +533,28 @@ const styles = StyleSheet.create({
     seccionTitulo: {
         fontSize: 14,
         fontWeight: '600',
-        color: 'rgba(0,0,0,0.95)',
         marginTop: 8,
         marginBottom: 4,
         marginLeft: 4,
     },
     fotoPlaceholder: {
-        backgroundColor: '#ffffff',
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: 'rgba(0,0,0,0.1)',
         borderStyle: 'dashed',
         alignItems: 'center',
         justifyContent: 'center',
         paddingVertical: 40,
-        ...SHADOW,
+        ...CARD_SHADOW,
     },
     fotoPlaceholderText: {
         fontSize: 14,
         fontWeight: '500',
-        color: '#a39e98',
         marginTop: 10,
     },
     fotoCheck: {
         width: 48,
         height: 48,
         borderRadius: 8,
-        backgroundColor: '#f0fdf4',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -572,7 +562,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#0075de',
         borderRadius: 4,
         paddingVertical: 10,
         paddingHorizontal: 20,
@@ -581,9 +570,6 @@ const styles = StyleSheet.create({
     btnGrande: {
         paddingVertical: 14,
         borderRadius: 8,
-    },
-    btnDeshabilitado: {
-        backgroundColor: '#a39e98',
     },
     btnPrimarioText: {
         color: '#fff',
@@ -598,25 +584,22 @@ const styles = StyleSheet.create({
     placeholderTitulo: {
         fontSize: 20,
         fontWeight: '700',
-        color: 'rgba(0,0,0,0.95)',
         marginTop: 16,
         letterSpacing: -0.25,
     },
     placeholderSubtexto: {
         fontSize: 14,
-        color: '#615d59',
         textAlign: 'center',
         marginTop: 8,
         lineHeight: 20,
     },
-
     // Escáner QR
-    escaner_overlay: {
+    escanerOverlay: {
         ...StyleSheet.absoluteFillObject,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    escaner_marco: {
+    escanerMarco: {
         width: 240,
         height: 240,
         borderRadius: 16,
@@ -624,7 +607,7 @@ const styles = StyleSheet.create({
         borderColor: '#0075de',
         backgroundColor: 'transparent',
     },
-    escaner_hint: {
+    escanerHint: {
         color: '#fff',
         fontSize: 14,
         fontWeight: '600',
@@ -634,34 +617,33 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         borderRadius: 9999,
     },
-    escaner_cerrar: {
+    escanerCerrar: {
         position: 'absolute',
         bottom: 60,
     },
-
     // Cámara POD
-    camara_overlay: {
+    camaraOverlay: {
         ...StyleSheet.absoluteFillObject,
         alignItems: 'center',
         justifyContent: 'flex-end',
         paddingBottom: 48,
     },
-    camara_cerrar: {
+    camaraCerrar: {
         position: 'absolute',
         top: 48,
         right: 24,
     },
-    camara_disparador: {
+    camaraDisparador: {
         width: 72,
         height: 72,
         borderRadius: 36,
         backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
-        ...SHADOW,
+        ...CARD_SHADOW,
         elevation: 8,
     },
-    camara_hint: {
+    camaraHint: {
         color: '#fff',
         fontSize: 13,
         fontWeight: '500',

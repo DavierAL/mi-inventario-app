@@ -17,6 +17,18 @@ import { storage, dbFirebase } from '../database/firebase';
 const WEBHOOK_QUEUE_KEY = '@webhook_queue_mascotify';
 const FOTO_QUEUE_KEY = '@foto_queue_mascotify';
 
+// Google Sheets webhook — mismo endpoint que el de inventario
+const getSheetsWebhookUrl = () => process.env.EXPO_PUBLIC_SHEETS_WEBHOOK_URL || '';
+const getAppToken = () => process.env.EXPO_PUBLIC_APP_TOKEN || '';
+
+// Mapeo de estados de la app al valor exacto de la columna P de Logistica
+const APP_ESTADO_TO_SHEETS: Record<string, string> = {
+    Pendiente:  'Pendiente',
+    Picking:    'En proceso',
+    En_Tienda:  'Listo para envio',
+    Entregado:  'Entregado',
+};
+
 const getApiUrl = () => process.env.EXPO_PUBLIC_API_URL || '';
 const getAuthToken = () => process.env.EXPO_PUBLIC_AUTH_TOKEN || '';
 
@@ -31,9 +43,11 @@ export interface WebhookPayload {
 }
 
 export interface FotoUploadJob {
-  pedidoId: string;   // ID del doc en Firestore (colección 'pedidos')
-  localUri: string;   // URI absoluta en FileSystem.documentDirectory
+  pedidoId: string;    // ID del doc en Firestore (colección 'pedidos')
+  codPedido: string;   // Código legible del pedido (ej. 'PED-001') para notificar Sheets
+  localUri: string;    // URI absoluta en FileSystem.documentDirectory
   storagePath: string; // Ruta destino en Firebase Storage
+  urlFoto?: string;    // URL Firebase Storage (disponible tras upload)
 }
 
 // ─── QueueService ─────────────────────────────────────────────────────────────
@@ -157,6 +171,7 @@ export const QueueService = {
    * Paso B: subir a Firebase Storage
    * Paso C: obtener URL pública y actualizar Firestore
    * Paso D: borrar archivo local
+   * Paso E: notificar Google Sheets con nuevo estado → 'Entregado'
    */
   async _procesarFotoJob(job: FotoUploadJob): Promise<boolean> {
     try {
@@ -178,7 +193,7 @@ export const QueueService = {
       await uploadBytes(storageRef, blob);
       const downloadURL = await getDownloadURL(storageRef);
 
-      // Paso C: actualizar Firestore con la URL
+      // Paso C: actualizar Firestore con la URL y estado definitivo
       const pedidoRef = doc(dbFirebase, 'pedidos', job.pedidoId);
       await updateDoc(pedidoRef, {
         url_foto: downloadURL,
@@ -186,15 +201,51 @@ export const QueueService = {
         server_updated_at: Date.now(),
       });
 
-      // Paso D: borrar archivo local
+      // Paso D: borrar archivo local para no colapsar la memoria del dispositivo
       await FileSystem.deleteAsync(job.localUri, { idempotent: true });
       console.log(`[FotoQueue] Job completado para pedido ${job.pedidoId}`);
+
+      // Paso E: notificar Google Sheets (sin bloquear — si falla, no aborta el job)
+      if (job.codPedido) {
+        this._notificarSheetsEntrega(job.codPedido, job.urlFoto ?? downloadURL).catch(
+          (e) => console.warn('[FotoQueue] Sheets notify fail (non-blocking):', e)
+        );
+      }
+
       return true;
 
     } catch (error) {
       console.error(`[FotoQueue] Fallo en job ${job.pedidoId}:`, error);
       return false;
     }
+  },
+
+  /**
+   * Llama al webhook de Google Sheets para actualizar el estado del pedido
+   * en la columna P de la hoja Logistica.
+   */
+  async _notificarSheetsEntrega(codPedido: string, urlFoto: string): Promise<void> {
+    const webhookUrl = getSheetsWebhookUrl();
+    if (!webhookUrl) {
+      console.warn('[Sheets Notify] EXPO_PUBLIC_SHEETS_WEBHOOK_URL no configurado, saltando.');
+      return;
+    }
+    const payload = {
+      accion: 'webhook_entrega',
+      token: getAppToken(),
+      datos: {
+        codPedido,
+        nuevoEstado: APP_ESTADO_TO_SHEETS['Entregado'], // 'Entregado'
+        urlFoto,
+      },
+    };
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload),
+    });
+    const txt = await res.text();
+    console.log(`[Sheets Notify] CodPedido=${codPedido} → estado Entregado. Resp: ${txt.slice(0, 80)}`);
   },
 
   /**

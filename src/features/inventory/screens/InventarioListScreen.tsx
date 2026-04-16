@@ -214,14 +214,14 @@ export const InventarioListScreen = () => {
                 )}
 
                 <View style={[styles.cabecera, { backgroundColor: colors.superficie, borderBottomColor: colors.borde }]}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                         <Text style={[styles.tituloApp, { color: colors.textoPrincipal }]}>{MENSAJES.TITULO_APP}</Text>
                         
                         <TouchableOpacity 
                             onPress={() => cargarDatosSync()}
                             onLongPress={handleReparar}
                             disabled={sincronizandoFondo}
-                            style={[styles.syncBadge, { backgroundColor: isDark ? '#2D3748' : '#EDF2F7' }]}
+                            style={[styles.syncBadge, { backgroundColor: colors.superficieAlta }]}
                         >
                             {sincronizandoFondo ? (
                                 <ActivityIndicator size="small" color={colors.primario} style={{ marginRight: 6 }} />
@@ -239,7 +239,7 @@ export const InventarioListScreen = () => {
                     </View>
 
                     <View style={[styles.contenedorBuscador, { backgroundColor: colors.fondoBuscador, borderColor: colors.borde }]}>
-                        <Ionicons name="search-outline" size={20} color={colors.placeholder} style={styles.iconoBuscador} />
+                        <Ionicons name="search-outline" size={18} color={colors.placeholder} style={styles.iconoBuscador} />
                         <TextInput
                             style={[styles.inputBuscador, { color: colors.textoPrincipal }]}
                             placeholder={MENSAJES.BUSCAR_PLACEHOLDER}
@@ -256,7 +256,11 @@ export const InventarioListScreen = () => {
                         {(['TODOS', 'VENCIDOS', '30_DIAS', '90_DIAS'] as const).map(f => (
                             <TouchableOpacity 
                                 key={f}
-                                style={[styles.botonFiltro, filtroRapido === f && styles.filtroActivo]} 
+                                style={[
+                                    styles.botonFiltro,
+                                    { borderColor: colors.borde },
+                                    filtroRapido === f && { backgroundColor: colors.primario, borderColor: colors.primario },
+                                ]} 
                                 onPress={() => setFiltroRapido(f)}
                             >
                                 <Text style={[styles.textoFiltro, { color: colors.textoSecundario }, filtroRapido === f && { color: 'white' }]}>{f}</Text>
@@ -269,7 +273,11 @@ export const InventarioListScreen = () => {
                     {(['MARCA', 'STOCK', 'FV'] as const).map(o => (
                         <TouchableOpacity 
                             key={o} 
-                            style={[styles.botonOrden, ordenamiento === o && { backgroundColor: colors.primario }]} 
+                            style={[
+                                styles.botonOrden,
+                                { borderColor: colors.borde },
+                                ordenamiento === o && { backgroundColor: colors.primario, borderColor: colors.primario },
+                            ]} 
                             onPress={() => setOrdenamiento(o)}
                         >
                             <Text style={[styles.textoBotonOrden, { color: ordenamiento === o ? '#FFF' : colors.textoSecundario }]}>{o}</Text>
@@ -323,26 +331,30 @@ const styles = StyleSheet.create({
     areaContenido: { flex: 1 },
     pantallaCentrada: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 },
     textoError: { fontSize: 16, textAlign: 'center', marginBottom: 24 },
-    botonReintentar: { paddingHorizontal: 32, paddingVertical: 14, borderRadius: 12 },
-    textoBotonReintentar: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+    botonReintentar: { paddingHorizontal: 32, paddingVertical: 14, borderRadius: 8 },
+    textoBotonReintentar: { color: '#FFF', fontSize: 15, fontWeight: '600' },
     bannerOffline: { paddingHorizontal: 16, paddingVertical: 10 },
     textoBannerOffline: { fontSize: 13, fontWeight: '500' },
+    // Cabecera — Notion typography style
     cabecera: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16, borderBottomWidth: 1 },
-    tituloApp: { fontSize: 28, fontWeight: '900' },
-    syncBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
-    syncText: { fontSize: 11, fontWeight: '700' },
-    contenedorBuscador: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, height: 48, borderRadius: 14, borderWidth: 1, marginTop: 10 },
+    tituloApp: { fontSize: 26, fontWeight: '700', letterSpacing: -0.625, lineHeight: 32 },
+    syncBadge: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 9999 },
+    syncText: { fontSize: 11, fontWeight: '600', letterSpacing: 0.125 },
+    // Buscador — Notion input spec
+    contenedorBuscador: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, height: 44, borderRadius: 8, borderWidth: 1, marginTop: 10 },
     iconoBuscador: { marginRight: 8 },
-    inputBuscador: { flex: 1, fontSize: 15 },
+    inputBuscador: { flex: 1, fontSize: 15, fontWeight: '400' },
     listaVacia: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 80 },
     listaVaciaIcono: { fontSize: 48, marginBottom: 12 },
     listaVaciaTexto: { fontSize: 16, fontWeight: '500' },
+    // Filtros — pill style (9999px radius)
     contenedorFiltros: { paddingVertical: 10, borderBottomWidth: 1 },
-    botonFiltro: { borderWidth: 1.5, borderColor: '#CBD5E0', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
-    filtroActivo: { backgroundColor: '#3182CE', borderColor: '#3182CE' },
-    textoFiltro: { fontWeight: 'bold', fontSize: 13 },
+    botonFiltro: { borderWidth: 1, borderRadius: 9999, paddingHorizontal: 14, paddingVertical: 6 },
+    filtroActivo: {},
+    textoFiltro: { fontWeight: '600', fontSize: 12, letterSpacing: 0.125 },
+    // Ordenamiento — subtle pill buttons
     contenedorOrden: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 8, gap: 8, borderBottomWidth: 1 },
-    botonOrden: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 20, borderWidth: 1, borderColor: '#CBD5E0' },
-    textoBotonOrden: { fontSize: 12, fontWeight: '700' },
-    botonFlotanteSubir: { position: 'absolute', bottom: 20, right: 20, width: 44, height: 44, borderRadius: 22, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center', elevation: 3 }
+    botonOrden: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 9999, borderWidth: 1 },
+    textoBotonOrden: { fontSize: 12, fontWeight: '600', letterSpacing: 0.125 },
+    botonFlotanteSubir: { position: 'absolute', bottom: 20, right: 20, width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 9, elevation: 4 }
 });

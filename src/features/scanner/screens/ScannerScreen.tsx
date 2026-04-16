@@ -126,10 +126,10 @@ export const ScannerScreen = () => {
                 </Text>
 
                 <View style={styles.marco}>
-                    <View style={[styles.esquina, styles.esquinaTL, {borderColor: colors.primario}]} />
-                    <View style={[styles.esquina, styles.esquinaTR, {borderColor: colors.primario}]} />
-                    <View style={[styles.esquina, styles.esquinaBL, {borderColor: colors.primario}]} />
-                    <View style={[styles.esquina, styles.esquinaBR, {borderColor: colors.primario}]} />
+                    <View style={[styles.esquina, styles.esquinaTL, { borderColor: '#0075de' }]} />
+                    <View style={[styles.esquina, styles.esquinaTR, { borderColor: '#0075de' }]} />
+                    <View style={[styles.esquina, styles.esquinaBL, { borderColor: '#0075de' }]} />
+                    <View style={[styles.esquina, styles.esquinaBR, { borderColor: '#0075de' }]} />
                 </View>
 
                 {/* Último Escaneado Mini Resumen - Eliminado Ráfaga */}
@@ -176,8 +176,9 @@ const styles = StyleSheet.create({
     esquinaBL: { bottom: 0, left: 0, borderBottomWidth: ESQUINA_GROSOR, borderLeftWidth: ESQUINA_GROSOR, borderBottomLeftRadius: 10 },
     esquinaBR: { bottom: 0, right: 0, borderBottomWidth: ESQUINA_GROSOR, borderRightWidth: ESQUINA_GROSOR, borderBottomRightRadius: 10 },
     botonCancelarCerrar: {
-        backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 24, marginTop: 40
+        backgroundColor: 'rgba(0,117,222,0.2)', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 9999, marginTop: 40,
+        borderWidth: 1, borderColor: 'rgba(0,117,222,0.4)',
     },
-    textoBotonCancelar: { color: '#FFF', fontSize: 16, fontWeight: '700' }
+    textoBotonCancelar: { color: '#fff', fontSize: 15, fontWeight: '600', letterSpacing: 0.125 }
 });
 
