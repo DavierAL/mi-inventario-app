@@ -9,6 +9,26 @@ import Pedido from './models/Pedido';
 const migrations = schemaMigrations({
   migrations: [
     {
+      toVersion: 2,
+      steps: [
+        createTable({
+          name: 'movimientos',
+          columns: [
+            { name: 'producto_id', type: 'string', isIndexed: true },
+            { name: 'sku', type: 'string' },
+            { name: 'descripcion', type: 'string' },
+            { name: 'marca', type: 'string' },
+            { name: 'accion', type: 'string' },
+            { name: 'fv_anterior', type: 'string', isOptional: true },
+            { name: 'fv_nuevo', type: 'string', isOptional: true },
+            { name: 'comentario', type: 'string', isOptional: true },
+            { name: 'dispositivo', type: 'string' },
+            { name: 'timestamp', type: 'number', isIndexed: true },
+          ],
+        }),
+      ],
+    },
+    {
       toVersion: 3,
       steps: [
         createTable({
@@ -33,6 +53,7 @@ const migrations = schemaMigrations({
 const adapter = new SQLiteAdapter({
   schema,
   migrations,
+  migrationsEnabledAtVersion: 2,
   // JSI habilita comunicación directa entre JS y C++ (SQLite) — más rápido
   jsi: true,
   onSetUpError: error => {
@@ -40,7 +61,16 @@ const adapter = new SQLiteAdapter({
   },
 });
 
-export const database = new Database({
-  adapter,
-  modelClasses: [Producto, Movimiento, Pedido],
-});
+let databaseInstance: Database;
+
+try {
+  databaseInstance = new Database({
+    adapter,
+    modelClasses: [Producto, Movimiento, Pedido],
+  });
+} catch (error) {
+  console.error('[DB] Critical error initializing database:', error);
+  throw error;
+}
+
+export const database = databaseInstance;
