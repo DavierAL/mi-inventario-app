@@ -6,15 +6,17 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from './ThemeContext';
 
+export type TabActivo = 'lista' | 'escaner' | 'historial' | 'logistica' | 'ajustes';
+
 interface Props {
-    modoActivo: 'lista' | 'escaner' | 'historial' | 'ajustes';
-    onTabPress: (tab: 'lista' | 'escaner' | 'historial' | 'ajustes') => void;
+    modoActivo: TabActivo;
+    onTabPress: (tab: TabActivo) => void;
 }
 
 export const BottomBar: React.FC<Props> = ({ modoActivo, onTabPress }) => {
     const { colors, isDark, toggleTheme } = useTheme();
 
-    const handlePress = (tab: 'lista' | 'escaner' | 'historial' | 'ajustes', intensity: Haptics.ImpactFeedbackStyle) => {
+    const handlePress = (tab: TabActivo, intensity: Haptics.ImpactFeedbackStyle) => {
         Haptics.impactAsync(intensity);
         onTabPress(tab);
     };
@@ -35,6 +37,21 @@ export const BottomBar: React.FC<Props> = ({ modoActivo, onTabPress }) => {
                     />
                     <Text style={[styles.texto, { color: modoActivo === 'lista' ? colors.bottomBarIconoActivo : colors.bottomBarIcono }]}>
                         Almacén
+                    </Text>
+                </TouchableOpacity>
+
+                {/* TAB: LOGÍSTICA */}
+                <TouchableOpacity
+                    style={styles.tab}
+                    onPress={() => handlePress('logistica', Haptics.ImpactFeedbackStyle.Light)}
+                >
+                    <Ionicons
+                        name={modoActivo === 'logistica' ? 'cube' : 'cube-outline'}
+                        size={24}
+                        color={modoActivo === 'logistica' ? colors.bottomBarIconoActivo : colors.bottomBarIcono}
+                    />
+                    <Text style={[styles.texto, { color: modoActivo === 'logistica' ? colors.bottomBarIconoActivo : colors.bottomBarIcono }]}>
+                        Logística
                     </Text>
                 </TouchableOpacity>
 

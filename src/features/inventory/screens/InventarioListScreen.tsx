@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { EditProductoModal } from '../components/EditProductoModal';
-import { BottomBar } from '../../../core/ui/BottomBar';
+import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
 import { useTheme } from '../../../core/ui/ThemeContext';
 import { useInventarioStore } from '../store/useInventarioStore';
 import { RootStackParamList } from '../../../core/types/navigation';
@@ -305,13 +305,14 @@ export const InventarioListScreen = () => {
                 onCancelar={() => setProductoEditando(null)}
             />
 
-            <BottomBar 
-                modoActivo="lista" 
-                onTabPress={(tab) => {
+            <BottomBar
+                modoActivo="lista"
+                onTabPress={(tab: TabActivo) => {
                     if (tab === 'escaner') handleBotonEscaner();
                     if (tab === 'lista') scrollToTop();
                     if (tab === 'historial') navigation.navigate('Historial');
-                }} 
+                    if (tab === 'logistica') navigation.navigate('PickingList');
+                }}
             />
         </SafeAreaView>
     );

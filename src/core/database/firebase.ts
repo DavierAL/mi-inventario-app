@@ -1,6 +1,7 @@
 // ARCHIVO: src/core/database/firebase.ts
 import { initializeApp } from 'firebase/app';
 import { initializeFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
     apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -18,3 +19,5 @@ export const app = initializeApp(firebaseConfig);
 export const dbFirebase = initializeFirestore(app, {
   experimentalForceLongPolling: true, // Mejora la compatibilidad en redes móviles restrictivas
 });
+
+export const storage = getStorage(app);
