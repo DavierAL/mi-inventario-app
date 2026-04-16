@@ -23,6 +23,7 @@ import Pedido, { EstadoPedido } from '../../../core/database/models/Pedido';
 import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
 import { useTheme } from '../../../core/ui/ThemeContext';
 import { RootStackParamList } from '../../../core/types/navigation';
+import { useLogisticsSync } from '../hooks/useLogisticsSync';
 
 type PickingNavProp = NativeStackNavigationProp<RootStackParamList, 'PickingList'>;
 
@@ -139,6 +140,7 @@ const ListaReactiva = withObservables([], () => ({
 export const PickingScreen = () => {
     const { colors, isDark } = useTheme();
     const navigation = useNavigation<PickingNavProp>();
+    const { cargando, error, reSincronizar } = useLogisticsSync();
 
     const handleDespachar = async (pedido: Pedido) => {
         await database.write(async () => {
@@ -174,6 +176,23 @@ export const PickingScreen = () => {
                     <Ionicons name="qr-code-outline" size={20} color="#fff" />
                 </TouchableOpacity>
             </View>
+
+            {/* Indicador de sincronización */}
+            {(cargando || error) && (
+                <View style={[styles.syncIndicator, { backgroundColor: error ? '#fff0f0' : '#f0f8ff' }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                        {cargando && <ActivityIndicator size="small" color={colors.primario} style={{ marginRight: 8 }} />}
+                        <Text style={[styles.syncText, { color: error ? '#d32f2f' : colors.primario }]}>
+                            {error ? '⚠️ ' + error : '🔄 Sincronizando pedidos...'}
+                        </Text>
+                    </View>
+                    {!cargando && error && (
+                        <TouchableOpacity onPress={reSincronizar} style={styles.retryBtn}>
+                            <Text style={styles.retryText}>Reintentar</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+            )}
 
             {/* Filtros de estado rápidos */}
             <View style={styles.estadosRow}>
@@ -357,5 +376,31 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginTop: 8,
         lineHeight: 20,
+    },
+    syncIndicator: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        marginHorizontal: 16,
+        marginVertical: 8,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.1)',
+    },
+    syncText: {
+        fontSize: 13,
+        fontWeight: '500',
+    },
+    retryBtn: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 4,
+        backgroundColor: 'rgba(211, 47, 47, 0.1)',
+    },
+    retryText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#d32f2f',
     },
 });

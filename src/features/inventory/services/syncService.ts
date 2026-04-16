@@ -172,6 +172,5 @@ export async function syncConFirebase(options: { forceFull?: boolean } = {}) {
 
       await batch.commit();
     },
-    migrationsEnabledAtVersion: 1,
   });
 }

@@ -33,6 +33,7 @@ import { QueueService } from '../../../core/services/QueueService';
 import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
 import { useTheme } from '../../../core/ui/ThemeContext';
 import { RootStackParamList } from '../../../core/types/navigation';
+import { useLogisticsSync } from '../hooks/useLogisticsSync';
 
 type StorePanelNavProp = NativeStackNavigationProp<RootStackParamList, 'StorePanel'>;
 type StorePanelRoute = RouteProp<RootStackParamList, 'StorePanel'>;
@@ -52,6 +53,7 @@ export const StorePanelScreen = () => {
     const { isDark } = useTheme();
     const navigation = useNavigation<StorePanelNavProp>();
     const route = useRoute<StorePanelRoute>();
+    const { cargando: sincronizando } = useLogisticsSync();
 
     const [permisoCamera, pedirPermiso] = useCameraPermissions();
     const [pedido, setPedido] = useState<Pedido | null>(null);
