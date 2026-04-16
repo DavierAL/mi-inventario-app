@@ -1,7 +1,7 @@
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
 export const schema = appSchema({
-  version: 2,
+  version: 3,
   tables: [
     tableSchema({
       name: 'productos',
@@ -34,6 +34,20 @@ export const schema = appSchema({
         { name: 'comentario', type: 'string', isOptional: true },
         { name: 'dispositivo', type: 'string' },
         { name: 'timestamp', type: 'number', isIndexed: true },
+      ]
+    }),
+    tableSchema({
+      name: 'pedidos',
+      columns: [
+        { name: 'cod_pedido', type: 'string', isIndexed: true },
+        { name: 'cliente', type: 'string' },
+        { name: 'estado', type: 'string', isIndexed: true }, // Pendiente | Picking | En_Tienda | Entregado
+        { name: 'operador', type: 'string', isOptional: true },
+        { name: 'pod_local_uri', type: 'string', isOptional: true }, // URI foto local (pre-upload)
+        { name: 'url_foto', type: 'string', isOptional: true },      // URL Firebase Storage (post-upload)
+        { name: 'notas', type: 'string', isOptional: true },
+        { name: 'created_at', type: 'number' },
+        { name: 'updated_at', type: 'number' },
       ]
     }),
   ]

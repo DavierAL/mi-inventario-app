@@ -64,10 +64,37 @@ export async function syncConFirebase(options: { forceFull?: boolean } = {}) {
         });
       });
 
+      // ── Pull pedidos ─────────────────────────────────────────────────────
+      const pedidosRef = collection(dbFirebase, 'pedidos');
+      const qPedidos = timestamp > 0
+        ? query(pedidosRef, where('server_updated_at', '>', timestamp))
+        : query(pedidosRef);
+
+      const snapPedidos = await getDocs(qPedidos);
+      const pedidosUpdated: any[] = [];
+
+      snapPedidos.forEach((snapDoc) => {
+        const d = snapDoc.data();
+        if (!d.cod_pedido) return; // doc inválido
+        pedidosUpdated.push({
+          id: snapDoc.id,
+          cod_pedido: d.cod_pedido,
+          cliente: d.cliente ?? '',
+          estado: d.estado ?? 'Pendiente',
+          operador: d.operador ?? null,
+          pod_local_uri: null, // nunca viene de la nube
+          url_foto: d.url_foto ?? null,
+          notas: d.notas ?? null,
+          created_at: d.created_at || Date.now(),
+          updated_at: d.server_updated_at || Date.now(),
+        });
+      });
+
       return {
         changes: {
           productos: { created: [], updated, deleted },
-          movimientos: { created: [], updated: [], deleted: [] }, // El historial es push-only
+          movimientos: { created: [], updated: [], deleted: [] }, // push-only
+          pedidos: { created: [], updated: pedidosUpdated, deleted: [] },
         },
         timestamp: Date.now(),
       };
@@ -121,6 +148,25 @@ export async function syncConFirebase(options: { forceFull?: boolean } = {}) {
             dispositivo: record.dispositivo,
             timestamp: record.timestamp
           });
+        });
+      }
+
+      // ── Push pedidos ─────────────────────────────────────────────────────
+      const pedidosChanges = changes.pedidos;
+      if (pedidosChanges) {
+        const allPedidoChanges = [...pedidosChanges.created, ...pedidosChanges.updated];
+        allPedidoChanges.forEach((record: any) => {
+          const ref = doc(dbFirebase, 'pedidos', record.id);
+          batch.set(ref, {
+            cod_pedido: record.cod_pedido,
+            cliente: record.cliente,
+            estado: record.estado,
+            operador: record.operador,
+            url_foto: record.url_foto,
+            notas: record.notas,
+            server_updated_at: Date.now(),
+            created_at: record.created_at,
+          }, { merge: true });
         });
       }
 
