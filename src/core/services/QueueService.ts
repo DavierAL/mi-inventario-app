@@ -10,7 +10,7 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 import { doc, updateDoc } from 'firebase/firestore';
 import { storage, dbFirebase } from '../database/firebase';
 
@@ -186,11 +186,9 @@ export const QueueService = {
       const base64 = await FileSystem.readAsStringAsync(job.localUri, {
         encoding: FileSystem.EncodingType.Base64,
       });
-      const byteArray = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-      const blob = new Blob([byteArray], { type: 'image/jpeg' });
 
       const storageRef = ref(storage, job.storagePath);
-      await uploadBytes(storageRef, blob);
+      await uploadString(storageRef, base64, 'base64', { contentType: 'image/jpeg' });
       const downloadURL = await getDownloadURL(storageRef);
 
       // Paso C: actualizar Firestore con la URL y estado definitivo
