@@ -45,8 +45,8 @@ const ProductoCardComponent: React.FC<Props> = ({ item, onPress }) => {
                     <Text style={[styles.textoMarca, { color: colors.textoSecundario }]}>{item.marca}</Text>
                     <Text style={[styles.textoDescripcion, { color: colors.textoPrincipal }]} numberOfLines={2}>{item.descripcion}</Text>
                     <Text style={[styles.textoCodigoBarras, { color: colors.textoSecundario }]}>Cód: {item.codBarras}</Text>
-                    {item.fvActual ? (
-                        <Text style={[styles.textoFV, { color: colors.error }]}>FV: {formatearFecha(item.fvActual)}</Text>
+                    {item.fvActualTs ? (
+                        <Text style={[styles.textoFV, { color: colors.error }]}>FV: {formatearFecha(item.fvActualTs)}</Text>
                     ) : null}
                 </View>
 
@@ -73,7 +73,7 @@ const ProductoCardComponent: React.FC<Props> = ({ item, onPress }) => {
 export const ProductoCard = memo(ProductoCardComponent, (prevProps, nextProps) => {
     // Rendimiento Extremo: Solo redibujar si cambiaron estas propiedades clave
     return (
-        prevProps.item.fvActual === nextProps.item.fvActual &&
+        prevProps.item.fvActualTs === nextProps.item.fvActualTs &&
         prevProps.item.stockMaster === nextProps.item.stockMaster &&
         prevProps.item.precioWeb === nextProps.item.precioWeb &&
         prevProps.item.precioTienda === nextProps.item.precioTienda &&

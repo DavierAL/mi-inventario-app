@@ -34,7 +34,7 @@ export const EditProductoModal: React.FC<Props> = ({
 
     React.useEffect(() => {
         if (producto) {
-            const fvStr = formatearFecha(producto.fvActual);  
+            const fvStr = formatearFecha(producto.fvActualTs);  
             setFormFV(fvStr);
             setFormComentario(producto.comentarios ? String(producto.comentarios) : '');
 

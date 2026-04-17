@@ -5,6 +5,7 @@ import { syncConSupabase } from '../services/syncService';
 import { InventarioRepository } from '../repository/inventarioRepository';
 import { MENSAJES } from '../../../core/constants/mensajes';
 import { TipoAccionHistorial } from '../../../core/types/inventario';
+import { parseFVToDate } from '../../../core/utils/fecha';
 
 /**
  * DTO (Data Transfer Object) para el resultado de las operaciones de inventario.
@@ -55,9 +56,9 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
     cargarDatosSync: () => {
         set({ sincronizandoFondo: true });
         syncConSupabase()
-            .finally(() => set({ 
-                sincronizandoFondo: false, 
-                lastSync: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) 
+            .finally(() => set({
+                sincronizandoFondo: false,
+                lastSync: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
             }));
     },
 
@@ -65,9 +66,9 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
         set({ sincronizandoFondo: true, error: null });
         try {
             await syncConSupabase({ forceFull: true });
-            set({ 
+            set({
                 lastSync: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
-                error: null 
+                error: null
             });
         } catch (err) {
             console.error("Repair Sync Error:", err);
@@ -84,13 +85,13 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
         if (!productoEditando) return { exito: false, mensajeError: 'No hay producto seleccionado' };
 
         const codigo = productoEditando.codBarras;
-        const fvAnterior = productoEditando.fvActual;
+        const fvAnteriorTs = productoEditando.fvActualTs;
 
         try {
             // 1. ACTUALIZAR SQLITE (Para que la interfaz cambie al instante sin lag)
             await database.write(async () => {
                 await productoEditando.update((p: Producto) => {
-                    p.fvActual = fv;
+                    p.fvActualTs = parseFVToDate(fv);
                     p.fechaEdicion = fechaEdicion;
                     p.comentarios = comentario;
                 });
@@ -98,7 +99,7 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
 
             // 2. PUENTE A FIREBASE Y GOOGLE SHEETS (Usando el Repositorio original)
             const accion: TipoAccionHistorial = (comentario && !productoEditando.comentarios) ? 'COMENTARIO_AGREGADO' : 'FV_ACTUALIZADO';
-            
+
             InventarioRepository.actualizarProducto(
                 codigo,
                 {
@@ -111,11 +112,11 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
                     descripcion: productoEditando.descripcion,
                     marca: productoEditando.marca,
                     sku: productoEditando.sku,
-                    fvAnterior: fvAnterior,
+                    fvAnteriorTs: fvAnteriorTs?.getTime(),
                     accion: accion
                 }
             ).catch(e => console.warn('[Store] Error en actualizarProducto:', e));
-            
+
             // 3. Sincronización secundaria en 2do plano
             syncConSupabase().catch(e => console.warn('[Sync] Background error:', e));
 

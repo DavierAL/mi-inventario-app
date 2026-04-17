@@ -13,9 +13,9 @@ export const useAnalytics = (productos: Producto[]) => {
 
     productos.forEach((item) => {
       // Ignorar productos sin FV o sin stock
-      if (!item.fvActual || item.stockMaster <= 0) return;
+      if (!item.fvActualTs || item.stockMaster <= 0) return;
 
-      const diffDias = calcularDiasRestantes(item.fvActual);
+      const diffDias = calcularDiasRestantes(item.fvActualTs);
       
       const marca = item.marca;
 

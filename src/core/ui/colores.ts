@@ -15,11 +15,11 @@ export const ThemeColors = {
         // Borders
         borde: 'rgba(0,0,0,0.1)',      // Whisper Border — ultra-thin division
         // Accent
-        primario: '#0075de',           // Notion Blue — CTAs and interactive
-        primarioActivo: '#005bab',     // Active Blue — pressed state
+        primario: '#4ba042',           // Notion Blue — CTAs and interactive
+        primarioActivo: '#6cc062ff',     // Active Blue — pressed state
         fondoPrimario: '#f2f9ff',      // Badge Blue Bg — tinted blue surface
         // Semantic
-        error: '#dd5b00',              // Orange — warnings
+        error: '#d03212ff',              // Orange — warnings
         exito: '#1aae39',              // Green — confirmation
         // Inputs
         inputFondo: '#ffffff',
@@ -28,12 +28,12 @@ export const ThemeColors = {
         // BottomBar
         bottomBarFondo: '#ffffff',
         bottomBarIcono: '#a39e98',
-        bottomBarIconoActivo: '#0075de',
+        bottomBarIconoActivo: '#4ba042',
         // Extras
         bannerOfflineFondo: '#4a3000',
         bannerOfflineTexto: '#fff4d1',
         bannerOfflineBoton: '#f6c026',
-        marcadorEscaner: '#0075de',
+        marcadorEscaner: '#4ba042',
         fondoBuscador: '#f6f5f4',
     },
     dark: {
@@ -48,9 +48,9 @@ export const ThemeColors = {
         // Borders
         borde: 'rgba(255,255,255,0.1)',  // Whisper Border — dark mode
         // Accent
-        primario: '#0075de',             // Notion Blue — same in dark
-        primarioActivo: '#005bab',       // Active Blue
-        fondoPrimario: '#0f2a47',        // Dark badge blue bg
+        primario: '#4ba042',             // Notion Blue — same in dark
+        primarioActivo: '#6cc062ff',       // Active Blue
+        fondoPrimario: '#044d16ff',        // Dark badge blue bg
         // Semantic
         error: '#f97316',               // Orange (lighter for dark bg)
         exito: '#22c55e',               // Green (lighter for dark bg)
@@ -61,12 +61,12 @@ export const ThemeColors = {
         // BottomBar
         bottomBarFondo: '#1a1917',
         bottomBarIcono: '#615d59',
-        bottomBarIconoActivo: '#0075de',
+        bottomBarIconoActivo: '#4ba042',
         // Extras
         bannerOfflineFondo: '#4a3000',
         bannerOfflineTexto: '#fff4d1',
         bannerOfflineBoton: '#f6c026',
-        marcadorEscaner: '#0075de',
+        marcadorEscaner: '#4ba042',
         fondoBuscador: '#232220',
     },
 };

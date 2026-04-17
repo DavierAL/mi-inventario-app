@@ -9,7 +9,7 @@
  *   - Date object
  * Devuelve cadena vacía si el valor no es una fecha válida.
  */
-export function formatearFecha(valor: string | Date | null | undefined): string {
+export function formatearFecha(valor: string | Date | number | null | undefined): string {
     if (!valor) return '';
 
     // Si ya viene en formato DD/MM/AAAA lo devolvemos tal cual
@@ -70,4 +70,13 @@ export function parseFVToTimestamp(valor: string | Date | null | undefined): num
     const [dia, mes, anio] = fv.split('/').map(Number);
     const fecha = new Date(anio, mes - 1, dia);
     return fecha.getTime();
+}
+/**
+ * Convierte de Date o string (ISO/ DD/MM/AAAA) a objeto Date nativo.
+ * Ideal para asignaciones directas a modelos de WatermelonDB con decorador @date.
+ */
+export function parseFVToDate(valor: string | Date | null | undefined): Date | undefined {
+    const ts = parseFVToTimestamp(valor);
+    if (!ts) return undefined;
+    return new Date(ts);
 }

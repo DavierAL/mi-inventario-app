@@ -8,7 +8,7 @@
  *   B. Actualizar doc en Firestore con url_foto.
  *   C. Borrar la foto local (FileSystem.deleteAsync).
  */
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { supabase } from '../database/supabase';
 import { database } from '../database';
 import { Q } from '@nozbe/watermelondb';

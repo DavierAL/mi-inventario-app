@@ -5,7 +5,7 @@ import { QueueService, WebhookPayload } from '../../../core/services/QueueServic
 import { ProductoInventario, EntradaHistorial, TipoAccionHistorial } from '../../../core/types/inventario';
 import { database } from '../../../core/database';
 import Movimiento from '../../../core/database/models/Movimiento';
-import { parseFVToTimestamp } from '../../../core/utils/fecha';
+import { parseFVToTimestamp, parseFVToDate, formatearFecha } from '../../../core/utils/fecha';
 
 const API_URL = process.env.EXPO_PUBLIC_CLOUD_FUNCTION_URL || '';
 const WEBHOOK_QUEUE_KEY = '@webhook_queue_mascotify';
@@ -31,7 +31,7 @@ export const InventarioRepository = {
     ) {
         // Implementación mínima para evitar errores de compilación, 
         // pero se recomienda migrar a observables locales.
-        return () => {}; 
+        return () => { };
     },
 
     // ─────────────────────────────────────────────
@@ -45,7 +45,7 @@ export const InventarioRepository = {
             descripcion: string;
             marca: string;
             sku: string;
-            fvAnterior?: string;
+            fvAnteriorTs?: number;
             accion?: TipoAccionHistorial;
         }
     ): Promise<{ exito: boolean; webhookEncolado: boolean }> {
@@ -60,8 +60,8 @@ export const InventarioRepository = {
                     sku: infoAuditoria.sku,
                     accion: infoAuditoria.accion ?? 'EDICION_COMPLETA',
                     cambios: {
-                        fvAnterior: infoAuditoria.fvAnterior,
-                        fvNuevo: datos.FV_Actual,
+                        fvAnteriorTs: infoAuditoria.fvAnteriorTs,
+                        fvNuevoTs: datos.FV_Actual_TS ?? parseFVToTimestamp(datos.FV_Actual),
                         comentario: datos.Comentarios,
                     },
                 }).catch(e => console.warn('[Audit] Error local:', e));
@@ -72,7 +72,7 @@ export const InventarioRepository = {
             const toUpsert = {
                 id: codigoLimpio,
                 stock_master: datos.Stock_Master,
-                fv_actual_ts: parseFVToTimestamp(datos.FV_Actual),
+                fv_actual_ts: datos.FV_Actual_TS ?? parseFVToTimestamp(datos.FV_Actual),
                 fecha_edicion: datos.Fecha_edicion,
                 comentarios: datos.Comentarios,
                 updated_at: Date.now()
@@ -88,7 +88,7 @@ export const InventarioRepository = {
             const payload: WebhookPayload = {
                 codigoBarras: codigoLimpio,
                 nuevoStock: datos.Stock_Master,
-                nuevoFV: datos.FV_Actual,
+                nuevoFV: datos.FV_Actual || (datos.FV_Actual_TS ? formatearFecha(datos.FV_Actual_TS) : undefined),
                 nuevoFechaEdicion: datos.Fecha_edicion,
                 nuevoComentario: datos.Comentarios,
             };
@@ -119,11 +119,11 @@ export const InventarioRepository = {
                     m.descripcion = entrada.descripcion;
                     m.marca = entrada.marca;
                     m.accion = entrada.accion;
-                    m.fvAnteriorTs = parseFVToTimestamp(entrada.cambios.fvAnterior) as any;
-                    m.fvNuevoTs = parseFVToTimestamp(entrada.cambios.fvNuevo) as any;
+                    m.fvAnteriorTs = (entrada.cambios.fvAnteriorTs ? new Date(entrada.cambios.fvAnteriorTs) : undefined);
+                    m.fvNuevoTs = (entrada.cambios.fvNuevoTs ? new Date(entrada.cambios.fvNuevoTs) : undefined);
                     m.comentario = entrada.cambios.comentario;
                     m.dispositivo = Platform.OS === 'ios' ? '📱 iPhone' : '🤖 Android';
-                    m.timestamp = Date.now(); 
+                    m.timestamp = Date.now();
                 });
                 console.log('[Audit] Movimiento registrado con éxito en SQLite');
             });
@@ -134,7 +134,7 @@ export const InventarioRepository = {
 
     suscribirHistorial(onUpdate: (e: EntradaHistorial[]) => void, onError: (e: any) => void) {
         // Tarea 4.3: Manejado por withObservables en la UI
-        return () => {}; 
+        return () => { };
     },
 
     // ─────────────────────────────────────────────
@@ -146,7 +146,7 @@ export const InventarioRepository = {
         if (q.length === 0) return;
 
         const restantes: any[] = [];
-        
+
         // Procesamiento en paralelo for mayor velocidad usando el método blindado
         const promesas = q.map(async (item: any) => {
             const res = await this.enviarWebhook(item);
@@ -173,14 +173,14 @@ export const InventarioRepository = {
             xhr.onload = async () => {
                 const rawText = xhr.responseText;
                 if (!rawText.trim().startsWith('{')) {
-                    await QueueService.encolar(payload); 
+                    await QueueService.encolar(payload);
                     resolve({ exito: false });
                     return;
                 }
                 try {
                     const json = JSON.parse(rawText);
                     if (json.status === 'success') {
-                        QueueService.procesarCola().catch(() => {});
+                        QueueService.procesarCola().catch(() => { });
                         resolve({ exito: true });
                     } else {
                         await QueueService.encolar(payload);

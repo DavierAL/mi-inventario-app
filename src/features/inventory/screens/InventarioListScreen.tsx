@@ -92,7 +92,7 @@ const ListaReactiva = withObservables(['query', 'filtroRapido'], ({ query, filtr
             
             // Filtramos en memoria (ultra rápido con RxJS)
             return productos.filter(p => {
-                const dias = calcularDiasRestantes(p.fvActual);
+                const dias = calcularDiasRestantes(p.fvActualTs);
                 if (filtroRapido === 'VENCIDOS') return dias < 0;
                 if (filtroRapido === '30_DIAS') return dias >= 0 && dias <= 30;
                 if (filtroRapido === '90_DIAS') return dias > 30 && dias <= 90;

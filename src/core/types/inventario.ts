@@ -7,7 +7,8 @@ export interface ProductoInventario {
     Stock_Master: number;
     Precio_Web: number;
     Precio_Tienda: number;
-    FV_Actual: string;
+    FV_Actual_TS?: number;
+    FV_Actual?: string; // Para compatibilidad con Webhooks legacy
     Fecha_edicion: string;
     Imagen: string;
     Comentarios: string;
@@ -24,8 +25,8 @@ export interface EntradaHistorial {
     sku: string;
     accion: TipoAccionHistorial;
     cambios: {
-        fvAnterior?: string;
-        fvNuevo?: string;
+        fvAnteriorTs?: number;
+        fvNuevoTs?: number;
         comentario?: string;
     };
     timestamp: number;       // Unix ms para ordenar y formatear
