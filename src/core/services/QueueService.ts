@@ -8,18 +8,18 @@
  *   B. Actualizar doc en Firestore con url_foto.
  *   C. Borrar la foto local (FileSystem.deleteAsync).
  */
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as FileSystem from 'expo-file-system';
-import { ref, uploadString, getDownloadURL } from 'firebase/storage';
-import { doc, updateDoc } from 'firebase/firestore';
-import { storage, dbFirebase } from '../database/firebase';
+import { supabase } from '../database/supabase';
+import { database } from '../database';
+import { Q } from '@nozbe/watermelondb';
+import OutboxJob from '../database/models/OutboxJob';
 
-const WEBHOOK_QUEUE_KEY = '@webhook_queue_mascotify';
-const FOTO_QUEUE_KEY = '@foto_queue_mascotify';
-
-// Google Sheets webhook — mismo endpoint que el de inventario
-const getSheetsWebhookUrl = () => process.env.EXPO_PUBLIC_SHEETS_WEBHOOK_URL || '';
-const getAppToken = () => process.env.EXPO_PUBLIC_APP_TOKEN || '';
+// Configuración de Supabase Storage
+const getSupabaseConfig = () => ({
+  url: process.env.EXPO_PUBLIC_SUPABASE_URL || '',
+  key: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
+  bucket: 'pedidos',
+});
 
 // Mapeo de estados de la app al valor exacto de la columna P de Logistica
 const APP_ESTADO_TO_SHEETS: Record<string, string> = {
@@ -29,8 +29,8 @@ const APP_ESTADO_TO_SHEETS: Record<string, string> = {
     Entregado:  'Entregado',
 };
 
-const getApiUrl = () => process.env.EXPO_PUBLIC_API_URL || '';
-const getAuthToken = () => process.env.EXPO_PUBLIC_AUTH_TOKEN || '';
+// Webhooks URL (Supabase Edge Function)
+const getApiUrl = () => process.env.EXPO_PUBLIC_CLOUD_FUNCTION_URL || '';
 
 // ─── Tipos ───────────────────────────────────────────────────────────────────
 
@@ -43,11 +43,11 @@ export interface WebhookPayload {
 }
 
 export interface FotoUploadJob {
-  pedidoId: string;    // ID del doc en Firestore (colección 'pedidos')
-  codPedido: string;   // Código legible del pedido (ej. 'PED-001') para notificar Sheets
-  localUri: string;    // URI absoluta en FileSystem.documentDirectory
-  storagePath: string; // Ruta destino en Firebase Storage
-  urlFoto?: string;    // URL Firebase Storage (disponible tras upload)
+  pedidoId: string;    // ID del registro en Supabase (tabla 'pedidos')
+  codPedido: string;   // Código legible del pedido (ej. 'PED-001')
+  localUri: string;    // URI absoluta local
+  storagePath: string; // Ruta destino en Supabase Storage
+  urlFoto?: string;    // URL pública final
 }
 
 // ─── QueueService ─────────────────────────────────────────────────────────────
@@ -58,47 +58,58 @@ export const QueueService = {
 
   async encolar(payload: WebhookPayload): Promise<void> {
     try {
-      const cola = await this.leer();
-      cola.push(payload);
-      await AsyncStorage.setItem(WEBHOOK_QUEUE_KEY, JSON.stringify(cola));
-      console.log(`[Queue] Webhook encolado. Total: ${cola.length}`);
+      await database.write(async () => {
+        await database.get<OutboxJob>('outbox_jobs').create((job: OutboxJob) => {
+          job.payload = JSON.stringify(payload);
+          job.jobType = 'webhook';
+          job.status = 'PENDING';
+        });
+      });
+      console.log('[Queue] Webhook encolado en SQLite');
     } catch (error) {
       console.error('[Queue] Error al encolar webhook:', error);
     }
   },
 
-  async leer(): Promise<WebhookPayload[]> {
-    try {
-      const raw = await AsyncStorage.getItem(WEBHOOK_QUEUE_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
+  async leer(): Promise<OutboxJob[]> {
+    return database.get<OutboxJob>('outbox_jobs')
+      .query(Q.where('job_type', 'webhook'), Q.where('status', 'PENDING'))
+      .fetch();
   },
 
   async contarPendientes(): Promise<number> {
-    return (await this.leer()).length;
+    return await database.get<OutboxJob>('outbox_jobs')
+      .query(Q.where('job_type', 'webhook'), Q.where('status', 'PENDING'))
+      .fetchCount();
   },
 
   async procesarCola(): Promise<number> {
-    const cola = await this.leer();
-    if (cola.length === 0) return 0;
+    const jobs = await this.leer();
+    if (jobs.length === 0) return 0;
 
-    console.log(`[Queue] Procesando ${cola.length} webhook(s)...`);
-    const restantes: WebhookPayload[] = [];
+    console.log(`[Queue] Procesando ${jobs.length} webhook(s)...`);
+    let remaining = jobs.length;
 
-    for (const item of cola) {
-      const ok = await this._intentarEnvio(item);
-      if (!ok) restantes.push(item);
+    for (const job of jobs) {
+      const payload = JSON.parse(job.payload) as WebhookPayload;
+      const ok = await this._intentarEnvio(payload);
+      if (ok) {
+        await database.write(async () => {
+          await job.update((j: OutboxJob) => { j.status = 'COMPLETED'; });
+        });
+        remaining--;
+      }
     }
 
-    await AsyncStorage.setItem(WEBHOOK_QUEUE_KEY, JSON.stringify(restantes));
-    console.log(`[Queue] ${cola.length - restantes.length} enviado(s). ${restantes.length} pendiente(s).`);
-    return restantes.length;
+    console.log(`[Queue] webhooks enviados. ${remaining} pendiente(s).`);
+    return remaining;
   },
 
   async vaciar(): Promise<void> {
-    await AsyncStorage.setItem(WEBHOOK_QUEUE_KEY, JSON.stringify([]));
+    const jobs = await this.leer();
+    await database.write(async () => {
+      for (const j of jobs) await j.destroyPermanently();
+    });
   },
 
   async _intentarEnvio(payload: WebhookPayload): Promise<boolean> {
@@ -106,10 +117,9 @@ export const QueueService = {
       const res = await fetch(getApiUrl(), {
         method: 'POST',
         headers: {
-          'Content-Type': 'text/plain;charset=utf-8',
-          'X-Auth-Token': getAuthToken(),
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ accion: 'webhook_modificacion', datos: payload, token: getAuthToken() }),
+        body: JSON.stringify(payload),
       });
       const txt = await res.text();
       return txt.includes('"status":"success"');
@@ -120,93 +130,108 @@ export const QueueService = {
 
   // ── Foto Upload (logística) ───────────────────────────────────────────────
 
-  async encolarFoto(job: FotoUploadJob): Promise<void> {
+  async encolarFoto(jobData: FotoUploadJob): Promise<void> {
     try {
-      const cola = await this.leerFotos();
-      cola.push(job);
-      await AsyncStorage.setItem(FOTO_QUEUE_KEY, JSON.stringify(cola));
-      console.log(`[FotoQueue] Job encolado: ${job.pedidoId}. Total: ${cola.length}`);
+      await database.write(async () => {
+        await database.get<OutboxJob>('outbox_jobs').create((job: OutboxJob) => {
+          job.payload = JSON.stringify(jobData);
+          job.jobType = 'foto';
+          job.status = 'PENDING';
+        });
+      });
+      console.log(`[FotoQueue] Job encolado en SQLite: ${jobData.pedidoId}`);
     } catch (error) {
       console.error('[FotoQueue] Error al encolar foto:', error);
     }
   },
 
-  async leerFotos(): Promise<FotoUploadJob[]> {
-    try {
-      const raw = await AsyncStorage.getItem(FOTO_QUEUE_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
+  async leerFotos(): Promise<OutboxJob[]> {
+    return database.get<OutboxJob>('outbox_jobs')
+      .query(Q.where('job_type', 'foto'), Q.where('status', 'PENDING'))
+      .fetch();
   },
 
   async contarFotosPendientes(): Promise<number> {
-    return (await this.leerFotos()).length;
+    return await database.get<OutboxJob>('outbox_jobs')
+      .query(Q.where('job_type', 'foto'), Q.where('status', 'PENDING'))
+      .fetchCount();
   },
 
-  /**
-   * Procesa la cola de fotos pendientes.
-   * Cada job hace 3 pasos atómicos: subir → actualizar Firestore → borrar local.
-   * Si cualquier paso falla, el job permanece en cola para reintento.
-   */
   async procesarColaFotos(): Promise<number> {
-    const cola = await this.leerFotos();
-    if (cola.length === 0) return 0;
+    const jobs = await this.leerFotos();
+    if (jobs.length === 0) return 0;
 
-    console.log(`[FotoQueue] Procesando ${cola.length} foto(s)...`);
-    const restantes: FotoUploadJob[] = [];
+    console.log(`[FotoQueue] Procesando ${jobs.length} foto(s)...`);
+    let remaining = jobs.length;
 
-    for (const job of cola) {
-      const ok = await this._procesarFotoJob(job);
-      if (!ok) restantes.push(job);
+    for (const jobModel of jobs) {
+      const payload = JSON.parse(jobModel.payload) as FotoUploadJob;
+      const ok = await this._procesarFotoJob(payload);
+      if (ok) {
+        await database.write(async () => {
+          await jobModel.update((j: OutboxJob) => { j.status = 'COMPLETED'; });
+        });
+        remaining--;
+      }
     }
 
-    await AsyncStorage.setItem(FOTO_QUEUE_KEY, JSON.stringify(restantes));
-    console.log(`[FotoQueue] ${cola.length - restantes.length} subida(s). ${restantes.length} pendiente(s).`);
-    return restantes.length;
+    console.log(`[FotoQueue] fotos subidas. ${remaining} pendiente(s).`);
+    return remaining;
   },
 
-  /**
-   * Paso A: leer archivo local como blob
-   * Paso B: subir a Firebase Storage
-   * Paso C: obtener URL pública y actualizar Firestore
-   * Paso D: borrar archivo local
-   * Paso E: notificar Google Sheets con nuevo estado → 'Entregado'
-   */
   async _procesarFotoJob(job: FotoUploadJob): Promise<boolean> {
     try {
-      // Verificar que el archivo local existe
       const info = await FileSystem.getInfoAsync(job.localUri);
       if (!info.exists) {
         console.warn(`[FotoQueue] Archivo no existe, descartando job: ${job.localUri}`);
-        return true; // Descartamos — no tiene sentido reintentar
+        return true;
       }
 
-      // Paso A+B: leer como base64 y subir a Storage
-      const base64 = await FileSystem.readAsStringAsync(job.localUri, {
-        encoding: FileSystem.EncodingType.Base64,
+      const { url, key, bucket } = getSupabaseConfig();
+      // Endpoint de Supabase Storage para upload
+      const uploadUrl = `${url}/storage/v1/object/${bucket}/${job.storagePath}`;
+
+      console.log(`[FotoQueue] Subiendo a Supabase: ${uploadUrl}`);
+
+      const uploadResult = await FileSystem.uploadAsync(uploadUrl, job.localUri, {
+        httpMethod: 'POST',
+        uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+        headers: { 
+          'Authorization': `Bearer ${key}`,
+          'apikey': key,
+          'Content-Type': 'image/jpeg' 
+        },
       });
 
-      const storageRef = ref(storage, job.storagePath);
-      await uploadString(storageRef, base64, 'base64', { contentType: 'image/jpeg' });
-      const downloadURL = await getDownloadURL(storageRef);
+      console.log(`[FotoQueue] Upload status: ${uploadResult.status}`);
 
-      // Paso C: actualizar Firestore con la URL y estado definitivo
-      const pedidoRef = doc(dbFirebase, 'pedidos', job.pedidoId);
-      await updateDoc(pedidoRef, {
-        url_foto: downloadURL,
-        estado: 'Entregado',
-        server_updated_at: Date.now(),
-      });
+      if (uploadResult.status < 200 || uploadResult.status >= 300) {
+        throw new Error(`Supabase Storage upload HTTP ${uploadResult.status}: ${uploadResult.body}`);
+      }
 
-      // Paso D: borrar archivo local para no colapsar la memoria del dispositivo
+      // Obtener URL pública (asumiendo que el bucket es público)
+      const downloadURL = `${url}/storage/v1/object/public/${bucket}/${job.storagePath}`;
+
+      // Paso C: actualizar tabla 'pedidos' en Supabase
+      const { error: dbError } = await supabase
+        .from('pedidos')
+        .update({
+          url_foto: downloadURL,
+          estado: 'Entregado',
+          updated_at: Date.now(),
+        })
+        .eq('id', job.pedidoId);
+
+      if (dbError) throw dbError;
+
+      // Paso D: borrar archivo local
       await FileSystem.deleteAsync(job.localUri, { idempotent: true });
       console.log(`[FotoQueue] Job completado para pedido ${job.pedidoId}`);
 
-      // Paso E: notificar Google Sheets (sin bloquear — si falla, no aborta el job)
+      // Paso E: notificar Google Sheets
       if (job.codPedido) {
-        this._notificarSheetsEntrega(job.codPedido, job.urlFoto ?? downloadURL).catch(
-          (e) => console.warn('[FotoQueue] Sheets notify fail (non-blocking):', e)
+        this._notificarSheetsEntrega(job.codPedido, downloadURL).catch(
+          (e) => console.warn('[FotoQueue] Sheets notify fail:', e)
         );
       }
 
@@ -218,32 +243,28 @@ export const QueueService = {
     }
   },
 
-  /**
-   * Llama al webhook de Google Sheets para actualizar el estado del pedido
-   * en la columna P de la hoja Logistica.
-   */
+  // ── Helpers Varios ──────────────────────────────────────────────────────
+
   async _notificarSheetsEntrega(codPedido: string, urlFoto: string): Promise<void> {
-    const webhookUrl = getSheetsWebhookUrl();
-    if (!webhookUrl) {
-      console.warn('[Sheets Notify] EXPO_PUBLIC_SHEETS_WEBHOOK_URL no configurado, saltando.');
-      return;
+    const webhookUrl = getApiUrl();
+    if (!webhookUrl) return;
+
+    try {
+      await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tipo: 'logistica_entrega',
+          codigo_pedido: codPedido,
+          url_foto: urlFoto,
+          timestamp: Date.now(),
+        }),
+      });
+    } catch (e) {
+      // silencioso
     }
-    const payload = {
-      accion: 'webhook_entrega',
-      token: getAppToken(),
-      datos: {
-        codPedido,
-        nuevoEstado: APP_ESTADO_TO_SHEETS['Entregado'], // 'Entregado'
-        urlFoto,
-      },
-    };
-    const res = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload),
-    });
-    const txt = await res.text();
-    console.log(`[Sheets Notify] CodPedido=${codPedido} → estado Entregado. Resp: ${txt.slice(0, 80)}`);
   },
 
   /**

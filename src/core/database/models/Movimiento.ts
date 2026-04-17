@@ -9,8 +9,8 @@ export default class Movimiento extends Model {
   @text('descripcion') descripcion!: string;
   @text('marca') marca!: string;
   @text('accion') accion!: string;
-  @text('fv_anterior') fvAnterior?: string;
-  @text('fv_nuevo') fvNuevo?: string;
+  @date('fv_anterior_ts') fvAnteriorTs?: Date; // V4
+  @date('fv_nuevo_ts') fvNuevoTs?: Date; // V4
   @text('comentario') comentario?: string;
   @text('dispositivo') dispositivo!: string;
   

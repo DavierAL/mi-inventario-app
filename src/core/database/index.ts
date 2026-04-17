@@ -1,13 +1,42 @@
 import { Database } from '@nozbe/watermelondb';
 import SQLiteAdapter from '@nozbe/watermelondb/adapters/sqlite';
-import { schemaMigrations, createTable } from '@nozbe/watermelondb/Schema/migrations';
+import { schemaMigrations, createTable, addColumns } from '@nozbe/watermelondb/Schema/migrations';
 import { schema } from './schema';
 import Producto from './models/Producto';
 import Movimiento from './models/Movimiento';
 import Pedido from './models/Pedido';
+import OutboxJob from './models/OutboxJob';
 
 const migrations = schemaMigrations({
   migrations: [
+    {
+      toVersion: 4,
+      steps: [
+        addColumns({
+          table: 'productos',
+          columns: [
+            { name: 'fv_actual_ts', type: 'number', isOptional: true, isIndexed: true },
+          ],
+        }),
+        addColumns({
+          table: 'movimientos',
+          columns: [
+            { name: 'fv_anterior_ts', type: 'number', isOptional: true, isIndexed: true },
+            { name: 'fv_nuevo_ts', type: 'number', isOptional: true, isIndexed: true },
+          ],
+        }),
+        createTable({
+          name: 'outbox_jobs',
+          columns: [
+            { name: 'payload', type: 'string' },
+            { name: 'job_type', type: 'string', isIndexed: true },
+            { name: 'status', type: 'string', isIndexed: true },
+            { name: 'created_at', type: 'number' },
+            { name: 'updated_at', type: 'number' },
+          ],
+        }),
+      ],
+    },
     {
       toVersion: 3,
       steps: [
@@ -42,5 +71,5 @@ const adapter = new SQLiteAdapter({
 
 export const database = new Database({
   adapter,
-  modelClasses: [Producto, Movimiento, Pedido],
+  modelClasses: [Producto, Movimiento, Pedido, OutboxJob],
 });

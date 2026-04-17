@@ -10,7 +10,7 @@ export default class Producto extends Model {
   @field('stock_master') stockMaster!: number;
   @field('precio_web') precioWeb!: number;
   @field('precio_tienda') precioTienda!: number;
-  @text('fv_actual') fvActual?: string;
+  @date('fv_actual_ts') fvActualTs?: Date; // V4
   @text('fecha_edicion') fechaEdicion?: string;
   @text('comentarios') comentarios?: string;
   @text('marca') marca!: string;

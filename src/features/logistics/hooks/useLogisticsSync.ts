@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { syncConFirebase } from '../../inventory/services/syncService';
+import { syncConSupabase } from '../../inventory/services/syncService';
 import { MENSAJES } from '../../../core/constants/mensajes';
 
 interface LogisticsSyncState {
@@ -23,7 +23,7 @@ export function useLogisticsSync() {
     const iniciarSync = async () => {
       try {
         setState(prev => ({ ...prev, cargando: true, error: null }));
-        await syncConFirebase();
+        await syncConSupabase();
         setState(prev => ({
           ...prev,
           cargando: false,
@@ -45,7 +45,7 @@ export function useLogisticsSync() {
   const reSincronizar = async () => {
     try {
       setState(prev => ({ ...prev, cargando: true, error: null }));
-      await syncConFirebase();
+      await syncConSupabase();
       setState(prev => ({
         ...prev,
         cargando: false,

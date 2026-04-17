@@ -1,4 +1,4 @@
-import { Audio } from 'expo-av';
+import { createAudioPlayer } from 'expo-audio';
 
 // Pre-carga en memoria (Module scope)
 const SOUND_FILES = {
@@ -7,20 +7,23 @@ const SOUND_FILES = {
     error: require('../../../assets/sounds/error.wav')
 };
 
+const players: { [key: string]: any } = {};
+
 export const precargarSonidos = async () => {
-    // Implementación vacía para compatibilidad, ya que ahora se pre-cargan en el scope del módulo
+    if (!players.beep) players.beep = createAudioPlayer(SOUND_FILES.beep);
+    if (!players.success) players.success = createAudioPlayer(SOUND_FILES.success);
+    if (!players.error) players.error = createAudioPlayer(SOUND_FILES.error);
 };
 
 export const reproducirSonido = async (tipo: 'beep' | 'success' | 'error') => {
     try {
-        const { sound } = await Audio.Sound.createAsync(SOUND_FILES[tipo]);
-        await sound.playAsync();
-        
-        sound.setOnPlaybackStatusUpdate((status) => {
-            if (status.isLoaded && status.didJustFinish) {
-                sound.unloadAsync();
-            }
-        });
+        let player = players[tipo];
+        if (!player) {
+            player = createAudioPlayer(SOUND_FILES[tipo]);
+            players[tipo] = player;
+        }
+        player.seekTo(0);
+        player.play();
     } catch (error) {
         console.warn('Error al reproducir sonido:', error);
     }

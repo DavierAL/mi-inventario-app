@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { database } from '../../../core/database';
 import Producto from '../../../core/database/models/Producto';
-import { syncConFirebase } from '../services/syncService';
+import { syncConSupabase } from '../services/syncService';
 import { InventarioRepository } from '../repository/inventarioRepository';
 import { MENSAJES } from '../../../core/constants/mensajes';
 import { TipoAccionHistorial } from '../../../core/types/inventario';
@@ -44,7 +44,7 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
 
     conectarInventario: () => {
         set({ cargando: true, error: null });
-        syncConFirebase()
+        syncConSupabase()
             .then(() => set({ cargando: false, lastSync: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) }))
             .catch(err => {
                 console.error("Sync Error:", err);
@@ -54,7 +54,7 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
 
     cargarDatosSync: () => {
         set({ sincronizandoFondo: true });
-        syncConFirebase()
+        syncConSupabase()
             .finally(() => set({ 
                 sincronizandoFondo: false, 
                 lastSync: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) 
@@ -64,7 +64,7 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
     repararBaseDeDatos: async () => {
         set({ sincronizandoFondo: true, error: null });
         try {
-            await syncConFirebase({ forceFull: true });
+            await syncConSupabase({ forceFull: true });
             set({ 
                 lastSync: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
                 error: null 
@@ -117,7 +117,7 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
             ).catch(e => console.warn('[Store] Error en actualizarProducto:', e));
             
             // 3. Sincronización secundaria en 2do plano
-            syncConFirebase().catch(e => console.warn('[Sync] Background error:', e));
+            syncConSupabase().catch(e => console.warn('[Sync] Background error:', e));
 
             set({ productoEditando: null });
             return { exito: true, codigo };

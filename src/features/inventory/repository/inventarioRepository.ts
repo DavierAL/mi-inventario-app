@@ -1,14 +1,13 @@
-import { collection, onSnapshot, doc, setDoc, query, orderBy, limit } from 'firebase/firestore';
+import { supabase } from '../../../core/database/supabase';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { dbFirebase } from '../../../core/database/firebase';
 import { QueueService, WebhookPayload } from '../../../core/services/QueueService';
 import { ProductoInventario, EntradaHistorial, TipoAccionHistorial } from '../../../core/types/inventario';
 import { database } from '../../../core/database';
 import Movimiento from '../../../core/database/models/Movimiento';
+import { parseFVToTimestamp } from '../../../core/utils/fecha';
 
-const API_URL = process.env.EXPO_PUBLIC_SHEETS_WEBHOOK_URL || '';
-const AUTH_TOKEN = process.env.EXPO_PUBLIC_APP_TOKEN || '';
+const API_URL = process.env.EXPO_PUBLIC_CLOUD_FUNCTION_URL || '';
 const WEBHOOK_QUEUE_KEY = '@webhook_queue_mascotify';
 
 /**
@@ -23,16 +22,16 @@ export const InventarioRepository = {
     // INVENTARIO (Lectura legado/compatibilidad)
     // ─────────────────────────────────────────────
 
+    /**
+     * @deprecated Usar WatermelonDB withObservables para tiempo real local.
+     */
     suscribir(
         onUpdate: (datos: ProductoInventario[], fromCache: boolean) => void,
         onError: (error: any) => void
     ) {
-        const q = query(collection(dbFirebase, 'productos'));
-        return onSnapshot(q, (snapshot) => {
-            const datos: ProductoInventario[] = [];
-            snapshot.forEach((d) => datos.push(d.data() as ProductoInventario));
-            onUpdate(datos, snapshot.metadata.fromCache);
-        }, onError);
+        // Implementación mínima para evitar errores de compilación, 
+        // pero se recomienda migrar a observables locales.
+        return () => {}; 
     },
 
     // ─────────────────────────────────────────────
@@ -68,17 +67,24 @@ export const InventarioRepository = {
                 }).catch(e => console.warn('[Audit] Error local:', e));
             }
 
-            // 2. Metadatos de Sincronización para Firestore
-            const datosConMeta = {
-                ...datos,
-                server_updated_at: Date.now() // gatillo para el motor de sincronización
+            // 2. Persistencia en la Nube: Supabase
+            // Mapeo a nombres de columnas de PostgreSQL
+            const toUpsert = {
+                id: codigoLimpio,
+                stock_master: datos.Stock_Master,
+                fv_actual_ts: parseFVToTimestamp(datos.FV_Actual),
+                fecha_edicion: datos.Fecha_edicion,
+                comentarios: datos.Comentarios,
+                updated_at: Date.now()
             };
 
-            // 3. Persistencia en la Nube: Firebase
-            const ref = doc(dbFirebase, 'productos', codigoLimpio);
-            await setDoc(ref, datosConMeta, { merge: true });
+            const { error: sbError } = await supabase
+                .from('productos')
+                .upsert(toUpsert);
 
-            // 4. Sincronización Secundaria: Sheets Webhook
+            if (sbError) throw sbError;
+
+            // 3. Sincronización Secundaria: Sheets Webhook (Proxy)
             const payload: WebhookPayload = {
                 codigoBarras: codigoLimpio,
                 nuevoStock: datos.Stock_Master,
@@ -95,7 +101,7 @@ export const InventarioRepository = {
             };
 
         } catch (error) {
-            console.error('[Repo] Error Fatal en Firebase:', error);
+            console.error('[Repo] Error Fatal en Supabase:', error);
             return { exito: false, webhookEncolado: false };
         }
     },
@@ -113,8 +119,8 @@ export const InventarioRepository = {
                     m.descripcion = entrada.descripcion;
                     m.marca = entrada.marca;
                     m.accion = entrada.accion;
-                    m.fvAnterior = entrada.cambios.fvAnterior;
-                    m.fvNuevo = entrada.cambios.fvNuevo;
+                    m.fvAnteriorTs = parseFVToTimestamp(entrada.cambios.fvAnterior) as any;
+                    m.fvNuevoTs = parseFVToTimestamp(entrada.cambios.fvNuevo) as any;
                     m.comentario = entrada.cambios.comentario;
                     m.dispositivo = Platform.OS === 'ios' ? '📱 iPhone' : '🤖 Android';
                     m.timestamp = Date.now(); 
@@ -162,8 +168,7 @@ export const InventarioRepository = {
             const xhr = new XMLHttpRequest();
             xhr.open('POST', API_URL);
             xhr.setRequestHeader('Accept', 'application/json');
-            xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
-            xhr.setRequestHeader('X-Auth-Token', AUTH_TOKEN);
+            xhr.setRequestHeader('Content-Type', 'application/json');
 
             xhr.onload = async () => {
                 const rawText = xhr.responseText;
@@ -190,7 +195,7 @@ export const InventarioRepository = {
                 await QueueService.encolar(payload);
                 resolve({ exito: false });
             };
-            xhr.send(JSON.stringify({ accion: 'webhook_modificacion', datos: payload, token: AUTH_TOKEN }));
+            xhr.send(JSON.stringify(payload));
         });
     },
 };

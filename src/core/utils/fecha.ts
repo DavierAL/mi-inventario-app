@@ -50,3 +50,24 @@ export function calcularDiasRestantes(valor: string | Date | null | undefined): 
     const diffMs = fechaVencimiento.getTime() - hoy.getTime();
     return Math.ceil(diffMs / (1000 * 3600 * 24));
 }
+
+/**
+ * Convierte de Date o string (ISO/ DD/MM/AAAA) a UNIX Timestamp numérico (milisegundos).
+ * Ideal para la base local SQLite / WatermelonDB.
+ */
+export function parseFVToTimestamp(valor: string | Date | null | undefined): number | undefined {
+    if (!valor) return undefined;
+    
+    // Si ya es Date, retornamos
+    if (valor instanceof Date) {
+        if (isNaN(valor.getTime())) return undefined;
+        return valor.getTime();
+    }
+
+    const fv = formatearFecha(valor);
+    if (!fv) return undefined;
+
+    const [dia, mes, anio] = fv.split('/').map(Number);
+    const fecha = new Date(anio, mes - 1, dia);
+    return fecha.getTime();
+}
