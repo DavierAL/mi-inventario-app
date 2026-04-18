@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
         borderRadius: 24, overflow: 'hidden',
     },
     marco: { width: 280, height: 180, position: 'relative' },
-    esquina: { position: 'absolute', width: ESQUINA_SIZE, height: ESQUINA_SIZE, borderColor: '#63B3ED' },
+    esquina: { position: 'absolute', width: ESQUINA_SIZE, height: ESQUINA_SIZE },
     esquinaTL: { top: 0, left: 0, borderTopWidth: ESQUINA_GROSOR, borderLeftWidth: ESQUINA_GROSOR, borderTopLeftRadius: 10 },
     esquinaTR: { top: 0, right: 0, borderTopWidth: ESQUINA_GROSOR, borderRightWidth: ESQUINA_GROSOR, borderTopRightRadius: 10 },
     esquinaBL: { bottom: 0, left: 0, borderBottomWidth: ESQUINA_GROSOR, borderLeftWidth: ESQUINA_GROSOR, borderBottomLeftRadius: 10 },

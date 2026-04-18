@@ -11,7 +11,7 @@ const migrations = schemaMigrations({
   migrations: [
     {
       toVersion: 5,
-      steps: [] // Limpieza lógica de columnas obsoletas V4
+      steps: [] // Limpieza lógica de columnas obsoletas V4. Nota: WatermelonDB no soporta DROP COLUMN — columnas eliminadas del schema pero no del SQLite físico.
     },
     {
       toVersion: 4,

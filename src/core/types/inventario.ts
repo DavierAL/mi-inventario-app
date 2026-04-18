@@ -25,8 +25,8 @@ export interface EntradaHistorial {
     sku: string;
     accion: TipoAccionHistorial;
     cambios: {
-        fvAnteriorTs?: number;
-        fvNuevoTs?: number;
+        fvAnterior?: string;
+        fvNuevo?: string;
         comentario?: string;
     };
     timestamp: number;       // Unix ms para ordenar y formatear

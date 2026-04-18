@@ -15,6 +15,7 @@ import withObservables from '@nozbe/with-observables';
 import { database } from '../../../core/database';
 import Movimiento from '../../../core/database/models/Movimiento';
 import { Q } from '@nozbe/watermelondb';
+import { formatearTiempoRelativo, formatearHora } from '../../../core/utils/fecha';
 
 const FastList = FlashList as any;
 
@@ -31,43 +32,7 @@ const CONFIG_ACCION: Record<TipoAccionHistorial, {
     EDICION_COMPLETA:  { icono: 'create',      color: '#1aae39', colorDark: '#22c55e', label: 'Edición Completa' },
 };
 
-// ─── Helper de timestamp relativo ──────────────────────────────────────────
-
-const obtenerTimestamp = (valor: any): number => {
-    // Si no hay valor o es 0 (error de guardado previo), devolvemos el tiempo actual
-    if (!valor || valor === 0) return Date.now();
-    
-    if (typeof valor === 'number') return valor;
-    
-    if (valor instanceof Date) {
-        const time = valor.getTime();
-        return isNaN(time) ? Date.now() : time;
-    }
-
-    const parsed = new Date(valor).getTime();
-    return isNaN(parsed) ? Date.now() : parsed;
-};
-
-const formatearTiempoRelativo = (rawTimestamp: any): string => {
-    const timestamp = obtenerTimestamp(rawTimestamp);
-    const diffMs = Date.now() - timestamp;
-    const diffMin = Math.floor(diffMs / 60_000);
-    const diffHrs = Math.floor(diffMs / 3_600_000);
-    const diffDias = Math.floor(diffMs / 86_400_000);
-
-    if (diffMin < 1) return 'Hace un momento';
-    if (diffMin < 60) return `Hace ${diffMin} min`;
-    if (diffHrs < 24) return `Hace ${diffHrs} h`;
-    if (diffDias === 1) return 'Ayer';
-    return `Hace ${diffDias} días`;
-};
-
-const formatearHora = (rawTimestamp: any): string => {
-    const timestamp = obtenerTimestamp(rawTimestamp);
-    return new Date(timestamp).toLocaleTimeString('es-ES', {
-        hour: '2-digit', minute: '2-digit'
-    });
-};
+// ─── Componentes Auxiliares ────────────────────────────────────────────────
 
 // ─── Componentes Auxiliares ────────────────────────────────────────────────
 

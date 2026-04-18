@@ -14,7 +14,7 @@ export const MENSAJES = {
     // Estados de Carga y Errores
     CARGANDO_INVENTARIO: 'Sincronizando con la nube...',
     ERROR_CONEXION_REALTIME: 'Error de conexión en tiempo real. Reintentando...',
-    ERROR_FIREBASE_INICIAL: 'No se pudo conectar con Firebase.\nVerifica tu conexión a internet inicial.',
+    ERROR_NUBE_INICIAL: 'No se pudo conectar con los servicios en la nube (Supabase).\nVerifica tu conexión a internet inicial.',
     REINTENTAR_CONEXION: 'Reintentar Conexión',
 
     // UI Labels - Lista

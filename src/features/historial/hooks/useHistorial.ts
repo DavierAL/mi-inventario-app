@@ -13,6 +13,7 @@ interface HistorialState {
  * Hook reactivo que expone los últimos 50 movimientos del historial
  * en tiempo real mediante onSnapshot de Firestore.
  */
+import { formatearFecha } from '../../../core/utils/fecha';
 import Movimiento from '../../../core/database/models/Movimiento';
 
 /**
@@ -27,8 +28,8 @@ export const useHistorial = (movimientos: Movimiento[]): HistorialState => {
         sku: m.sku,
         accion: m.accion as any,
         cambios: {
-            fvAnterior: m.fvAnterior,
-            fvNuevo: m.fvNuevo,
+            fvAnterior: m.fvAnteriorTs ? formatearFecha(m.fvAnteriorTs) : undefined,
+            fvNuevo: m.fvNuevoTs ? formatearFecha(m.fvNuevoTs) : undefined,
             comentario: m.comentario
         },
         timestamp: m.timestamp,

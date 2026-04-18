@@ -80,3 +80,44 @@ export function parseFVToDate(valor: string | Date | null | undefined): Date | u
     if (!ts) return undefined;
     return new Date(ts);
 }
+
+/**
+ * Helper interno para asegurar que siempre trabajamos con un number (Timestamp ms)
+ */
+export const obtenerTimestamp = (valor: any): number => {
+    if (!valor || valor === 0) return Date.now();
+    if (typeof valor === 'number') return valor;
+    if (valor instanceof Date) {
+        const time = valor.getTime();
+        return isNaN(time) ? Date.now() : time;
+    }
+    const parsed = new Date(valor).getTime();
+    return isNaN(parsed) ? Date.now() : parsed;
+};
+
+/**
+ * Devuelve una cadena legible con el tiempo transcurrido (ej: "Hace 5 min").
+ */
+export function formatearTiempoRelativo(rawTimestamp: any): string {
+    const timestamp = obtenerTimestamp(rawTimestamp);
+    const diffMs = Date.now() - timestamp;
+    const diffMin = Math.floor(diffMs / 60_000);
+    const diffHrs = Math.floor(diffMs / 3_600_000);
+    const diffDias = Math.floor(diffMs / 86_400_000);
+
+    if (diffMin < 1) return 'Hace un momento';
+    if (diffMin < 60) return `Hace ${diffMin} min`;
+    if (diffHrs < 24) return `Hace ${diffHrs} h`;
+    if (diffDias === 1) return 'Ayer';
+    return `Hace ${diffDias} días`;
+}
+
+/**
+ * Devuelve la hora en formato HH:MM.
+ */
+export function formatearHora(rawTimestamp: any): string {
+    const timestamp = obtenerTimestamp(rawTimestamp);
+    return new Date(timestamp).toLocaleTimeString('es-ES', {
+        hour: '2-digit', minute: '2-digit'
+    });
+}
