@@ -29,7 +29,6 @@ type PickingNavProp = NativeStackNavigationProp<RootStackParamList, 'PickingList
 
 const ESTADO_BADGE: Record<EstadoPedido, { bg: string; bgDark: string; text: string; label: string }> = {
     Pendiente:  { bg: '#fff4ed', bgDark: '#2d1a0a', text: '#dd5b00', label: 'Pendiente' },
-    Picking:    { bg: '#f5f0ff', bgDark: '#1e1028', text: '#9b6dff', label: 'Picking' },
     En_Tienda:  { bg: '#f2f9ff', bgDark: '#0f2035', text: '#62aef0', label: 'En Tienda' },
     Entregado:  { bg: '#f0fdf4', bgDark: '#0a1f12', text: '#22c55e', label: 'Entregado' },
 };
@@ -45,7 +44,7 @@ interface PedidoCardProps {
 const PedidoCard = memo(({ pedido, onDespachar, onVerPanel }: PedidoCardProps) => {
     const { colors, isDark } = useTheme();
     const badge = ESTADO_BADGE[pedido.estado] ?? ESTADO_BADGE.Pendiente;
-    const puedeDespachar = pedido.estado === 'Pendiente' || pedido.estado === 'Picking';
+    const puedeDespachar = pedido.estado === 'Pendiente';
 
     return (
         <View style={[styles.card, {

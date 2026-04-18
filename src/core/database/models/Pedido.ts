@@ -1,7 +1,7 @@
 import { Model } from '@nozbe/watermelondb';
 import { field, text, date, readonly } from '@nozbe/watermelondb/decorators';
 
-export type EstadoPedido = 'Pendiente' | 'Picking' | 'En_Tienda' | 'Entregado';
+export type EstadoPedido = 'Pendiente' | 'En_Tienda' | 'Entregado';
 
 export default class Pedido extends Model {
   static table = 'pedidos';

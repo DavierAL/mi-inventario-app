@@ -1,9 +1,64 @@
 import { synchronize } from '@nozbe/watermelondb/sync';
+import { Q } from '@nozbe/watermelondb';
 import { database } from '../../../core/database';
 import { supabase } from '../../../core/database/supabase';
 import { parseFVToTimestamp, formatearFecha } from '../../../core/utils/fecha';
+import Pedido, { EstadoPedido } from '../../../core/database/models/Pedido';
+
+const APP_TO_SHEETS: Record<EstadoPedido, string> = {
+  Pendiente: 'Impresión Etiqueta',
+  En_Tienda: 'Listo para envío',
+  Entregado: 'Entregado'
+};
+
+function normalizarTexto(str: string): string {
+  return (str || '')
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+/**
+ * Mapea los estados de Google Sheets/Supabase a los estados internos de la App.
+ * Es robusto ante acentos, mayúsculas y variaciones leves.
+ */
+function mapearEstadoEntrante(estadoOriginal: string): EstadoPedido {
+  const norm = normalizarTexto(estadoOriginal);
+  
+  // Coincidencias con Sheets (vía screenshot)
+  if (norm.includes('impresion etiqueta')) return 'Pendiente';
+  if (norm.includes('listo para envio')) return 'En_Tienda';
+  if (norm.includes('entregado')) return 'Entregado';
+
+  // Fallbacks para estados ya mapeados o variaciones comunes
+  if (norm === 'en_tienda' || norm === 'en tienda') return 'En_Tienda';
+  if (norm === 'pendiente') return 'Pendiente';
+  
+  return 'Pendiente';
+}
 
 export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
+  // --- Paso 0: Auto-corrección de estados locales (Migración silenciosa) ---
+  try {
+    await database.write(async () => {
+      const pedidosIncorrectos = await database.get<Pedido>('pedidos')
+        .query(Q.where('estado', Q.notIn(['Pendiente', 'En_Tienda', 'Entregado'])))
+        .fetch();
+      
+      if (pedidosIncorrectos.length > 0) {
+        console.log(`[Sync] Corrigiendo ${pedidosIncorrectos.length} pedidos con estados obsoletos...`);
+        for (const p of pedidosIncorrectos) {
+          await p.update(record => {
+            record.estado = mapearEstadoEntrante(record.estado);
+          });
+        }
+      }
+    });
+  } catch (err) {
+    console.warn('[Sync Migration Error]:', err);
+  }
+
   await synchronize({
     database,
     // 1. PULL: Descargar cambios desde Supabase
@@ -54,7 +109,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         id: row.id,
         cod_pedido: row.cod_pedido,
         cliente: row.cliente ?? '',
-        estado: row.estado ?? 'Pendiente',
+        estado: mapearEstadoEntrante(row.estado),
         operador: row.operador ?? null,
         pod_local_uri: null,
         url_foto: row.url_foto ?? null,
@@ -128,7 +183,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
             id: record.id,
             cod_pedido: record.cod_pedido,
             cliente: record.cliente,
-            estado: record.estado,
+            estado: APP_TO_SHEETS[record.estado as EstadoPedido] || record.estado,
             operador: record.operador,
             url_foto: record.url_foto,
             notas: record.notas,

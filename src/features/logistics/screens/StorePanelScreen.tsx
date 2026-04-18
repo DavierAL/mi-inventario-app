@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import * as FileSystem from 'expo-file-system/legacy';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -34,7 +35,6 @@ type StorePanelRoute = RouteProp<RootStackParamList, 'StorePanel'>;
 
 const ESTADO_BADGE: Record<EstadoPedido, { bg: string; bgDark: string; text: string; label: string }> = {
     Pendiente:  { bg: '#fff4ed', bgDark: '#2d1a0a', text: '#dd5b00', label: 'Pendiente' },
-    Picking:    { bg: '#f5f0ff', bgDark: '#1e1028', text: '#9b6dff', label: 'Picking' },
     En_Tienda:  { bg: '#f2f9ff', bgDark: '#0f2035', text: '#62aef0', label: 'En Tienda' },
     Entregado:  { bg: '#f0fdf4', bgDark: '#0a1f12', text: '#22c55e', label: 'Entregado' },
 };
@@ -133,8 +133,30 @@ export const StorePanelScreen = () => {
                 skipProcessing: true, // más rápido y evita crashes en algunos dispositivos
             });
             if (!foto?.uri) throw new Error('URI de foto nula');
+            
+            // --- OPTIMIZACIÓN DE IMAGEN (Reducción de peso ~90%) ---
+            const infoOriginal = await FileSystem.getInfoAsync(foto.uri);
+            const pesoOriginalMB = infoOriginal.exists ? (infoOriginal.size / (1024 * 1024)).toFixed(2) : '?';
+
+            const manipResult = await ImageManipulator.manipulateAsync(
+                foto.uri,
+                [{ resize: { width: 1024 } }],
+                { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+            );
+
+            const infoOptimizado = await FileSystem.getInfoAsync(manipResult.uri);
+            const pesoOptimizadoKB = infoOptimizado.exists ? (infoOptimizado.size / 1024).toFixed(0) : '?';
+
+            console.log(`[POD Optimizer] Reducción: ${pesoOriginalMB}MB -> ${pesoOptimizadoKB}KB`);
+
             const destino = `${FileSystem.documentDirectory}pod_${pedido?.id ?? 'tmp'}_${Date.now()}.jpg`;
-            await FileSystem.moveAsync({ from: foto.uri, to: destino });
+            await FileSystem.moveAsync({ from: manipResult.uri, to: destino });
+
+            // Borrar el temporal original (el de la cámara)
+            if (foto.uri !== manipResult.uri) {
+                await FileSystem.deleteAsync(foto.uri, { idempotent: true });
+            }
+
             setFotoUri(destino);
             setModoFoto(false);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
