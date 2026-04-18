@@ -1,19 +1,14 @@
 // ARCHIVO: src/screens/ScannerScreen.tsx
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { CameraView } from 'expo-camera';
-import * as Haptics from 'expo-haptics';
-import Toast from 'react-native-toast-message';
-import { EditProductoModal } from '../../inventory/components/EditProductoModal';
-import { precargarSonidos, reproducirSonido } from '../../../core/utils/sonidos';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../core/types/navigation';
-import { useInventarioStore } from '../../inventory/store/useInventarioStore';
 import { useTheme } from '../../../core/ui/ThemeContext';
 import { MENSAJES } from '../../../core/constants/mensajes';
-
-import { InventarioRepository } from '../../inventory/repository/inventarioRepository';
+import { EditProductoModal } from '../../inventory/components/EditProductoModal';
+import { useScanner } from '../hooks/useScanner';
 
 type ScannerNavProp = NativeStackNavigationProp<RootStackParamList, 'Scanner'>;
 
@@ -21,87 +16,12 @@ export const ScannerScreen = () => {
     const { colors } = useTheme();
     const navigation = useNavigation<ScannerNavProp>();
     const { 
-        setProductoEditando, productoEditando, 
-        guardarEdicion 
-    } = useInventarioStore();
-    
-    const [procesandoEscaneo, setProcesandoEscaneo] = useState<boolean>(false);
-
-    useEffect(() => {
-        // Precargar sonidos cuando se abre el escáner
-        precargarSonidos();
-        
-        if (productoEditando === null && procesandoEscaneo) {
-            const timer = setTimeout(() => setProcesandoEscaneo(false), 500);
-            return () => clearTimeout(timer);
-        }
-    }, [productoEditando]);
-
-    const reproducirBeep = async (exito: boolean) => {
-        try {
-            if (exito) {
-                reproducirSonido('beep');
-                await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            } else {
-                reproducirSonido('error');
-                await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-            }
-        } catch (error) {
-            console.log("Audio/Haptic no soportado", error);
-        }
-    };
-
-    const handleGuardar = async (fv: string, fecha: string, com: string) => {
-        const res = await guardarEdicion(fv, fecha, com);
-        
-        if (res.exito) {
-            reproducirSonido('success');
-            Toast.show({
-                type: 'success',
-                text1: MENSAJES.EXITO_GUARDADO,
-                text2: MENSAJES.EXITO_GUARDADO_SUB(res.codigo || ''),
-                visibilityTime: 2500
-            });
-        } else {
-            reproducirSonido('error');
-            Toast.show({ 
-                type: 'error', 
-                text1: MENSAJES.ERROR_GUARDADO, 
-                text2: res.mensajeError || 'No se pudo guardar en la nube.' 
-            });
-        }
-    };
-
-    const manejarCodigoEscaneado = async ({ data }: { data: string }) => {
-        if (procesandoEscaneo) return;
-        setProcesandoEscaneo(true);
-
-        const codigoLimpio = String(data).trim();
-
-        try {
-            // Tarea 3.4.2: Búsqueda asíncrona mediante el Repositorio (Clean Architecture)
-            const productoEncontrado = await InventarioRepository.buscarPorCodigoBarras(codigoLimpio);
-
-            if (productoEncontrado) {
-                reproducirBeep(true);
-                // MODO NORMAL: Abrimos Modal
-                setProductoEditando(productoEncontrado);
-            } else {
-                reproducirBeep(false);
-                Toast.show({
-                    type: 'error',
-                    text1: MENSAJES.ERROR_NO_ENCONTRADO,
-                    text2: MENSAJES.ERROR_NO_ENCONTRADO_SUB(codigoLimpio),
-                    position: 'top',
-                    visibilityTime: 3000,
-                });
-                setTimeout(() => setProcesandoEscaneo(false), 1500);
-            }
-        } catch (error) {
-            console.error('[Scanner] Error en búsqueda local:', error);
-            setProcesandoEscaneo(false);
-        }
-    };
+        procesandoEscaneo, 
+        productoEditando, 
+        setProductoEditando, 
+        manejarCodigoEscaneado, 
+        handleGuardarCambios 
+    } = useScanner();
 
     return (
         <View style={styles.contenedor}>
@@ -120,10 +40,10 @@ export const ScannerScreen = () => {
                 </Text>
 
                 <View style={styles.marco}>
-                    <View style={[styles.esquina, styles.esquinaTL, { borderColor: '#0075de' }]} />
-                    <View style={[styles.esquina, styles.esquinaTR, { borderColor: '#0075de' }]} />
-                    <View style={[styles.esquina, styles.esquinaBL, { borderColor: '#0075de' }]} />
-                    <View style={[styles.esquina, styles.esquinaBR, { borderColor: '#0075de' }]} />
+                    <View style={[styles.esquina, styles.esquinaTL, { borderColor: colors.primario }]} />
+                    <View style={[styles.esquina, styles.esquinaTR, { borderColor: colors.primario }]} />
+                    <View style={[styles.esquina, styles.esquinaBL, { borderColor: colors.primario }]} />
+                    <View style={[styles.esquina, styles.esquinaBR, { borderColor: colors.primario }]} />
                 </View>
 
                 {/* Último Escaneado Mini Resumen - Eliminado Ráfaga */}
@@ -141,7 +61,9 @@ export const ScannerScreen = () => {
             <EditProductoModal
                 visible={productoEditando !== null}
                 producto={productoEditando}
-                onGuardar={handleGuardar}
+                onGuardar={async (fv, fecha, com) => {
+                    await handleGuardarCambios(fv, fecha, com);
+                }}
                 onCancelar={() => setProductoEditando(null)}
             />
         </View>

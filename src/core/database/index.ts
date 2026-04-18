@@ -10,6 +10,10 @@ import OutboxJob from './models/OutboxJob';
 const migrations = schemaMigrations({
   migrations: [
     {
+      toVersion: 5,
+      steps: [] // Limpieza lógica de columnas obsoletas V4
+    },
+    {
       toVersion: 4,
       steps: [
         addColumns({

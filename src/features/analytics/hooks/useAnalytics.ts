@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { useInventarioStore } from '../../inventory/store/useInventarioStore';
 import { calcularDiasRestantes } from '../../../core/utils/fecha';
 
 import Producto from '../../../core/database/models/Producto';

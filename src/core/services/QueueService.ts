@@ -8,26 +8,13 @@
  *   B. Actualizar doc en Firestore con url_foto.
  *   C. Borrar la foto local (FileSystem.deleteAsync).
  */
+import { decode } from 'base64-arraybuffer';
 import * as FileSystem from 'expo-file-system/legacy';
 import { supabase } from '../database/supabase';
 import { database } from '../database';
 import { Q } from '@nozbe/watermelondb';
 import OutboxJob from '../database/models/OutboxJob';
 
-// Configuración de Supabase Storage
-const getSupabaseConfig = () => ({
-  url: process.env.EXPO_PUBLIC_SUPABASE_URL || '',
-  key: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '',
-  bucket: 'pedidos',
-});
-
-// Mapeo de estados de la app al valor exacto de la columna P de Logistica
-const APP_ESTADO_TO_SHEETS: Record<string, string> = {
-    Pendiente:  'Pendiente',
-    Picking:    'En proceso',
-    En_Tienda:  'Listo para envio',
-    Entregado:  'Entregado',
-};
 
 // Webhooks URL (Supabase Edge Function)
 const getApiUrl = () => process.env.EXPO_PUBLIC_CLOUD_FUNCTION_URL || '';
@@ -194,30 +181,31 @@ export const QueueService = {
         return true;
       }
 
-      const { url, key, bucket } = getSupabaseConfig();
-      // Endpoint de Supabase Storage para upload
-      const uploadUrl = `${url}/storage/v1/object/${bucket}/${job.storagePath}`;
+      console.log(`[FotoQueue] Subiendo a Supabase Storage vía SDK: ${job.storagePath}`);
 
-      console.log(`[FotoQueue] Subiendo a Supabase: ${uploadUrl}`);
-
-      const uploadResult = await FileSystem.uploadAsync(uploadUrl, job.localUri, {
-        httpMethod: 'POST',
-        uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
-        headers: { 
-          'Authorization': `Bearer ${key}`,
-          'apikey': key,
-          'Content-Type': 'image/jpeg' 
-        },
+      // Leer archivo y convertir a ArrayBuffer para el SDK
+      const base64 = await FileSystem.readAsStringAsync(job.localUri, { 
+        encoding: FileSystem.EncodingType.Base64 
       });
+      const arrayBuffer = decode(base64);
 
-      console.log(`[FotoQueue] Upload status: ${uploadResult.status}`);
+      const { error: uploadError } = await supabase.storage
+        .from('pedidos')
+        .upload(job.storagePath, arrayBuffer, {
+          contentType: 'image/jpeg',
+          upsert: true
+        });
 
-      if (uploadResult.status < 200 || uploadResult.status >= 300) {
-        throw new Error(`Supabase Storage upload HTTP ${uploadResult.status}: ${uploadResult.body}`);
+      if (uploadError) {
+        throw new Error(`Supabase SDK Upload Error: ${uploadError.message}`);
       }
 
-      // Obtener URL pública (asumiendo que el bucket es público)
-      const downloadURL = `${url}/storage/v1/object/public/${bucket}/${job.storagePath}`;
+      // Obtener URL pública vía SDK
+      const { data: { publicUrl } } = supabase.storage
+        .from('pedidos')
+        .getPublicUrl(job.storagePath);
+
+      const downloadURL = publicUrl;
 
       // Paso C: actualizar tabla 'pedidos' en Supabase
       const { error: dbError } = await supabase
