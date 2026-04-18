@@ -22,6 +22,7 @@ import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
 import { useTheme } from '../../../core/ui/ThemeContext';
 import { RootStackParamList } from '../../../core/types/navigation';
 import { useLogisticsSync } from '../hooks/useLogisticsSync';
+import { SHADOWS } from '../../../core/ui/shadows';
 
 type PickingNavProp = NativeStackNavigationProp<RootStackParamList, 'PickingList'>;
 
@@ -325,14 +326,6 @@ export const PickingScreen = () => {
 
 // ─── Estilos (Notion Design System) ─────────────────────────────────────────
 
-const CARD_SHADOW = {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 9,
-    elevation: 2,
-};
-
 const styles = StyleSheet.create({
     contenedor: { flex: 1 },
     cabecera: {
@@ -361,7 +354,7 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         alignItems: 'center',
         justifyContent: 'center',
-        ...CARD_SHADOW,
+        ...SHADOWS.CARD,
     },
     barraHerramientas: {
         flexDirection: 'row',
@@ -424,7 +417,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         borderWidth: 1,
         padding: 16,
-        ...CARD_SHADOW,
+        ...SHADOWS.CARD,
     },
     cardHeader: {
         flexDirection: 'row',

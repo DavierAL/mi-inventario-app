@@ -7,8 +7,8 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../../core/types/navigation';
 import { useTheme } from '../../../core/ui/ThemeContext';
 import { MENSAJES } from '../../../core/constants/mensajes';
-import { EditProductoModal } from '../../inventory/components/EditProductoModal';
-import { useScanner } from '../hooks/useScanner';
+import { EditProductoModal } from '../../inventory';
+import { useScanner } from '../';
 
 type ScannerNavProp = NativeStackNavigationProp<RootStackParamList, 'Scanner'>;
 

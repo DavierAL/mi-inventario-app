@@ -16,10 +16,9 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import NetInfo from '@react-native-community/netinfo';
 import { Q } from '@nozbe/watermelondb';
 import Toast from 'react-native-toast-message';
-
+import { useNetworkStatus } from '../../../core/utils/useNetworkStatus';
 import { database } from '../../../core/database';
 import Pedido, { EstadoPedido } from '../../../core/database/models/Pedido';
 import { QueueService } from '../../../core/services/QueueService';
@@ -27,6 +26,7 @@ import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
 import { useTheme } from '../../../core/ui/ThemeContext';
 import { RootStackParamList } from '../../../core/types/navigation';
 import { useLogisticsSync } from '../hooks/useLogisticsSync';
+import { SHADOWS } from '../../../core/ui/shadows';
 
 type StorePanelNavProp = NativeStackNavigationProp<RootStackParamList, 'StorePanel'>;
 type StorePanelRoute = RouteProp<RootStackParamList, 'StorePanel'>;
@@ -45,6 +45,7 @@ export const StorePanelScreen = () => {
     const { colors, isDark } = useTheme();
     const navigation = useNavigation<StorePanelNavProp>();
     const route = useRoute<StorePanelRoute>();
+    const { isOnline } = useNetworkStatus();
     const { } = useLogisticsSync();
 
     const [permisoCamera, pedirPermiso] = useCameraPermissions();
@@ -190,13 +191,15 @@ export const StorePanelScreen = () => {
                 localUri: fotoUri,
                 storagePath,
             });
-            const net = await NetInfo.fetch();
-            if (net.isConnected) QueueService.procesarColaFotos().catch(() => {});
+            if (isOnline) {
+                QueueService.procesarColaFotos().catch(() => {});
+            }
+            
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             Toast.show({
                 type: 'success',
                 text1: 'Entrega confirmada',
-                text2: net.isConnected ? 'Subiendo evidencia...' : 'Se sincronizará cuando haya red',
+                text2: isOnline ? 'Subiendo evidencia...' : 'Se sincronizará cuando haya red',
             });
             navigation.goBack();
         } catch {
@@ -467,14 +470,6 @@ export const StorePanelScreen = () => {
 
 // ─── Estilos ──────────────────────────────────────────────────────────────────
 
-const CARD_SHADOW = {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 9,
-    elevation: 2,
-};
-
 const styles = StyleSheet.create({
     contenedor: { flex: 1 },
     cabecera: {
@@ -517,7 +512,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         borderWidth: 1,
         padding: 16,
-        ...CARD_SHADOW,
+        ...SHADOWS.CARD,
     },
     cardHeader: {
         flexDirection: 'row',
@@ -566,7 +561,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         paddingVertical: 40,
-        ...CARD_SHADOW,
+        ...SHADOWS.CARD,
     },
     fotoPlaceholderText: {
         fontSize: 14,
@@ -662,7 +657,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         alignItems: 'center',
         justifyContent: 'center',
-        ...CARD_SHADOW,
+        ...SHADOWS.CARD,
         elevation: 8,
     },
     camaraHint: {
