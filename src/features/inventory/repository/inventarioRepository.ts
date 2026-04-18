@@ -1,10 +1,12 @@
 import { supabase } from '../../../core/database/supabase';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Q } from '@nozbe/watermelondb';
+import { database } from '../../../core/database';
 import { QueueService, WebhookPayload } from '../../../core/services/QueueService';
 import { ProductoInventario, EntradaHistorial, TipoAccionHistorial } from '../../../core/types/inventario';
-import { database } from '../../../core/database';
 import Movimiento from '../../../core/database/models/Movimiento';
+import Producto from '../../../core/database/models/Producto';
 import { parseFVToTimestamp, parseFVToDate, formatearFecha } from '../../../core/utils/fecha';
 
 const API_URL = process.env.EXPO_PUBLIC_CLOUD_FUNCTION_URL || '';
@@ -17,6 +19,22 @@ const WEBHOOK_QUEUE_KEY = '@webhook_queue_mascotify';
  * infraestructura sin implementar los detalles de ninguna.
  */
 export const InventarioRepository = {
+
+    // ─────────────────────────────────────────────
+    // LECTURA (Búsqueda)
+    // ─────────────────────────────────────────────
+
+    async buscarPorCodigoBarras(codigo: string): Promise<Producto | null> {
+        try {
+            const results = await database.get<Producto>('productos')
+                .query(Q.where('cod_barras', codigo.trim()))
+                .fetch();
+            return results.length > 0 ? results[0] : null;
+        } catch (error) {
+            console.error('[Repo] Error al buscar producto:', error);
+            return null;
+        }
+    },
 
     // ─────────────────────────────────────────────
     // INVENTARIO (Lectura legado/compatibilidad)

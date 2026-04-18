@@ -13,9 +13,7 @@ import { useInventarioStore } from '../../inventory/store/useInventarioStore';
 import { useTheme } from '../../../core/ui/ThemeContext';
 import { MENSAJES } from '../../../core/constants/mensajes';
 
-import { database } from '../../../core/database';
-import { Q } from '@nozbe/watermelondb';
-import Producto from '../../../core/database/models/Producto';
+import { InventarioRepository } from '../../inventory/repository/inventarioRepository';
 
 type ScannerNavProp = NativeStackNavigationProp<RootStackParamList, 'Scanner'>;
 
@@ -81,12 +79,8 @@ export const ScannerScreen = () => {
         const codigoLimpio = String(data).trim();
 
         try {
-            // Tarea 3.4.2: Búsqueda asíncrona en SQLite
-            const productosEncontrados = await database.collections.get<Producto>('productos')
-                .query(Q.where('cod_barras', Q.eq(codigoLimpio)))
-                .fetch();
-            
-            const productoEncontrado = productosEncontrados.length > 0 ? productosEncontrados[0] : null;
+            // Tarea 3.4.2: Búsqueda asíncrona mediante el Repositorio (Clean Architecture)
+            const productoEncontrado = await InventarioRepository.buscarPorCodigoBarras(codigoLimpio);
 
             if (productoEncontrado) {
                 reproducirBeep(true);

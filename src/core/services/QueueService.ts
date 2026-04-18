@@ -122,8 +122,15 @@ export const QueueService = {
         body: JSON.stringify(payload),
       });
       const txt = await res.text();
-      return txt.includes('"status":"success"');
-    } catch {
+      try {
+        const json = JSON.parse(txt);
+        return json?.status === 'success';
+      } catch (e) {
+        console.warn('[Queue] Respuesta no es JSON válido:', txt);
+        return false;
+      }
+    } catch (error) {
+      console.error('[Queue] Error de red en _intentarEnvio:', error);
       return false;
     }
   },
