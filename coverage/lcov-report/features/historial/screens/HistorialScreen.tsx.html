@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/23</span>
+                <span class='fraction'>0/20</span>
             </div>
         
             
@@ -39,14 +39,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/8</span>
+                <span class='fraction'>0/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/22</span>
+                <span class='fraction'>0/20</span>
             </div>
         
             
@@ -267,20 +267,7 @@
 <a name='L202'></a><a href='#L202'>202</a>
 <a name='L203'></a><a href='#L203'>203</a>
 <a name='L204'></a><a href='#L204'>204</a>
-<a name='L205'></a><a href='#L205'>205</a>
-<a name='L206'></a><a href='#L206'>206</a>
-<a name='L207'></a><a href='#L207'>207</a>
-<a name='L208'></a><a href='#L208'>208</a>
-<a name='L209'></a><a href='#L209'>209</a>
-<a name='L210'></a><a href='#L210'>210</a>
-<a name='L211'></a><a href='#L211'>211</a>
-<a name='L212'></a><a href='#L212'>212</a>
-<a name='L213'></a><a href='#L213'>213</a>
-<a name='L214'></a><a href='#L214'>214</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L205'></a><a href='#L205'>205</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -464,13 +451,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -499,13 +481,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useHistorial } from '../../historial/hooks/useHistorial';
+import { useHistorial } from '../hooks/useHistorial';
 import { useTheme } from '../../../core/ui/ThemeContext';
 import { EntradaHistorial, TipoAccionHistorial } from '../../../core/types/inventario';
-import withObservables from '@nozbe/with-observables';
-import { database } from '../../../core/database';
-import Movimiento from '../../../core/database/models/Movimiento';
-import { Q } from '@nozbe/watermelondb';
 import { formatearTiempoRelativo, formatearHora } from '../../../core/utils/fecha';
 import { Text, Surface, Badge } from '../../../core/ui/components';
 import { TOKENS } from '../../../core/ui/tokens';
@@ -613,10 +591,10 @@ const EntradaCard = <span class="cstat-no" title="statement not covered" >React.
     );
 });
 &nbsp;
-const HistorialScreenRaw: React.FC&lt;ScreenProps&gt; = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >({</span> movimientos }) =&gt; {</span>
+const HistorialScreen: React.FC = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
     const { colors } = <span class="cstat-no" title="statement not covered" >useTheme();</span>
     const navigation = <span class="cstat-no" title="statement not covered" >useNavigation();</span>
-    const { entradas, cargando, error } = <span class="cstat-no" title="statement not covered" >useHistorial(movimientos);</span>
+    const { entradas, cargando, error } = <span class="cstat-no" title="statement not covered" >useHistorial();</span>
 &nbsp;
     const renderItem = <span class="cstat-no" title="statement not covered" >useCallback(<span class="fstat-no" title="function not covered" >({</span> item, index }: { item: EntradaHistorial; index: number }) =&gt; (</span>
 <span class="cstat-no" title="statement not covered" >        &lt;EntradaCard entrada={item} esUltima={index === entradas.length - 1} /&gt;</span>
@@ -677,13 +655,8 @@ const HistorialScreenRaw: React.FC&lt;ScreenProps&gt; = <span class="cstat-no" t
     );
 };
 &nbsp;
-const enhance = <span class="cstat-no" title="statement not covered" >withObservables([], <span class="fstat-no" title="function not covered" >()</span> =&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
-    movimientos: database.collections.get&lt;Movimiento&gt;('movimientos')
-        .query(Q.sortBy('timestamp', Q.desc))
-        .observe(),
-}));
-&nbsp;
-export const HistorialScreen = <span class="cstat-no" title="statement not covered" >enhance(HistorialScreenRaw);</span>
+// Exportación directa ya que el hook maneja la reactividad
+export { HistorialScreen };
 &nbsp;
 const styles = <span class="cstat-no" title="statement not covered" >StyleSheet.create({</span>
     contenedor: { flex: 1 },
@@ -709,7 +682,7 @@ const styles = <span class="cstat-no" title="statement not covered" >StyleSheet.
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-21T10:31:00.338Z
+                at 2026-04-21T13:25:35.252Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

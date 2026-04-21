@@ -17,9 +17,21 @@ export const InventarioRepository = {
 
     async buscarPorCodigoBarras(codigo: string): Promise<Producto | null> {
         try {
+            const queryCode = String(codigo).trim().toLowerCase();
             const results = await database.get<Producto>('productos')
-                .query(Q.where('cod_barras', codigo.trim()))
+                .query(
+                    Q.where('cod_barras', Q.like(`${queryCode}%`))
+                )
                 .fetch();
+            
+            // Si no hay resultados exactos con like, intentamos búsqueda exacta normal por si acaso
+            if (results.length === 0) {
+                const exactResults = await database.get<Producto>('productos')
+                    .query(Q.where('cod_barras', queryCode))
+                    .fetch();
+                return exactResults.length > 0 ? exactResults[0] : null;
+            }
+
             return results.length > 0 ? results[0] : null;
         } catch (error) {
             console.error('[Repo] Error al buscar producto:', error);

@@ -8,13 +8,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { useHistorial } from '../../historial/hooks/useHistorial';
+import { useHistorial } from '../hooks/useHistorial';
 import { useTheme } from '../../../core/ui/ThemeContext';
 import { EntradaHistorial, TipoAccionHistorial } from '../../../core/types/inventario';
-import withObservables from '@nozbe/with-observables';
-import { database } from '../../../core/database';
-import Movimiento from '../../../core/database/models/Movimiento';
-import { Q } from '@nozbe/watermelondb';
 import { formatearTiempoRelativo, formatearHora } from '../../../core/utils/fecha';
 import { Text, Surface, Badge } from '../../../core/ui/components';
 import { TOKENS } from '../../../core/ui/tokens';
@@ -122,10 +118,10 @@ const EntradaCard = React.memo(({ entrada, esUltima }: EntradaCardProps) => {
     );
 });
 
-const HistorialScreenRaw: React.FC<ScreenProps> = ({ movimientos }) => {
+const HistorialScreen: React.FC = () => {
     const { colors } = useTheme();
     const navigation = useNavigation();
-    const { entradas, cargando, error } = useHistorial(movimientos);
+    const { entradas, cargando, error } = useHistorial();
 
     const renderItem = useCallback(({ item, index }: { item: EntradaHistorial; index: number }) => (
         <EntradaCard entrada={item} esUltima={index === entradas.length - 1} />
@@ -186,13 +182,8 @@ const HistorialScreenRaw: React.FC<ScreenProps> = ({ movimientos }) => {
     );
 };
 
-const enhance = withObservables([], () => ({
-    movimientos: database.collections.get<Movimiento>('movimientos')
-        .query(Q.sortBy('timestamp', Q.desc))
-        .observe(),
-}));
-
-export const HistorialScreen = enhance(HistorialScreenRaw);
+// Exportación directa ya que el hook maneja la reactividad
+export { HistorialScreen };
 
 const styles = StyleSheet.create({
     contenedor: { flex: 1 },

@@ -11,28 +11,30 @@ export const useAnalytics = (productos: Producto[]) => {
     const recomendaciones: string[] = [];
 
     productos.forEach((item) => {
-      // Ignorar productos sin FV o sin stock
-      if (!item.fvActualTs || item.stockMaster <= 0) return;
+      // Ignorar productos sin FV o sin stock o si item no existe
+      if (!item || !item.fvActualTs || (item.stockMaster ?? 0) <= 0) return;
 
       const diffDias = calcularDiasRestantes(item.fvActualTs);
       
-      const marca = item.marca;
+      const marca = item.marca || 'Genérico';
+      const stock = item.stockMaster ?? 0;
+      const precio = item.precioTienda ?? 0;
 
       if (diffDias < 0) {
-        vencidos += item.stockMaster;
+        vencidos += stock;
         // Sumamos el capital perdido (Precio Tienda * Stock)
-        capitalPerdido += (item.precioTienda * item.stockMaster);
+        capitalPerdido += (precio * stock);
         
         // Insight Automático: Retirar del anaquel
-        if (item.stockMaster >= 5) {
-          recomendaciones.push(`🔴 Acción requerida: Retirar ${item.stockMaster} unds. de ${item.descripcion} (Cód: ${item.codBarras}). Producto vencido.`);
+        if (stock >= 5) {
+          recomendaciones.push(`🔴 Acción requerida: Retirar ${stock} unds. de ${item.descripcion || 'Producto'}. Vencido.`);
         }
       } else if (diffDias <= 30) {
-        riesgo += item.stockMaster;
+        riesgo += stock;
         // Agrupar marcas en riesgo
-        conteoMarcasRiesgo[marca] = (conteoMarcasRiesgo[marca] || 0) + item.stockMaster;
+        conteoMarcasRiesgo[marca] = (conteoMarcasRiesgo[marca] || 0) + stock;
       } else {
-        sanos += item.stockMaster;
+        sanos += stock;
       }
     });
 
@@ -46,7 +48,7 @@ export const useAnalytics = (productos: Producto[]) => {
 
     marcasOrdenadas.forEach(([marca, cant]) => {
       if (cant > 10) {
-        recomendaciones.push(`🟠 Estrategia: ${marca} tiene ${cant} productos venciendo pronto. Sugerimos aplicar 20%-30% de descuento para rotarlos.`);
+        recomendaciones.push(`🟠 Estrategia: ${marca} tiene ${cant} productos venciendo pronto. Sugerimos rotación acelerada.`);
       }
     });
 

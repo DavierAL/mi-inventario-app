@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/30</span>
+                <span class='fraction'>0/32</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/16</span>
+                <span class='fraction'>0/27</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/27</span>
+                <span class='fraction'>0/29</span>
             </div>
         
             
@@ -130,7 +130,9 @@
 <a name='L65'></a><a href='#L65'>65</a>
 <a name='L66'></a><a href='#L66'>66</a>
 <a name='L67'></a><a href='#L67'>67</a>
-<a name='L68'></a><a href='#L68'>68</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -148,6 +150,8 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -210,28 +214,30 @@ export const useAnalytics = <span class="cstat-no" title="statement not covered"
     const recomendaciones: string[] = <span class="cstat-no" title="statement not covered" >[];</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    productos.forEach(<span class="fstat-no" title="function not covered" >(i</span>tem) =&gt; {</span>
-      // Ignorar productos sin FV o sin stock
-<span class="cstat-no" title="statement not covered" >      if (!item.fvActualTs || item.stockMaster &lt;= 0) <span class="cstat-no" title="statement not covered" >return;</span></span>
+      // Ignorar productos sin FV o sin stock o si item no existe
+<span class="cstat-no" title="statement not covered" >      if (!item || !item.fvActualTs || (item.stockMaster ?? 0) &lt;= 0) <span class="cstat-no" title="statement not covered" >return;</span></span>
 &nbsp;
       const diffDias = <span class="cstat-no" title="statement not covered" >calcularDiasRestantes(item.fvActualTs);</span>
       
-      const marca = <span class="cstat-no" title="statement not covered" >item.marca;</span>
+      const marca = <span class="cstat-no" title="statement not covered" >item.marca || 'Genérico';</span>
+      const stock = <span class="cstat-no" title="statement not covered" >item.stockMaster ?? 0;</span>
+      const precio = <span class="cstat-no" title="statement not covered" >item.precioTienda ?? 0;</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >      if (diffDias &lt; 0) {</span>
-<span class="cstat-no" title="statement not covered" >        vencidos += item.stockMaster;</span>
+<span class="cstat-no" title="statement not covered" >        vencidos += stock;</span>
         // Sumamos el capital perdido (Precio Tienda * Stock)
-<span class="cstat-no" title="statement not covered" >        capitalPerdido += (item.precioTienda * item.stockMaster);</span>
+<span class="cstat-no" title="statement not covered" >        capitalPerdido += (precio * stock);</span>
         
         // Insight Automático: Retirar del anaquel
-<span class="cstat-no" title="statement not covered" >        if (item.stockMaster &gt;= 5) {</span>
-<span class="cstat-no" title="statement not covered" >          recomendaciones.push(`🔴 Acción requerida: Retirar ${item.stockMaster} unds. de ${item.descripcion} (Cód: ${item.codBarras}). Producto vencido.`);</span>
+<span class="cstat-no" title="statement not covered" >        if (stock &gt;= 5) {</span>
+<span class="cstat-no" title="statement not covered" >          recomendaciones.push(`🔴 Acción requerida: Retirar ${stock} unds. de ${item.descripcion || 'Producto'}. Vencido.`);</span>
         }
       } else <span class="cstat-no" title="statement not covered" >if (diffDias &lt;= 30) {</span>
-<span class="cstat-no" title="statement not covered" >        riesgo += item.stockMaster;</span>
+<span class="cstat-no" title="statement not covered" >        riesgo += stock;</span>
         // Agrupar marcas en riesgo
-<span class="cstat-no" title="statement not covered" >        conteoMarcasRiesgo[marca] = (conteoMarcasRiesgo[marca] || 0) + item.stockMaster;</span>
+<span class="cstat-no" title="statement not covered" >        conteoMarcasRiesgo[marca] = (conteoMarcasRiesgo[marca] || 0) + stock;</span>
       } else {
-<span class="cstat-no" title="statement not covered" >        sanos += item.stockMaster;</span>
+<span class="cstat-no" title="statement not covered" >        sanos += stock;</span>
       }
     });
 &nbsp;
@@ -245,7 +251,7 @@ export const useAnalytics = <span class="cstat-no" title="statement not covered"
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    marcasOrdenadas.forEach(<span class="fstat-no" title="function not covered" >([</span>marca, cant]) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >      if (cant &gt; 10) {</span>
-<span class="cstat-no" title="statement not covered" >        recomendaciones.push(`🟠 Estrategia: ${marca} tiene ${cant} productos venciendo pronto. Sugerimos aplicar 20%-30% de descuento para rotarlos.`);</span>
+<span class="cstat-no" title="statement not covered" >        recomendaciones.push(`🟠 Estrategia: ${marca} tiene ${cant} productos venciendo pronto. Sugerimos rotación acelerada.`);</span>
       }
     });
 &nbsp;
@@ -271,7 +277,7 @@ export const useAnalytics = <span class="cstat-no" title="statement not covered"
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-21T10:31:00.338Z
+                at 2026-04-21T13:25:35.252Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

@@ -106,7 +106,21 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
                 });
             });
 
-            // 2. PUENTE A FIREBASE Y GOOGLE SHEETS (Usando el Repositorio original)
+            // 2. REGISTRO DE AUDITORÍA LOCAL (Historial)
+            await InventarioRepository.registrarMovimiento({
+                productoId: codigo,
+                descripcion: productoEditando.descripcion,
+                marca: productoEditando.marca,
+                sku: productoEditando.sku,
+                accion: (comentario && !productoEditando.comentarios) ? 'COMENTARIO_AGREGADO' : 'FV_ACTUALIZADO',
+                cambios: {
+                    fvAnteriorTs: fvAnteriorTs?.getTime(),
+                    fvNuevoTs: parseFVToDate(fv)?.getTime(),
+                    comentario: comentario
+                }
+            });
+
+            // 3. PUENTE A FIREBASE Y GOOGLE SHEETS (Usando el Repositorio original)
             const accion: TipoAccionHistorial = (comentario && !productoEditando.comentarios) ? 'COMENTARIO_AGREGADO' : 'FV_ACTUALIZADO';
 
             InventarioRepository.actualizarProducto(
@@ -126,7 +140,7 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
                 }
             ).catch(e => console.warn('[Store] Error en actualizarProducto:', e));
 
-            // 3. Sincronización secundaria en 2do plano
+            // 4. Sincronización secundaria en 2do plano
             syncConSupabase().catch(e => console.warn('[Sync] Background error:', e));
 
             set({ productoEditando: null });

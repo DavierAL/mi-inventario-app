@@ -36,20 +36,39 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
       const lastPulledDate = options.forceFull ? new Date(0).toISOString() : new Date(lastPulledAt || 0).toISOString();
       console.log(`[Sync] PULL iniciando. LastPulled: ${lastPulledAt} (${lastPulledDate})`);
 
-      // --- PULL PRODUCTOS (Supabase) ---
-      let queryProd = supabase.from('productos').select('*');
-      
-      // Si no es sincronización inicial, filtramos por fecha
-      if ((lastPulledAt || 0) > 0 && !options.forceFull) {
-        queryProd = queryProd.gte('updated_at', lastPulledDate);
+      // --- PULL PRODUCTOS (Supabase) con Paginación ---
+      let productosRemote: any[] = [];
+      let page = 0;
+      const pageSize = 1000;
+      let hasMore = true;
+
+      while (hasMore) {
+        let queryProd = supabase
+          .from('productos')
+          .select('*')
+          .range(page * pageSize, (page + 1) * pageSize - 1);
+        
+        if ((lastPulledAt || 0) > 0 && !options.forceFull) {
+          queryProd = queryProd.gte('updated_at', lastPulledDate);
+        }
+
+        const { data: batch, error: errProd } = await queryProd;
+
+        if (errProd) {
+          console.error('[Sync] Error pulling productos batch:', errProd.message);
+          hasMore = false;
+        } else if (batch && batch.length > 0) {
+          productosRemote = [...productosRemote, ...batch];
+          if (batch.length < pageSize) {
+            hasMore = false;
+          } else {
+            page++;
+          }
+        } else {
+          hasMore = false;
+        }
       }
       
-      const { data: productosRemote, error: errProd } = await queryProd;
-
-      if (errProd) {
-          console.error('[Sync] Error pulling productos:', errProd.message);
-      }
-
       const productosUpdated = (productosRemote || []).map((row: any) => ({
         id: row.id,
         cod_barras: row.cod_barras,

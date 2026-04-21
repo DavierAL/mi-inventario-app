@@ -32,7 +32,7 @@ export const ScannerScreen = () => {
                 facing="back"
                 onBarcodeScanned={manejarCodigoEscaneado}
                 barcodeScannerSettings={{
-                    barcodeTypes: ['ean13', 'ean8', 'qr', 'upc_a', 'code128'],
+                    barcodeTypes: ['ean13', 'ean8', 'qr', 'upc_a', 'upc_e', 'code128', 'code39', 'itf14'],
                 }}
             />
 

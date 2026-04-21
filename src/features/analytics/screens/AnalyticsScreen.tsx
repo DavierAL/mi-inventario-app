@@ -13,14 +13,29 @@ import withObservables from '@nozbe/with-observables';
 import { database } from '../../../core/database';
 import Producto from '../../../core/database/models/Producto';
 
+import { SkeletonCard } from '../../../core/ui/SkeletonCard';
+import { TOKENS } from '../../../core/ui/tokens';
+
 const screenWidth = Dimensions.get("window").width;
 
 interface Props {
-    productos: Producto[];
+    productos: Producto[] | undefined;
 }
 
 const AnalyticsScreenRaw: React.FC<Props> = ({ productos }) => {
     const { colors, isDark } = useTheme();
+
+    if (!productos) {
+        return (
+            <SafeAreaView style={{ flex: 1, backgroundColor: colors.fondo, padding: 16 }}>
+                <Text style={{ fontSize: 22, fontWeight: '700', marginBottom: 16 }}>Dashboard Analítico</Text>
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
+            </SafeAreaView>
+        );
+    }
+
     const { saludPorcentaje, capitalPerdido, datosDona, marcasRiesgo, recomendaciones, totalInventario } = useAnalytics(productos);
 
     // Ajustar colores de la dona para modo oscuro
