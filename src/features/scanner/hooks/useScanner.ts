@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import * as Haptics from 'expo-haptics';
 import Toast from 'react-native-toast-message';
 import { precargarSonidos, reproducirSonido } from '../../../core/utils/sonidos';
@@ -21,14 +21,18 @@ export const useScanner = () => {
     } = useInventarioStore();
     
     const [procesandoEscaneo, setProcesandoEscaneo] = useState<boolean>(false);
+    const lockEscaneo = useRef<boolean>(false);
 
     useEffect(() => {
         // Precargar sonidos al montar el hook
         precargarSonidos();
         
         // Reset de procesamiento cuando se cierra el modal de edición
-        if (productoEditando === null && procesandoEscaneo) {
-            const timer = setTimeout(() => setProcesandoEscaneo(false), 500);
+        if (productoEditando === null) {
+            const timer = setTimeout(() => {
+                setProcesandoEscaneo(false);
+                lockEscaneo.current = false;
+            }, 500);
             return () => clearTimeout(timer);
         }
     }, [productoEditando]);
@@ -54,7 +58,8 @@ export const useScanner = () => {
      * Orquestador principal de un nuevo código escaneado
      */
     const manejarCodigoEscaneado = useCallback(async ({ data }: { data: string }) => {
-        if (procesandoEscaneo) return;
+        if (lockEscaneo.current) return;
+        lockEscaneo.current = true;
         setProcesandoEscaneo(true);
 
         const codigoLimpio = String(data).trim();
@@ -76,11 +81,15 @@ export const useScanner = () => {
                     visibilityTime: 3000,
                 });
                 // Permitir re-escaneo tras un breve delay si no se encontró nada
-                setTimeout(() => setProcesandoEscaneo(false), 1500);
+                setTimeout(() => {
+                    setProcesandoEscaneo(false);
+                    lockEscaneo.current = false;
+                }, 1500);
             }
         } catch (error) {
             console.error('[useScanner] Error en búsqueda:', error);
             setProcesandoEscaneo(false);
+            lockEscaneo.current = false;
         }
     }, [procesandoEscaneo, setProductoEditando, reproducirFeedback]);
 
