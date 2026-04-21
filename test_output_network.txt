@@ -1,0 +1,256 @@
+﻿node : FAIL src/core/utils/__tests__/useNetworkStatus.test.ts
+En línea: 1 Carácter: 1
++ node node_modules\jest\bin\jest.js src/core/utils/__tests__/useNetwor ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (FAIL src/core/u...kStatus.test.ts:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  useNetworkStatus Hook
+    ├ù inicializa con el estado de NetInfo.fetch (28 ms)
+    ├ù actualiza isOnline correctamente cuando no hay internet (9 ms)
+    ├ù se suscribe a cambios de red al montar (5 ms)
+    ├ù proporciona una funcion refresh funcional (4 ms)
+
+  ÔùÅ useNetworkStatus Hook ÔÇ║ inicializa con el estado de NetInfo.fetch
+
+    TypeError: Cannot read properties of undefined (reading 'unknown')
+
+    [0m [90m 11 |[39m [36mexport[39m [36mconst[39m useNetworkStatus [33m=[39m () [33m=>[39m {
+     [90m 12 |[39m   [36mconst[39m [networkState[33m,[39m setNetworkState] [33m=[39m 
+useState[33m<[39m[33mNetInfoState[39m[33m>[39m({
+    [31m[1m>[22m[39m[90m 13 |[39m     type[33m:[39m [33mNetInfoStateType[39m[33m.[39munknown[33m,[39m
+     [90m    |[39m                            [31m[1m^[22m[39m
+     [90m 14 |[39m     isConnected[33m:[39m [36mnull[39m[33m,[39m
+     [90m 15 |[39m     isInternetReachable[33m:[39m [36mnull[39m[33m,[39m
+     [90m 16 |[39m     details[33m:[39m [36mnull[39m[33m,[39m[0m
+
+      at unknown (src/core/utils/useNetworkStatus.ts:13:28)
+      at src/core/utils/__tests__/useNetworkStatus.test.ts:28:61
+      at hookToRender (node_modules/@testing-library/react-native/src/render-hook.tsx:46:26)
+      at Object.react-stack-bottom-frame 
+(node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13976:20)
+      at renderWithHooks (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2866:22)
+      at updateFunctionComponent (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:6006:19)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7474:18)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performWorkOnRootViaSchedulerTask 
+(node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at renderHook (node_modules/@testing-library/react-native/src/render-hook.tsx:55:58)
+      at Object.<anonymous> (src/core/utils/__tests__/useNetworkStatus.test.ts:28:38)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ÔùÅ useNetworkStatus Hook ÔÇ║ actualiza isOnline correctamente cuando no hay internet
+
+    TypeError: Cannot read properties of undefined (reading 'unknown')
+
+    [0m [90m 11 |[39m [36mexport[39m [36mconst[39m useNetworkStatus [33m=[39m () [33m=>[39m {
+     [90m 12 |[39m   [36mconst[39m [networkState[33m,[39m setNetworkState] [33m=[39m 
+useState[33m<[39m[33mNetInfoState[39m[33m>[39m({
+    [31m[1m>[22m[39m[90m 13 |[39m     type[33m:[39m [33mNetInfoStateType[39m[33m.[39munknown[33m,[39m
+     [90m    |[39m                            [31m[1m^[22m[39m
+     [90m 14 |[39m     isConnected[33m:[39m [36mnull[39m[33m,[39m
+     [90m 15 |[39m     isInternetReachable[33m:[39m [36mnull[39m[33m,[39m
+     [90m 16 |[39m     details[33m:[39m [36mnull[39m[33m,[39m[0m
+
+      at unknown (src/core/utils/useNetworkStatus.ts:13:28)
+      at src/core/utils/__tests__/useNetworkStatus.test.ts:46:61
+      at hookToRender (node_modules/@testing-library/react-native/src/render-hook.tsx:46:26)
+      at Object.react-stack-bottom-frame 
+(node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13976:20)
+      at renderWithHooks (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2866:22)
+      at updateFunctionComponent (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:6006:19)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7474:18)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performWorkOnRootViaSchedulerTask 
+(node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at renderHook (node_modules/@testing-library/react-native/src/render-hook.tsx:55:58)
+      at Object.<anonymous> (src/core/utils/__tests__/useNetworkStatus.test.ts:46:38)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ÔùÅ useNetworkStatus Hook ÔÇ║ se suscribe a cambios de red al montar
+
+    TypeError: Cannot read properties of undefined (reading 'unknown')
+
+    [0m [90m 11 |[39m [36mexport[39m [36mconst[39m useNetworkStatus [33m=[39m () [33m=>[39m {
+     [90m 12 |[39m   [36mconst[39m [networkState[33m,[39m setNetworkState] [33m=[39m 
+useState[33m<[39m[33mNetInfoState[39m[33m>[39m({
+    [31m[1m>[22m[39m[90m 13 |[39m     type[33m:[39m [33mNetInfoStateType[39m[33m.[39munknown[33m,[39m
+     [90m    |[39m                            [31m[1m^[22m[39m
+     [90m 14 |[39m     isConnected[33m:[39m [36mnull[39m[33m,[39m
+     [90m 15 |[39m     isInternetReachable[33m:[39m [36mnull[39m[33m,[39m
+     [90m 16 |[39m     details[33m:[39m [36mnull[39m[33m,[39m[0m
+
+      at unknown (src/core/utils/useNetworkStatus.ts:13:28)
+      at src/core/utils/__tests__/useNetworkStatus.test.ts:54:42
+      at hookToRender (node_modules/@testing-library/react-native/src/render-hook.tsx:46:26)
+      at Object.react-stack-bottom-frame 
+(node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13976:20)
+      at renderWithHooks (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2866:22)
+      at updateFunctionComponent (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:6006:19)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7474:18)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performWorkOnRootViaSchedulerTask 
+(node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at renderHook (node_modules/@testing-library/react-native/src/render-hook.tsx:55:58)
+      at Object.<anonymous> (src/core/utils/__tests__/useNetworkStatus.test.ts:54:19)
+
+  ÔùÅ useNetworkStatus Hook ÔÇ║ proporciona una funcion refresh funcional
+
+    TypeError: Cannot read properties of undefined (reading 'unknown')
+
+    [0m [90m 11 |[39m [36mexport[39m [36mconst[39m useNetworkStatus [33m=[39m () [33m=>[39m {
+     [90m 12 |[39m   [36mconst[39m [networkState[33m,[39m setNetworkState] [33m=[39m 
+useState[33m<[39m[33mNetInfoState[39m[33m>[39m({
+    [31m[1m>[22m[39m[90m 13 |[39m     type[33m:[39m [33mNetInfoStateType[39m[33m.[39munknown[33m,[39m
+     [90m    |[39m                            [31m[1m^[22m[39m
+     [90m 14 |[39m     isConnected[33m:[39m [36mnull[39m[33m,[39m
+     [90m 15 |[39m     isInternetReachable[33m:[39m [36mnull[39m[33m,[39m
+     [90m 16 |[39m     details[33m:[39m [36mnull[39m[33m,[39m[0m
+
+      at unknown (src/core/utils/useNetworkStatus.ts:13:28)
+      at src/core/utils/__tests__/useNetworkStatus.test.ts:59:61
+      at hookToRender (node_modules/@testing-library/react-native/src/render-hook.tsx:46:26)
+      at Object.react-stack-bottom-frame 
+(node_modules/react-test-renderer/cjs/react-test-renderer.development.js:13976:20)
+      at renderWithHooks (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2866:22)
+      at updateFunctionComponent (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:6006:19)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7474:18)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performWorkOnRootViaSchedulerTask 
+(node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at renderHook (node_modules/@testing-library/react-native/src/render-hook.tsx:55:58)
+      at Object.<anonymous> (src/core/utils/__tests__/useNetworkStatus.test.ts:59:38)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+-------------------------------|---------|----------|---------|---------|-------------------
+File                           | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------------------|---------|----------|---------|---------|-------------------
+All files                      |     0.2 |        0 |    0.42 |    0.22 |                   
+ core/constants                |       0 |        0 |       0 |       0 |                   
+  mensajes.ts                  |       0 |        0 |       0 |       0 | 3-47              
+ core/database                 |       0 |        0 |     100 |       0 |                   
+  schema.ts                    |       0 |      100 |     100 |       0 | 3                 
+  supabase.ts                  |       0 |        0 |     100 |       0 | 3-10              
+ core/database/models          |       0 |      100 |     100 |       0 |                   
+  Envio.ts                     |       0 |      100 |     100 |       0 | 7                 
+  Movimiento.ts                |       0 |      100 |     100 |       0 | 5                 
+  OutboxJob.ts                 |       0 |      100 |     100 |       0 | 5                 
+  Producto.ts                  |       0 |      100 |     100 |       0 | 5                 
+ core/navigation               |       0 |      100 |       0 |       0 |                   
+  AppNavigator.tsx             |       0 |      100 |       0 |       0 | 12-15             
+ core/services                 |       0 |        0 |       0 |       0 |                   
+  QueueService.ts              |       0 |        0 |       0 |       0 | 20-269            
+ core/ui                       |       0 |        0 |       0 |       0 |                   
+  BottomBar.tsx                |       0 |        0 |       0 |       0 | 17-122            
+  SkeletonCard.tsx             |       0 |      100 |       0 |       0 | 7-59              
+  ThemeContext.tsx             |       0 |        0 |       0 |       0 | 16-55             
+  colores.ts                   |       0 |      100 |     100 |       0 | 5                 
+  shadows.ts                   |       0 |      100 |     100 |       0 | 6                 
+  tokens.ts                    |       0 |      100 |     100 |       0 | 7                 
+ core/ui/components            |       0 |        0 |       0 |       0 |                   
+  Badge.tsx                    |       0 |        0 |       0 |       0 | 13-46             
+  Button.tsx                   |       0 |        0 |       0 |       0 | 27-89             
+  Input.tsx                    |       0 |        0 |       0 |       0 | 22-68             
+  Surface.tsx                  |       0 |        0 |       0 |       0 | 14-49             
+  Typography.tsx               |       0 |        0 |       0 |       0 | 14-46             
+ core/utils                    |    1.57 |        0 |    4.16 |    1.85 |                   
+  benchmark.ts                 |       0 |        0 |       0 |       0 | 15-45             
+  exportaciones.ts             |       0 |      100 |       0 |       0 | 5-54              
+  fecha.ts                     |       0 |        0 |       0 |       0 | 13-120            
+  formato.ts                   |       0 |        0 |       0 |       0 | 3-8               
+  sonidos.ts                   |       0 |        0 |       0 |       0 | 4-28              
+  useDebounce.ts               |       0 |      100 |       0 |       0 | 5-17              
+  useNetworkStatus.ts          |   15.38 |        0 |   16.66 |   15.38 | 19-48             
+ features/analytics/hooks      |       0 |        0 |       0 |       0 |                   
+  useAnalytics.ts              |       0 |        0 |       0 |       0 | 6-53              
+ features/analytics/screens    |       0 |        0 |       0 |       0 |                   
+  AnalyticsScreen.tsx          |       0 |        0 |       0 |       0 | 16-155            
+ features/historial/hooks      |       0 |        0 |       0 |       0 |                   
+  useHistorial.ts              |       0 |        0 |       0 |       0 | 22-39             
+ features/historial/screens    |       0 |        0 |       0 |       0 |                   
+  HistorialScreen.tsx          |       0 |        0 |       0 |       0 | 22-197            
+ features/inventory/components |       0 |        0 |       0 |       0 |                   
+  EditProductoModal.tsx        |       0 |        0 |       0 |       0 | 19-228            
+  ProductoCard.tsx             |       0 |        0 |       0 |       0 | 19-100            
+ features/inventory/hooks      |       0 |        0 |       0 |       0 |                   
+  useFiltrosInventario.ts      |       0 |        0 |       0 |       0 | 16-47             
+ features/inventory/repository |       0 |        0 |       0 |       0 |                   
+  inventarioRepository.ts      |       0 |        0 |       0 |       0 | 16-120            
+ features/inventory/screens    |       0 |        0 |       0 |       0 |                   
+  InventarioListScreen.tsx     |       0 |        0 |       0 |       0 | 35-332            
+ features/inventory/services   |       0 |        0 |       0 |       0 |                   
+  syncService.ts               |       0 |        0 |       0 |       0 | 7-183             
+ features/inventory/store      |       0 |        0 |       0 |       0 |                   
+  useInventarioStore.ts        |       0 |        0 |       0 |       0 | 38-137            
+ features/logistics/hooks      |       0 |        0 |       0 |       0 |                   
+  useLogisticsSync.ts          |       0 |        0 |       0 |       0 | 16-64             
+ features/logistics/repository |       0 |      100 |       0 |       0 |                   
+  logisticsRepository.ts       |       0 |      100 |       0 |       0 | 4-21              
+ features/logistics/screens    |       0 |        0 |       0 |       0 |                   
+  PickingScreen.tsx            |       0 |        0 |       0 |       0 | 13-352            
+  StorePanelScreen.tsx         |       0 |        0 |       0 |       0 | 35-497            
+ features/scanner/hooks        |       0 |        0 |       0 |       0 |                   
+  useScanner.ts                |       0 |        0 |       0 |       0 | 17-112            
+ features/scanner/repository   |       0 |      100 |       0 |       0 |                   
+  scannerRepository.ts         |       0 |      100 |       0 |       0 | 10-15             
+ features/scanner/screens      |       0 |      100 |       0 |       0 |                   
+  ScannerScreen.tsx            |       0 |      100 |       0 |       0 | 17-77             
+-------------------------------|---------|----------|---------|---------|-------------------
+Jest: "global" coverage threshold for statements (90%) not met: 0.2%
+Jest: "global" coverage threshold for branches (90%) not met: 0%
+Jest: "global" coverage threshold for lines (90%) not met: 0.22%
+Jest: "global" coverage threshold for functions (90%) not met: 0.42%
+Test Suites: 1 failed, 1 total
+Tests:       4 failed, 4 total
+Snapshots:   0 total
+Time:        4.065 s
+Ran all test suites matching src/core/utils/__tests__/useNetworkStatus.test.ts.

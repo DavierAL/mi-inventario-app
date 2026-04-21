@@ -1,6 +1,6 @@
-// ARCHIVO: src/screens/ScannerScreen.tsx
+// ARCHIVO: src/features/scanner/screens/ScannerScreen.tsx
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { CameraView } from 'expo-camera';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -9,6 +9,8 @@ import { useTheme } from '../../../core/ui/ThemeContext';
 import { MENSAJES } from '../../../core/constants/mensajes';
 import { EditProductoModal } from '../../inventory';
 import { useScanner } from '../';
+import { Text, Button, Surface } from '../../../core/ui/components';
+import { TOKENS } from '../../../core/ui/tokens';
 
 type ScannerNavProp = NativeStackNavigationProp<RootStackParamList, 'Scanner'>;
 
@@ -35,9 +37,11 @@ export const ScannerScreen = () => {
             />
 
             <View style={styles.capa}>
-                <Text style={styles.textoInfo}>
-                    {MENSAJES.ALINEA_CODIGO}
-                </Text>
+                <Surface variant="flat" padding="lg" radius="full" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+                    <Text variant="body" weight="bold" color="#FFF">
+                        {MENSAJES.ALINEA_CODIGO}
+                    </Text>
+                </Surface>
 
                 <View style={styles.marco}>
                     <View style={[styles.esquina, styles.esquinaTL, { borderColor: colors.primario }]} />
@@ -46,16 +50,12 @@ export const ScannerScreen = () => {
                     <View style={[styles.esquina, styles.esquinaBR, { borderColor: colors.primario }]} />
                 </View>
 
-                {/* Último Escaneado Mini Resumen - Eliminado Ráfaga */}
-                <View style={{ height: 40 }} />
-
-                {/* Botón Flotante para Cancelar */}
-                <TouchableOpacity 
-                    style={styles.botonCancelarCerrar} 
+                <Button 
+                    label={MENSAJES.TERMINAR_LOTE}
+                    variant="secondary"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.2)' }}
                     onPress={() => navigation.goBack()}
-                >
-                    <Text style={styles.textoBotonCancelar}>{MENSAJES.TERMINAR_LOTE}</Text>
-                </TouchableOpacity>
+                />
             </View>
 
             <EditProductoModal
@@ -70,20 +70,16 @@ export const ScannerScreen = () => {
     );
 };
 
+
 const ESQUINA_SIZE = 40;
 const ESQUINA_GROSOR = 4;
 
 const styles = StyleSheet.create({
     contenedor: { flex: 1, backgroundColor: '#000' },
     capa: {
-        flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
+        flex: 1, backgroundColor: 'rgba(0,0,0,0.4)',
         justifyContent: 'space-between', alignItems: 'center',
         paddingVertical: 80,
-    },
-    textoInfo: {
-        color: '#FFF', fontSize: 16, fontWeight: '700',
-        backgroundColor: 'rgba(0,0,0,0.6)', paddingHorizontal: 24, paddingVertical: 12,
-        borderRadius: 24, overflow: 'hidden',
     },
     marco: { width: 280, height: 180, position: 'relative' },
     esquina: { position: 'absolute', width: ESQUINA_SIZE, height: ESQUINA_SIZE },
@@ -91,10 +87,4 @@ const styles = StyleSheet.create({
     esquinaTR: { top: 0, right: 0, borderTopWidth: ESQUINA_GROSOR, borderRightWidth: ESQUINA_GROSOR, borderTopRightRadius: 10 },
     esquinaBL: { bottom: 0, left: 0, borderBottomWidth: ESQUINA_GROSOR, borderLeftWidth: ESQUINA_GROSOR, borderBottomLeftRadius: 10 },
     esquinaBR: { bottom: 0, right: 0, borderBottomWidth: ESQUINA_GROSOR, borderRightWidth: ESQUINA_GROSOR, borderBottomRightRadius: 10 },
-    botonCancelarCerrar: {
-        backgroundColor: 'rgba(0,117,222,0.2)', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 9999, marginTop: 40,
-        borderWidth: 1, borderColor: 'rgba(0,117,222,0.4)',
-    },
-    textoBotonCancelar: { color: '#fff', fontSize: 15, fontWeight: '600', letterSpacing: 0.125 }
 });
-

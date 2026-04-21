@@ -32,7 +32,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>0/12</span>
             </div>
         
             
@@ -254,7 +254,25 @@
 <a name='L189'></a><a href='#L189'>189</a>
 <a name='L190'></a><a href='#L190'>190</a>
 <a name='L191'></a><a href='#L191'>191</a>
-<a name='L192'></a><a href='#L192'>192</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -276,7 +294,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -448,12 +478,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// ARCHIVO: src/features/inventory/components/ProductoCard.tsx
 &nbsp;
 import React, { memo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import Producto from '../../../core/database/models/Producto';
 import { formatearFecha } from '../../../core/utils/fecha';
 import { formatearPrecio } from '../../../core/utils/formato';
 import { useTheme } from '../../../core/ui/ThemeContext';
+&nbsp;
+import { Text, Surface, Badge } from '../../../core/ui/components';
+import { TOKENS } from '../../../core/ui/tokens';
 &nbsp;
 interface Props {
     item: Producto;
@@ -464,11 +497,15 @@ const ProductoCardComponent: React.FC&lt;Props&gt; = <span class="fstat-no" titl
     const { colors } = <span class="cstat-no" title="statement not covered" >useTheme();</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    return (</span>
-        &lt;View&gt;
+        &lt;Surface 
+            variant="elevated" 
+            style={styles.tarjetaProducto} 
+            padding="md"
+        &gt;
             &lt;TouchableOpacity
-                style={[styles.tarjetaProducto, { backgroundColor: colors.superficie }]}
                 onPress={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >onPress(item)}</span>
                 activeOpacity={0.7}
+                style={{ flexDirection: 'row', alignItems: 'center' }}
             &gt;
                 {/* Imagen del producto */}
                 &lt;View style={[styles.contenedorImagen, { backgroundColor: colors.inputFondo, borderColor: colors.borde }]}&gt;
@@ -482,38 +519,46 @@ const ProductoCardComponent: React.FC&lt;Props&gt; = <span class="fstat-no" titl
                         /&gt;
                     ) : (
                         &lt;View style={[styles.imagenPlaceholder, { backgroundColor: colors.inputDeshabilitado }]}&gt;
-                            &lt;Text style={styles.imagenPlaceholderIcono}&gt;📦&lt;/Text&gt;
+                            &lt;Text variant="h2"&gt;📦&lt;/Text&gt;
                         &lt;/View&gt;
                     )}
                 &lt;/View&gt;
             
                 &lt;View style={styles.infoPrincipal}&gt;
-                    &lt;Text style={[styles.textoSKU, { color: colors.primario }]}&gt;{item.sku}&lt;/Text&gt;
-                    &lt;Text style={[styles.textoMarca, { color: colors.textoSecundario }]}&gt;{item.marca}&lt;/Text&gt;
-                    &lt;Text style={[styles.textoDescripcion, { color: colors.textoPrincipal }]} numberOfLines={2}&gt;{item.descripcion}&lt;/Text&gt;
-                    &lt;Text style={[styles.textoCodigoBarras, { color: colors.textoSecundario }]}&gt;Cód: {item.codBarras}&lt;/Text&gt;
-                    {item.fvActualTs ? (
-                        &lt;Text style={[styles.textoFV, { color: colors.error }]}&gt;FV: {formatearFecha(item.fvActualTs)}&lt;/Text&gt;
-                    ) : null}
+                    &lt;Text variant="tiny" weight="bold" color={colors.primario}&gt;{item.sku}&lt;/Text&gt;
+                    &lt;Text variant="small" weight="bold" color={colors.textoSecundario} style={{ opacity: 0.7 }}&gt;
+                        {item.marca.toUpperCase()}
+                    &lt;/Text&gt;
+                    &lt;Text variant="body" weight="bold" numberOfLines={2}&gt;{item.descripcion}&lt;/Text&gt;
+                    
+                    &lt;View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}&gt;
+                        &lt;Text variant="tiny" color={colors.textoTerciario} style={{ fontFamily: 'monospace' }}&gt;
+                            {item.codBarras}
+                        &lt;/Text&gt;
+                        {item.fvActualTs &amp;&amp; (
+                            &lt;Badge 
+                                label={`FV: ${formatearFecha(item.fvActualTs)}`}
+                                variant="error"
+                                style={{ marginLeft: 8 }}
+                            /&gt;
+                        )}
+                    &lt;/View&gt;
                 &lt;/View&gt;
 &nbsp;
-                {/* Panel lateral: Precios y Stock */}
+                {/* Panel lateral: Stock */}
                 &lt;View style={[styles.infoPrecios, { borderLeftColor: colors.borde }]}&gt;
-                    &lt;View style={styles.filaPrecio}&gt;
-                        &lt;Text style={[styles.textoPrecioTitulo, { color: colors.textoSecundario }]}&gt;Web&lt;/Text&gt;
-                        &lt;Text style={[styles.textoPrecioNumero, { color: colors.textoPrincipal }]}&gt;{formatearPrecio(item.precioWeb)}&lt;/Text&gt;
-                    &lt;/View&gt;
-                    &lt;View style={styles.filaPrecio}&gt;
-                        &lt;Text style={[styles.textoPrecioTitulo, { color: colors.textoSecundario }]}&gt;P. Tienda&lt;/Text&gt;
-                        &lt;Text style={[styles.textoPrecioNumero, { color: colors.primario }]}&gt;{formatearPrecio(item.precioTienda)}&lt;/Text&gt;
-                    &lt;/View&gt;
-                    &lt;View style={[styles.filaStock, { backgroundColor: colors.fondoPrimario }]}&gt;
-                        &lt;Text style={[styles.textoStockTitulo, { color: colors.textoSecundario }]}&gt;Stock&lt;/Text&gt;
-                        &lt;Text style={[styles.textoStockNumero, { color: colors.exito }]}&gt;{item.stockMaster}&lt;/Text&gt;
-                    &lt;/View&gt;
+                    &lt;Text variant="tiny" weight="bold" color={colors.textoSecundario}&gt;STOCK&lt;/Text&gt;
+                    &lt;Text 
+                        variant="h1" 
+                        weight="bold" 
+                        color={item.stockMaster &gt; 0 ? colors.exito : colors.error}
+                    &gt;
+                        {item.stockMaster}
+                    &lt;/Text&gt;
+                    &lt;Text variant="tiny" color={colors.textoTerciario}&gt;UNIDADES&lt;/Text&gt;
                 &lt;/View&gt;
             &lt;/TouchableOpacity&gt;
-        &lt;/View&gt;
+        &lt;/Surface&gt;
     );
 };
 &nbsp;
@@ -643,7 +688,7 @@ const styles = StyleSheet.create({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-21T03:18:04.215Z
+                at 2026-04-21T10:10:31.394Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

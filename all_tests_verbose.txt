@@ -1,0 +1,763 @@
+﻿  console.warn
+    [Supabase] Missing configuration. Ensure .env is loaded.
+
+    [0m [90m  5 |[39m
+     [90m  6 |[39m [36mif[39m ([33m![39msupabaseUrl [33m||[39m [33m![39msupabaseAnonKey) {
+    [31m[1m>[22m[39m[90m  7 |[39m   console[33m.[39mwarn([32m'[Supabase] Missing configuration. Ensure .env is loaded.'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m  8 |[39m }
+     [90m  9 |[39m
+     [90m 10 |[39m [36mexport[39m [36mconst[39m supabase [33m=[39m createClient(supabaseUrl[33m,[39m supabaseAnonKey)[33m;[39m[0m
+
+      at Object.warn (src/core/database/supabase.ts:7:11)
+      at Object.require (src/core/services/QueueService.ts:13:1)
+      at Object.require (src/core/services/QueueService.test.ts:1:1)
+
+  console.log
+    [Queue] Webhook encolado en SQLite
+
+      at Object.log (src/core/services/QueueService.ts:55:15)
+
+  console.log
+    [BENCHMARK] Queue Enqueue: 4ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+  console.log
+    [Queue] Procesando 1 webhook(s)...
+
+      at Object.log (src/core/services/QueueService.ts:77:13)
+
+  console.log
+    [Queue] webhooks enviados. 0 pendiente(s).
+
+      at Object.log (src/core/services/QueueService.ts:91:13)
+
+node : PASS src/core/services/QueueService.test.ts
+En línea: 1 Carácter: 1
++ node node_modules\jest\bin\jest.js --verbose 2>&1 | Out-File -FilePat ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (PASS src/core/s...Service.test.ts:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  QueueService - Logic & Performance
+    ÔêÜ Encolar operaci├│n y benchmark de persistencia (15 ms)
+    ÔêÜ Procesar cola con ├®xito (39 ms)
+
+PASS src/core/utils/__tests__/fecha.test.ts
+  Utilidades de Fecha
+    formatearFecha
+      ÔêÜ formatea correctamente una fecha ISO (3 ms)
+      ÔêÜ devuelve el mismo valor si ya esta formateado (1 ms)
+      ÔêÜ maneja objetos Date correctamente (1 ms)
+      ÔêÜ devuelve cadena vacia para valores invalidos (1 ms)
+    calcularDiasRestantes
+      ÔêÜ calcula dias correctamente para fecha futura (2 ms)
+      ÔêÜ devuelve 0 para el mismo dia (1 ms)
+      ÔêÜ devuelve valor negativo para fechas pasadas (1 ms)
+      ÔêÜ devuelve Infinity para valores invalidos
+    parseFVToTimestamp
+      ÔêÜ convierte DD/MM/AAAA a timestamp de medianoche local (1 ms)
+      ÔêÜ devuelve undefined para valores invalidos (5 ms)
+    formatearTiempoRelativo
+      ÔêÜ muestra "Hace un momento" para tiempo muy reciente (1 ms)
+      ÔêÜ muestra minutos correctamente (1 ms)
+      ÔêÜ muestra horas correctamente (2 ms)
+
+PASS src/core/utils/__tests__/formato.test.ts
+  Utilidades de Formato
+    ÔêÜ formatea correctamente numeros positivos (2 ms)
+    ÔêÜ maneja strings numericos (1 ms)
+    ÔêÜ devuelve S/0.00 para valores invalidos (1 ms)
+    ÔêÜ formatea correctamente millones (1 ms)
+
+  console.warn
+    [Supabase] Missing configuration. Ensure .env is loaded.
+
+    [0m [90m  5 |[39m
+     [90m  6 |[39m [36mif[39m ([33m![39msupabaseUrl [33m||[39m [33m![39msupabaseAnonKey) {
+    [31m[1m>[22m[39m[90m  7 |[39m   console[33m.[39mwarn([32m'[Supabase] Missing configuration. Ensure .env is loaded.'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m  8 |[39m }
+     [90m  9 |[39m
+     [90m 10 |[39m [36mexport[39m [36mconst[39m supabase [33m=[39m createClient(supabaseUrl[33m,[39m supabaseAnonKey)[33m;[39m[0m
+
+      at Object.warn (src/core/database/supabase.ts:7:11)
+      at Object.require (src/features/inventory/services/syncService.ts:5:1)
+      at Object.require (src/features/inventory/store/useInventarioStore.ts:4:1)
+      at Object.require (src/features/scanner/hooks/useScanner.ts:5:1)
+      at Object.require (src/features/scanner/hooks/useScanner.test.ts:2:1)
+
+  console.warn
+    [Supabase] Missing configuration. Ensure .env is loaded.
+
+    [0m [90m  5 |[39m
+     [90m  6 |[39m [36mif[39m ([33m![39msupabaseUrl [33m||[39m [33m![39msupabaseAnonKey) {
+    [31m[1m>[22m[39m[90m  7 |[39m   console[33m.[39mwarn([32m'[Supabase] Missing configuration. Ensure .env is loaded.'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m  8 |[39m }
+     [90m  9 |[39m
+     [90m 10 |[39m [36mexport[39m [36mconst[39m supabase [33m=[39m createClient(supabaseUrl[33m,[39m supabaseAnonKey)[33m;[39m[0m
+
+      at Object.warn (src/core/database/supabase.ts:7:11)
+      at Object.require (src/core/services/QueueService.ts:13:1)
+      at Object.require (src/features/inventory/repository/inventarioRepository.ts:4:1)
+      at Object.require (src/features/scanner/repository/scannerRepository.ts:1:1)
+      at Object.require (src/features/scanner/hooks/useScanner.ts:6:1)
+      at Object.require (src/features/scanner/hooks/useScanner.test.ts:2:1)
+
+  console.log
+    [BENCHMARK] Handle Scanned Code (Found): 9ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+  console.log
+    [BENCHMARK] Handle Scanned Code (Not Found): 1ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+PASS src/features/scanner/hooks/useScanner.test.ts
+  useScanner Hook - Unit & Performance
+    ÔêÜ manejarCodigoEscaneado con producto encontrado (67 ms)
+    ÔêÜ manejarCodigoEscaneado con producto NO encontrado (21 ms)
+
+  console.log
+    [BENCHMARK] Historial Mapping: 2ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+PASS src/features/historial/hooks/useHistorial.test.ts
+  useHistorial Hook - Mapping Logic
+    ÔêÜ Mapea correctamente movimientos de DB a EntradaHistorial (5 ms)
+
+PASS src/core/ui/components/__tests__/Button.test.tsx
+  Button Component
+    ÔêÜ renderiza con la etiqueta correcta (1010 ms)
+    ÔêÜ llama a onPress y activa haptics cuando se presiona (16 ms)
+    ÔêÜ no llama a onPress cuando esta deshabilitado (6 ms)
+    ÔêÜ muestra el indicador de carga cuando loading es true (81 ms)
+    ÔêÜ aplica estilos segun variante (primary) (9 ms)
+    ÔêÜ aplica estilos segun variante (danger) (6 ms)
+
+  console.warn
+    [Supabase] Missing configuration. Ensure .env is loaded.
+
+    [0m [90m  5 |[39m
+     [90m  6 |[39m [36mif[39m ([33m![39msupabaseUrl [33m||[39m [33m![39msupabaseAnonKey) {
+    [31m[1m>[22m[39m[90m  7 |[39m   console[33m.[39mwarn([32m'[Supabase] Missing configuration. Ensure .env is loaded.'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m  8 |[39m }
+     [90m  9 |[39m
+     [90m 10 |[39m [36mexport[39m [36mconst[39m supabase [33m=[39m createClient(supabaseUrl[33m,[39m supabaseAnonKey)[33m;[39m[0m
+
+      at Object.warn (src/core/database/supabase.ts:7:11)
+      at Object.require (src/core/services/QueueService.ts:13:1)
+      at Object.require (src/features/logistics/screens/StorePanelScreen.tsx:21:1)
+      at Object.require (src/features/logistics/screens/StorePanelScreen.test.tsx:3:1)
+
+  console.log
+    [BENCHMARK] Store Connection Load: 45ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+  console.log
+    [BENCHMARK] Store Repair Database: 1ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+PASS src/core/ui/components/__tests__/Input.test.tsx
+  Input Component
+    ÔêÜ renderiza con label y placeholder (300 ms)
+    ÔêÜ maneja el cambio de texto (5 ms)
+    ÔêÜ muestra el mensaje de error (4 ms)
+    ÔêÜ renderiza el icono si se proporciona (4 ms)
+
+  console.warn
+    [Supabase] Missing configuration. Ensure .env is loaded.
+
+    [0m [90m  5 |[39m
+     [90m  6 |[39m [36mif[39m ([33m![39msupabaseUrl [33m||[39m [33m![39msupabaseAnonKey) {
+    [31m[1m>[22m[39m[90m  7 |[39m   console[33m.[39mwarn([32m'[Supabase] Missing configuration. Ensure .env is loaded.'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m  8 |[39m }
+     [90m  9 |[39m
+     [90m 10 |[39m [36mexport[39m [36mconst[39m supabase [33m=[39m createClient(supabaseUrl[33m,[39m supabaseAnonKey)[33m;[39m[0m
+
+      at Object.warn (src/core/database/supabase.ts:7:11)
+      at Object.require (src/features/inventory/services/syncService.ts:5:1)
+      at Object.require (src/features/inventory/store/useInventarioStore.ts:4:1)
+      at Object.require (src/features/logistics/screens/StorePanelScreen.test.tsx:4:1)
+
+  console.error
+    Sync Error: Error: Network Fail
+        at Object.<anonymous> (C:\mi-inventario-app\src\features\inventory\store\useInventarioStore.test.ts:45:60)
+        at Generator.next (<anonymous>)
+        at asyncGeneratorStep (C:\mi-inventario-app\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+        at _next (C:\mi-inventario-app\node_modules\@babel\runtime\helpers\asyncToGenerator.js:17:9)
+        at C:\mi-inventario-app\node_modules\@babel\runtime\helpers\asyncToGenerator.js:22:7
+        at new Promise (<anonymous>)
+        at Object.<anonymous> (C:\mi-inventario-app\node_modules\@babel\runtime\helpers\asyncToGenerator.js:14:12)
+        at Promise.finally.completed (C:\mi-inventario-app\node_modules\jest-circus\build\jestAdapterInit.js:1557:28)
+        at new Promise (<anonymous>)
+        at callAsyncCircusFn (C:\mi-inventario-app\node_modules\jest-circus\build\jestAdapterInit.js:1497:10)
+        at _callCircusTest (C:\mi-inventario-app\node_modules\jest-circus\build\jestAdapterInit.js:1007:40)
+        at processTicksAndRejections (node:internal/process/task_queues:104:5)
+        at _runTest (C:\mi-inventario-app\node_modules\jest-circus\build\jestAdapterInit.js:947:3)
+        at C:\mi-inventario-app\node_modules\jest-circus\build\jestAdapterInit.js:849:7
+        at _runTestsForDescribeBlock (C:\mi-inventario-app\node_modules\jest-circus\build\jestAdapterInit.js:862:11)
+        at _runTestsForDescribeBlock (C:\mi-inventario-app\node_modules\jest-circus\build\jestAdapterInit.js:857:11)
+        at run (C:\mi-inventario-app\node_modules\jest-circus\build\jestAdapterInit.js:761:3)
+        at runAndTransformResultsToJestFormat (C:\mi-inventario-app\node_modules\jest-circus\build\jestAdapterInit.js:1918:21)
+        at jestAdapter (C:\mi-inventario-app\node_modules\jest-circus\build\runner.js:101:19)
+        at runTestInternal (C:\mi-inventario-app\node_modules\jest-runner\build\testWorker.js:275:16)
+        at runTest (C:\mi-inventario-app\node_modules\jest-runner\build\testWorker.js:343:7)
+        at Object.worker (C:\mi-inventario-app\node_modules\jest-runner\build\testWorker.js:497:12)
+
+    [0m [90m 56 |[39m             [33m.[39mthen(() [33m=>[39m [36mset[39m({ cargando[33m:[39m [36mfalse[39m[33m,[39m lastSync[33m:[39m [36mnew[39m [33mDate[39m()[33m.[39mtoLocaleTimeString([32m'es-ES'[39m[33m,[39m { hour[33m:[39m [32m'2-digit'[39m[33m,[39m minute[33m:[39m [32m'2-digit'[39m }) }))
+     [90m 57 |[39m             [33m.[39m[36mcatch[39m(err [33m=>[39m {
+    [31m[1m>[22m[39m[90m 58 |[39m                 console[33m.[39merror([32m"Sync Error:"[39m[33m,[39m err)[33m;[39m
+     [90m    |[39m                         [31m[1m^[22m[39m
+     [90m 59 |[39m                 [36mconst[39m msg [33m=[39m err [36minstanceof[39m [33mError[39m [33m?[39m err[33m.[39mmessage [33m:[39m [33mString[39m(err)[33m;[39m
+     [90m 60 |[39m                 [36mset[39m({ error[33m:[39m [32m`${MENSAJES.ERROR_CONEXION_REALTIME}\n(${msg})`[39m[33m,[39m cargando[33m:[39m [36mfalse[39m })[33m;[39m
+     [90m 61 |[39m             })[33m;[39m[0m
+
+      at error (src/features/inventory/store/useInventarioStore.ts:58:25)
+
+PASS src/core/ui/components/__tests__/Badge.test.tsx
+  Badge Component
+    ÔêÜ renderiza con la etiqueta correcta (153 ms)
+    ÔêÜ aplica colores segun variante (success) (4 ms)
+    ÔêÜ aplica colores segun variante (error) (10 ms)
+    ÔêÜ aplica colores por defecto (3 ms)
+
+PASS src/features/inventory/store/useInventarioStore.test.ts
+  useInventarioStore - State & Performance
+    ÔêÜ conectarInventario actualiza el estado y llama a sync (Carga) (148 ms)
+    ÔêÜ repararBaseDeDatos activa modo sincronizando (Performance) (7 ms)
+    ÔêÜ Manejo de errores en conectarInventario (40 ms)
+
+  console.log
+    [BENCHMARK] PickingScreen Initial Render: 290ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+  console.warn
+    [Supabase] Missing configuration. Ensure .env is loaded.
+
+    [0m [90m  5 |[39m
+     [90m  6 |[39m [36mif[39m ([33m![39msupabaseUrl [33m||[39m [33m![39msupabaseAnonKey) {
+    [31m[1m>[22m[39m[90m  7 |[39m   console[33m.[39mwarn([32m'[Supabase] Missing configuration. Ensure .env is loaded.'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m  8 |[39m }
+     [90m  9 |[39m
+     [90m 10 |[39m [36mexport[39m [36mconst[39m supabase [33m=[39m createClient(supabaseUrl[33m,[39m supabaseAnonKey)[33m;[39m[0m
+
+      at Object.warn (src/core/database/supabase.ts:7:11)
+      at Object.require (src/features/inventory/services/syncService.ts:5:1)
+      at Object.require (src/features/inventory/services/syncService.test.ts:1:1)
+
+  console.log
+    [BENCHMARK] Sync Pull Mapping Envios: 1ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+PASS src/features/inventory/services/syncService.test.ts
+  SyncService - Unit Tests & Performance
+    ÔêÜ Mapeo de envios desde Supabase (Performance) (8 ms)
+    ÔêÜ Manejo de estados normalizados en sync
+
+  console.error
+    An update to ForwardRef(FlashList) inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11801:19
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11800:9)
+      at scheduleUpdateOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10326:9)
+      at dispatchSetStateInternal (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4148:13)
+      at dispatchSetState (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4107:7)
+      at node_modules/@shopify/flash-list/src/recyclerview/hooks/useOnLoad.ts:52:7
+      at node_modules/@shopify/flash-list/src/recyclerview/hooks/useUnmountAwareCallbacks.ts:61:9
+      at Timeout.callback [as _onTimeout] (node_modules/react-native/jest/setup.js:61:31)
+
+  console.error
+    An update to ForwardRef(FlashList) inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11801:19
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11800:9)
+      at scheduleUpdateOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10326:9)
+      at dispatchSetStateInternal (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4148:13)
+      at dispatchSetState (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4107:7)
+      at node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx:225:7
+      at Object.react-stack-bottom-frame (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14062:20)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at commitHookEffectListMount (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8376:29)
+      at commitHookLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8342:11)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8840:13)
+      at recursivelyTraverseLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:9540:11)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:9009:11)
+      at recursivelyTraverseLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:9540:11)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8838:11)
+      at recursivelyTraverseLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:9540:11)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8920:11)
+      at flushLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11356:13)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11310:9)
+      at commitRootWhenReady (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10532:7)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10494:15)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at Immediate.performWorkUntilDeadline [as _onImmediate] (node_modules/scheduler/cjs/scheduler.native.development.js:45:48)
+
+PASS src/core/ui/components/__tests__/Surface.test.tsx
+  Surface Component
+    ÔêÜ renderiza correctamente sus hijos (58 ms)
+    ÔêÜ aplica el estilo de superficie por defecto (4 ms)
+    ÔêÜ aplica variante outline correctamente (3 ms)
+    ÔêÜ permite personalizar el padding y radio (3 ms)
+
+  console.error
+    An update to ViewHolderCollection inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11801:19
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11800:9)
+      at scheduleUpdateOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10326:9)
+      at dispatchSetStateInternal (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4148:13)
+      at dispatchSetState (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4107:7)
+      at Object.commitLayout (node_modules/@shopify/flash-list/src/recyclerview/ViewHolderCollection.tsx:133:9)
+      at node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx:227:40
+      at Object.react-stack-bottom-frame (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:14062:20)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at commitHookEffectListMount (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8376:29)
+      at commitHookLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8342:11)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8840:13)
+      at recursivelyTraverseLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:9540:11)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:9009:11)
+      at recursivelyTraverseLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:9540:11)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8838:11)
+      at recursivelyTraverseLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:9540:11)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8920:11)
+      at flushLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11356:13)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11310:9)
+      at commitRootWhenReady (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10532:7)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10494:15)
+      at performSyncWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2109:7)
+      at flushSyncWorkAcrossRoots_impl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1954:21)
+      at flushSpawnedWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11467:9)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11311:9)
+      at commitRootWhenReady (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10532:7)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10494:15)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at Immediate.performWorkUntilDeadline [as _onImmediate] (node_modules/scheduler/cjs/scheduler.native.development.js:45:48)
+
+PASS src/core/ui/components/__tests__/Typography.test.tsx
+  Typography Component
+    ÔêÜ renderiza correctamente con el texto proporcionado (69 ms)
+    ÔêÜ aplica el estilo por defecto (body) (3 ms)
+    ÔêÜ aplica variantes correctamente (h1) (4 ms)
+    ÔêÜ permite sobrescribir el color (3 ms)
+    ÔêÜ alinea el texto segun la prop align (13 ms)
+    ÔêÜ aplica el peso de fuente expl├¡cito (3 ms)
+
+PASS src/features/logistics/screens/PickingScreen.test.tsx
+  PickingScreen UI & Performance
+    ÔêÜ Renderizado inicial y performance (450 ms)
+    ÔêÜ Renderizado de PickingList con datos (124 ms)
+    ÔêÜ Interacci├│n con filtros en PickingScreen (66 ms)
+
+  console.warn
+    [Supabase] Missing configuration. Ensure .env is loaded.
+
+    [0m [90m  5 |[39m
+     [90m  6 |[39m [36mif[39m ([33m![39msupabaseUrl [33m||[39m [33m![39msupabaseAnonKey) {
+    [31m[1m>[22m[39m[90m  7 |[39m   console[33m.[39mwarn([32m'[Supabase] Missing configuration. Ensure .env is loaded.'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m  8 |[39m }
+     [90m  9 |[39m
+     [90m 10 |[39m [36mexport[39m [36mconst[39m supabase [33m=[39m createClient(supabaseUrl[33m,[39m supabaseAnonKey)[33m;[39m[0m
+
+      at Object.warn (src/core/database/supabase.ts:7:11)
+      at Object.require (src/core/services/QueueService.ts:13:1)
+      at Object.require (src/features/inventory/repository/inventarioRepository.ts:4:1)
+      at Object.require (src/features/scanner/repository/scannerRepository.ts:1:1)
+      at Object.require (src/features/scanner/repository/scannerRepository.test.ts:1:1)
+
+  console.log
+    [BENCHMARK] Scanner Search: 1ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+PASS src/features/scanner/repository/scannerRepository.test.ts
+  ScannerRepository - Unit & Performance
+    ÔêÜ buscarProducto delega correctamente a InventarioRepository (4 ms)
+
+  console.log
+    [BENCHMARK] Repo Search By Barcode: 0ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+  console.log
+    [BENCHMARK] Repo Full Update Flow: 1ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+  console.log
+    [BENCHMARK] DB Batch Insert 100: 1ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+  console.log
+    [BENCHMARK] DB Query Fetch: 0ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+PASS src/features/inventory/repository/inventarioRepository.test.ts
+  InventarioRepository - Operations & Performance
+    ÔêÜ buscarPorCodigoBarras performance (4 ms)
+    ÔêÜ actualizarProducto workflow (SQLite + Audit) (3 ms)
+
+PASS src/core/database/database.test.ts
+  Database CRUD & Performance
+    ÔêÜ Insert Batch Performance (100 items) (4 ms)
+    ÔêÜ Query Fetch Performance (2 ms)
+
+  console.error
+    An update to StorePanelScreen inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+    [0m [90m 20 |[39m     [90m// 1. Obtener estado inicial de forma as├¡ncrona[39m
+     [90m 21 |[39m     [33mNetInfo[39m[33m.[39mfetch()[33m.[39mthen((state) [33m=>[39m {
+    [31m[1m>[22m[39m[90m 22 |[39m       setNetworkState(state)[33m;[39m
+     [90m    |[39m       [31m[1m^[22m[39m
+     [90m 23 |[39m     })[33m;[39m
+     [90m 24 |[39m
+     [90m 25 |[39m     [90m// 2. Suscribirse a los cambios de red en tiempo real[39m[0m
+
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11801:19
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11800:9)
+      at scheduleUpdateOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10326:9)
+      at dispatchSetStateInternal (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4148:13)
+      at dispatchSetState (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4107:7)
+      at setNetworkState (src/core/utils/useNetworkStatus.ts:22:7)
+
+  console.log
+    [BENCHMARK] StorePanel Load: 744ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+PASS src/features/logistics/screens/StorePanelScreen.test.tsx
+  StorePanelScreen - Unit & Performance
+    ÔêÜ Renderizado inicial y benchmark (783 ms)
+
+  console.warn
+    [Supabase] Missing configuration. Ensure .env is loaded.
+
+    [0m [90m  5 |[39m
+     [90m  6 |[39m [36mif[39m ([33m![39msupabaseUrl [33m||[39m [33m![39msupabaseAnonKey) {
+    [31m[1m>[22m[39m[90m  7 |[39m   console[33m.[39mwarn([32m'[Supabase] Missing configuration. Ensure .env is loaded.'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m  8 |[39m }
+     [90m  9 |[39m
+     [90m 10 |[39m [36mexport[39m [36mconst[39m supabase [33m=[39m createClient(supabaseUrl[33m,[39m supabaseAnonKey)[33m;[39m[0m
+
+      at Object.warn (src/core/database/supabase.ts:7:11)
+      at Object.require (src/features/inventory/services/syncService.ts:5:1)
+      at Object.require (src/features/inventory/store/useInventarioStore.ts:4:1)
+      at Object.require (src/features/inventory/screens/InventarioListScreen.tsx:19:1)
+      at Object.require (src/features/inventory/index.ts:1:1)
+      at Object.require (src/features/scanner/screens/ScannerScreen.tsx:10:1)
+      at Object.require (src/features/scanner/screens/ScannerScreen.test.tsx:3:1)
+
+  console.warn
+    [Supabase] Missing configuration. Ensure .env is loaded.
+
+    [0m [90m  5 |[39m
+     [90m  6 |[39m [36mif[39m ([33m![39msupabaseUrl [33m||[39m [33m![39msupabaseAnonKey) {
+    [31m[1m>[22m[39m[90m  7 |[39m   console[33m.[39mwarn([32m'[Supabase] Missing configuration. Ensure .env is loaded.'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m  8 |[39m }
+     [90m  9 |[39m
+     [90m 10 |[39m [36mexport[39m [36mconst[39m supabase [33m=[39m createClient(supabaseUrl[33m,[39m supabaseAnonKey)[33m;[39m[0m
+
+      at Object.warn (src/core/database/supabase.ts:7:11)
+      at Object.require (src/features/inventory/services/syncService.ts:5:1)
+      at Object.require (src/features/inventory/store/useInventarioStore.ts:4:1)
+      at Object.require (src/features/inventory/screens/InventarioListScreen.tsx:19:1)
+      at Object.require (src/features/inventory/screens/InventarioListScreen.test.tsx:3:1)
+
+  console.warn
+    [Supabase] Missing configuration. Ensure .env is loaded.
+
+    [0m [90m  5 |[39m
+     [90m  6 |[39m [36mif[39m ([33m![39msupabaseUrl [33m||[39m [33m![39msupabaseAnonKey) {
+    [31m[1m>[22m[39m[90m  7 |[39m   console[33m.[39mwarn([32m'[Supabase] Missing configuration. Ensure .env is loaded.'[39m)[33m;[39m
+     [90m    |[39m           [31m[1m^[22m[39m
+     [90m  8 |[39m }
+     [90m  9 |[39m
+     [90m 10 |[39m [36mexport[39m [36mconst[39m supabase [33m=[39m createClient(supabaseUrl[33m,[39m supabaseAnonKey)[33m;[39m[0m
+
+      at Object.warn (src/core/database/supabase.ts:7:11)
+      at Object.require (src/features/inventory/services/syncService.ts:5:1)
+      at Object.require (src/features/inventory/store/useInventarioStore.ts:4:1)
+      at Object.require (src/features/scanner/hooks/useScanner.ts:5:1)
+      at Object.require (src/features/scanner/index.ts:2:1)
+      at Object.require (src/features/scanner/screens/ScannerScreen.tsx:11:1)
+      at Object.require (src/features/scanner/screens/ScannerScreen.test.tsx:3:1)
+
+  console.log
+    [BENCHMARK] InventarioList Load: 146ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+PASS src/features/scanner/screens/ScannerScreen.test.tsx
+  ScannerScreen - Unit
+    ÔêÜ Renderiza correctamente (70 ms)
+    ÔêÜ Bot├│n cancelar llama a goBack (14 ms)
+
+FAIL src/features/inventory/screens/InventarioListScreen.test.tsx
+  InventarioListScreen - Unit & Performance
+    ÔêÜ Renderizado inicial y benchmark de carga (161 ms)
+    ├ù Cambio de b├║squeda actualiza el estado (50 ms)
+
+  ÔùÅ InventarioListScreen - Unit & Performance ÔÇ║ Cambio de b├║squeda actualiza el estado
+
+    Unable to find an element with placeholder: Buscar SKU, c├│digo o t├¡tulo...
+
+    [36m<View>[39m
+      [36m<View>[39m
+        [36m<View>[39m
+          [36m<View>[39m
+            [36m<Text>[39m
+              [0mMi Inventario[0m
+            [36m</Text>[39m
+            [36m<Text>[39m
+              [0mSYNC: 10:00[0m
+            [36m</Text>[39m
+          [36m</View>[39m
+          [36m<View>[39m
+            [36m<View[39m
+              [33maccessibilityState[39m=[32m{
+                {
+                  "disabled": false,
+                }
+              }[39m
+              [33maccessible[39m=[32m{true}[39m
+            [36m>[39m
+              [36m<View />[39m
+            [36m</View>[39m
+          [36m</View>[39m
+        [36m</View>[39m
+        [36m<View>[39m
+          [36m<View>[39m
+            [36m<View>[39m
+              [36m<View />[39m
+            [36m</View>[39m
+            [36m<TextInput[39m
+              [33mplaceholder[39m=[32m"Buscar por nombre, SKU o marca..."[39m
+              [33mvalue[39m=[32m""[39m
+            [36m/>[39m
+          [36m</View>[39m
+        [36m</View>[39m
+      [36m</View>[39m
+      [36m<View>[39m
+        [36m<View>[39m
+          [36m<RCTScrollView>[39m
+            [36m<View>[39m
+              [36m<View[39m
+                [33maccessible[39m=[32m{true}[39m
+              [36m>[39m
+                [36m<Text>[39m
+                  [0mTodos[0m
+                [36m</Text>[39m
+              [36m</View>[39m
+              [36m<View[39m
+                [33maccessible[39m=[32m{true}[39m
+              [36m>[39m
+                [36m<Text>[39m
+                  [0mVencidos[0m
+                [36m</Text>[39m
+              [36m</View>[39m
+              [36m<View[39m
+                [33maccessible[39m=[32m{true}[39m
+              [36m>[39m
+                [36m<Text>[39m
+                  [0m30 D├¡as[0m
+                [36m</Text>[39m
+              [36m</View>[39m
+              [36m<View[39m
+                [33maccessible[39m=[32m{true}[39m
+              [36m>[39m
+                [36m<Text>[39m
+                  [0m90 D├¡as[0m
+                [36m</Text>[39m
+              [36m</View>[39m
+            [36m</View>[39m
+          [36m</RCTScrollView>[39m
+        [36m</View>[39m
+        [36m<View>[39m
+          [36m<View>[39m
+            [36m<RCTScrollView>[39m
+              [36m<RCTRefreshControl />[39m
+              [36m<View>[39m
+                [36m<View />[39m
+                [36m<View />[39m
+                [36m<View />[39m
+                [36m<View>[39m
+                  [36m<View />[39m
+                  [36m<Text>[39m
+                    [0mNo hay productos en el inventario local.[0m
+                  [36m</Text>[39m
+                  [36m<View[39m
+                    [33maccessibilityState[39m=[32m{
+                      {
+                        "disabled": false,
+                      }
+                    }[39m
+                    [33maccessible[39m=[32m{true}[39m
+                  [36m>[39m
+                    [36m<View>[39m
+                      [36m<Text>[39m
+                        [0mSincronizar Ahora[0m
+                      [36m</Text>[39m
+                    [36m</View>[39m
+                  [36m</View>[39m
+                [36m</View>[39m
+              [36m</View>[39m
+            [36m</RCTScrollView>[39m
+          [36m</View>[39m
+        [36m</View>[39m
+      [36m</View>[39m
+      [36m<View />[39m
+    [36m</View>[39m
+
+    [0m [90m 64 |[39m     test([32m'Cambio de b├║squeda actualiza el estado'[39m[33m,[39m () [33m=>[39m {
+     [90m 65 |[39m         [36mconst[39m { getByPlaceholderText } [33m=[39m 
+render([33m<[39m[33mInventarioListScreen[39m [33m/[39m[33m>[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 66 |[39m         [36mconst[39m input [33m=[39m 
+getByPlaceholderText([33mMENSAJES[39m[33m.[39m[33mBUSCAR_PLACEHOLDER[39m)[33m;[39m
+     [90m    |[39m                       [31m[1m^[22m[39m
+     [90m 67 |[39m         
+     [90m 68 |[39m         fireEvent[33m.[39mchangeText(input[33m,[39m [32m'Coca Cola'[39m)[33m;[39m
+     [90m 69 |[39m         expect(input[33m.[39mprops[33m.[39mvalue)[33m.[39mtoBe([32m'Coca 
+Cola'[39m)[33m;[39m[0m
+
+      at Object.getByPlaceholderText (src/features/inventory/screens/InventarioListScreen.test.tsx:66:23)
+
+-------------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------
+File                           | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                              
+-------------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------
+All files                      |   35.82 |    27.11 |   28.08 |   37.54 |                                                                                
+ core/constants                |   28.57 |        0 |   16.66 |   28.57 |                                                                                
+  mensajes.ts                  |   28.57 |        0 |   16.66 |   28.57 | 6,23-47                                                                        
+ core/database                 |     100 |       75 |     100 |     100 |                                                                                
+  schema.ts                    |     100 |      100 |     100 |     100 |                                                                                
+  supabase.ts                  |     100 |       75 |     100 |     100 | 6                                                                              
+ core/database/models          |     100 |      100 |     100 |     100 |                                                                                
+  Envio.ts                     |     100 |      100 |     100 |     100 |                                                                                
+  Movimiento.ts                |     100 |      100 |     100 |     100 |                                                                                
+  OutboxJob.ts                 |     100 |      100 |     100 |     100 |                                                                                
+  Producto.ts                  |     100 |      100 |     100 |     100 |                                                                                
+ core/navigation               |       0 |      100 |       0 |       0 |                                                                                
+  AppNavigator.tsx             |       0 |      100 |       0 |       0 | 12-15                                                                          
+ core/services                 |   20.61 |       10 |   20.83 |   21.34 |                                                                                
+  QueueService.ts              |   20.61 |       10 |   20.83 |   21.34 | 50-52,57-68,96-269                                                             
+ core/ui                       |     9.8 |        0 |       0 |      10 |                                                                                
+  BottomBar.tsx                |       0 |        0 |       0 |       0 | 17-122                                                                         
+  SkeletonCard.tsx             |   22.22 |      100 |       0 |   22.22 | 8-36                                                                           
+  ThemeContext.tsx             |       0 |        0 |       0 |       0 | 16-55                                                                          
+  colores.ts                   |     100 |      100 |     100 |     100 |                                                                                
+  shadows.ts                   |     100 |      100 |     100 |     100 |                                                                                
+  tokens.ts                    |     100 |      100 |     100 |     100 |                                                                                
+ core/ui/components            |   85.93 |    85.89 |   84.61 |    87.3 |                                                                                
+  Badge.tsx                    |   83.33 |    66.66 |     100 |   83.33 | 27-29                                                                          
+  Button.tsx                   |   79.16 |    82.35 |     100 |    82.6 | 63-65,83-85                                                                    
+  Input.tsx                    |   71.42 |    92.85 |   33.33 |   71.42 | 54-55                                                                          
+  Surface.tsx                  |     100 |     87.5 |     100 |     100 | 35                                                                             
+  Typography.tsx               |     100 |    93.75 |     100 |     100 | 43                                                                             
+ core/utils                    |   54.33 |       55 |      50 |    53.7 |                                                                                
+  benchmark.ts                 |      60 |        0 |      50 |      60 | 37-45                                                                          
+  exportaciones.ts             |       0 |      100 |       0 |       0 | 5-54                                                                           
+  fecha.ts                     |   72.72 |    59.52 |   85.71 |      75 | 30,63-64,81,90-95,111-120                                                      
+  formato.ts                   |     100 |      100 |     100 |     100 |                                                                                
+  sonidos.ts                   |       0 |        0 |       0 |       0 | 4-28                                                                           
+  useDebounce.ts               |       0 |      100 |       0 |       0 | 5-17                                                                           
+  useNetworkStatus.ts          |   69.23 |      100 |   66.66 |   69.23 | 27,46-48                                                                       
+ features/analytics/hooks      |       0 |        0 |       0 |       0 |                                                                                
+  useAnalytics.ts              |       0 |        0 |       0 |       0 | 6-53                                                                           
+ features/analytics/screens    |       0 |        0 |       0 |       0 |                                                                                
+  AnalyticsScreen.tsx          |       0 |        0 |       0 |       0 | 16-155                                                                         
+ features/historial/hooks      |     100 |       50 |     100 |     100 |                                                                                
+  useHistorial.ts              |     100 |       50 |     100 |     100 | 31-32                                                                          
+ features/historial/screens    |       0 |        0 |       0 |       0 |                                                                                
+  HistorialScreen.tsx          |       0 |        0 |       0 |       0 | 22-197                                                                         
+ features/inventory/components |   39.21 |     7.14 |   33.33 |    37.5 |                                                                                
+  EditProductoModal.tsx        |   38.63 |     9.09 |      50 |   36.58 | 37-47,55-61,71-209                                                             
+  ProductoCard.tsx             |   42.85 |        0 |       0 |   42.85 | 20-29,90                                                                       
+ features/inventory/hooks      |    5.88 |        0 |       0 |    7.14 |                                                                                
+  useFiltrosInventario.ts      |    5.88 |        0 |       0 |    7.14 | 17-47                                                                          
+ features/inventory/repository |   48.83 |    36.66 |      50 |   51.28 |                                                                                
+  inventarioRepository.ts      |   48.83 |    36.66 |      50 |   51.28 | 25-26,68,98-120                                                                
+ features/inventory/screens    |   38.88 |    37.09 |      20 |   44.44 |                                                                                
+  InventarioListScreen.tsx     |   38.88 |    37.09 |      20 |   44.44 | 36,64-71,105-111,148,152-156,161,165-169,173-176,181-182,186,266-325           
+ features/inventory/services   |    3.33 |     2.43 |   11.11 |    4.25 |                                                                                
+  syncService.ts               |    3.33 |     2.43 |   11.11 |    4.25 | 13-19,33-183                                                                   
+ features/inventory/store      |   35.71 |       10 |   42.85 |   35.89 |                                                                                
+  useInventarioStore.ts        |   35.71 |       10 |   42.85 |   35.89 | 65-67,82-84,90-137                                                             
+ features/logistics/hooks      |       0 |        0 |       0 |       0 |                                                                                
+  useLogisticsSync.ts          |       0 |        0 |       0 |       0 | 16-64                                                                          
+ features/logistics/repository |      40 |      100 |      25 |      40 |                                                                                
+  logisticsRepository.ts       |      40 |      100 |      25 |      40 | 10-12                                                                          
+ features/logistics/screens    |   33.51 |    20.51 |   23.07 |   35.26 |                                                                                
+  PickingScreen.tsx            |   45.61 |    46.15 |   33.33 |   49.05 | 55-57,116-125,176-194,214-218,223,227-228,243-343                              
+  StorePanelScreen.tsx         |   28.12 |     7.69 |   14.28 |   29.16 | 69,76-78,84-97,102-110,114-117,121-129,133-177,182-216,223-237,250-260,302-488 
+ features/scanner/hooks        |   62.79 |       50 |      50 |   69.23 |                                                                                
+  useScanner.ts                |   62.79 |       50 |      50 |   69.23 | 31-32,49,82-83,91-109                                                          
+ features/scanner/repository   |     100 |      100 |     100 |     100 |                                                                                
+  scannerRepository.ts         |     100 |      100 |     100 |     100 |                                                                                
+ features/scanner/screens      |   81.81 |      100 |      50 |   81.81 |                                                                                
+  ScannerScreen.tsx            |   81.81 |      100 |      50 |   81.81 | 65-67                                                                          
+-------------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------
+Jest: "global" coverage threshold for statements (90%) not met: 35.82%
+Jest: "global" coverage threshold for branches (90%) not met: 27.11%
+Jest: "global" coverage threshold for lines (90%) not met: 37.54%
+Jest: "global" coverage threshold for functions (90%) not met: 28.08%
+Test Suites: 1 failed, 18 passed, 19 total
+Tests:       1 failed, 63 passed, 64 total
+Snapshots:   0 total
+Time:        8.483 s
+Ran all test suites.

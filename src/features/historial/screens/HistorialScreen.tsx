@@ -1,7 +1,7 @@
-// ARCHIVO: src/screens/HistorialScreen.tsx
+// ARCHIVO: src/features/historial/screens/HistorialScreen.tsx
 import React, { useCallback } from 'react';
 import {
-    View, Text, StyleSheet, TouchableOpacity,
+    View, StyleSheet, TouchableOpacity,
     ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -16,25 +16,20 @@ import { database } from '../../../core/database';
 import Movimiento from '../../../core/database/models/Movimiento';
 import { Q } from '@nozbe/watermelondb';
 import { formatearTiempoRelativo, formatearHora } from '../../../core/utils/fecha';
+import { Text, Surface, Badge } from '../../../core/ui/components';
+import { TOKENS } from '../../../core/ui/tokens';
 
 const FastList = FlashList as any;
 
-// ─── Configuración visual por tipo de acción ───────────────────────────────
-
 const CONFIG_ACCION: Record<TipoAccionHistorial, {
     icono: string;
-    color: string;
-    colorDark: string;
+    variant: 'info' | 'default' | 'success';
     label: string;
 }> = {
-    FV_ACTUALIZADO:    { icono: 'calendar',   color: '#0075de', colorDark: '#62aef0', label: 'Fecha Actualizada'  },
-    COMENTARIO_AGREGADO: { icono: 'chatbubble', color: '#391c57', colorDark: '#9b6dff', label: 'Nota Agregada'   },
-    EDICION_COMPLETA:  { icono: 'create',      color: '#1aae39', colorDark: '#22c55e', label: 'Edición Completa' },
+    FV_ACTUALIZADO:    { icono: 'calendar',   variant: 'info', label: 'Fecha Actualizada'  },
+    COMENTARIO_AGREGADO: { icono: 'chatbubble', variant: 'default', label: 'Nota Agregada'   },
+    EDICION_COMPLETA:  { icono: 'create',      variant: 'success', label: 'Edición Completa' },
 };
-
-// ─── Componentes Auxiliares ────────────────────────────────────────────────
-
-// ─── Componentes Auxiliares ────────────────────────────────────────────────
 
 const HistorialSkeleton = () => {
     const { colors } = useTheme();
@@ -49,7 +44,6 @@ const HistorialSkeleton = () => {
                     <View style={{ flex: 1 }}>
                         <View style={[styles.skeletonBloque, { backgroundColor: colors.inputDeshabilitado, width: '60%', marginBottom: 6 }]} />
                         <View style={[styles.skeletonBloque, { backgroundColor: colors.inputDeshabilitado, width: '90%', marginBottom: 6 }]} />
-                        <View style={[styles.skeletonBloque, { backgroundColor: colors.inputDeshabilitado, width: '40%' }]} />
                     </View>
                 </View>
             ))}
@@ -63,74 +57,73 @@ interface EntradaCardProps {
 }
 
 const EntradaCard = React.memo(({ entrada, esUltima }: EntradaCardProps) => {
-    const { colors, isDark } = useTheme();
+    const { colors } = useTheme();
     const cfg = CONFIG_ACCION[entrada.accion] ?? CONFIG_ACCION.EDICION_COMPLETA;
-    const color = isDark ? cfg.colorDark : cfg.color;
 
     return (
         <View style={styles.entradaContenedor}>
             <View style={styles.timelineIzquierda}>
-                <View style={[styles.timelineCirculo, { backgroundColor: color + '22', borderColor: color }]}>
-                    <Ionicons name={cfg.icono as any} size={16} color={color} />
-                </View>
+                <Surface 
+                    variant="elevated" 
+                    padding="xs" 
+                    radius="full" 
+                    style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}
+                >
+                    <Ionicons name={cfg.icono as any} size={16} color={colors.primario} />
+                </Surface>
                 {!esUltima && (
                     <View style={[styles.timelineLinea, { backgroundColor: colors.borde }]} />
                 )}
             </View>
 
-            <View style={[styles.tarjeta, { backgroundColor: colors.superficie, borderColor: colors.borde }]}>
+            <Surface variant="elevated" padding="md" style={styles.tarjeta}>
                 <View style={styles.tarjetaCabecera}>
-                    <View style={[styles.badgeAccion, { backgroundColor: color + '18' }]}>
-                        <Text style={[styles.badgeTexto, { color }]}>{cfg.label}</Text>
-                    </View>
-                    <Text style={[styles.tiempoTexto, { color: colors.textoTerciario }]}>
+                    <Badge label={cfg.label} variant={cfg.variant} />
+                    <Text variant="tiny" color={colors.textoTerciario}>
                         {formatearTiempoRelativo(entrada.timestamp)}
                     </Text>
                 </View>
 
-                <Text style={[styles.descripcionTexto, { color: colors.textoPrincipal }]} numberOfLines={2}>
+                <Text variant="body" weight="bold" style={{ marginVertical: 8 }}>
                     {entrada.descripcion}
                 </Text>
 
                 {entrada.cambios?.fvAnterior && entrada.cambios?.fvNuevo && (
                     <View style={styles.filaCambio}>
-                        <Text style={[styles.cambioLabel, { color: colors.textoSecundario }]}>FV:</Text>
-                        <Text style={[styles.cambioValorAntiguo, { color: colors.error }]}>
+                        <Text variant="tiny" weight="bold" color={colors.textoSecundario}>FV:</Text>
+                        <Text variant="tiny" color={colors.error} style={{ textDecorationLine: 'line-through' }}>
                             {entrada.cambios.fvAnterior}
                         </Text>
-                        <Ionicons name="arrow-forward" size={12} color={colors.textoTerciario} style={{ marginHorizontal: 4 }} />
-                        <Text style={[styles.cambioValorNuevo, { color: colors.exito }]}>
+                        <Ionicons name="arrow-forward" size={10} color={colors.textoTerciario} style={{ marginHorizontal: 4 }} />
+                        <Text variant="tiny" weight="bold" color={colors.exito}>
                             {entrada.cambios.fvNuevo}
                         </Text>
                     </View>
                 )}
+                
                 {entrada.cambios?.comentario && (
-                    <Text style={[styles.comentarioTexto, { color: colors.textoSecundario, backgroundColor: colors.superficieAlta }]} numberOfLines={2}>
-                        💬 {entrada.cambios.comentario}
-                    </Text>
+                    <Surface variant="flat" padding="sm" style={{ backgroundColor: colors.fondo, marginBottom: 8 }}>
+                        <Text variant="small" color={colors.textoSecundario} italic>
+                            💬 {entrada.cambios.comentario}
+                        </Text>
+                    </Surface>
                 )}
 
                 <View style={styles.tarjetaFooter}>
-                    <Text style={[styles.footerTexto, { color: colors.textoTerciario }]}>
+                    <Text variant="tiny" color={colors.textoTerciario}>
                         {entrada.sku} · {entrada.marca}
                     </Text>
-                    <Text style={[styles.footerTexto, { color: colors.textoTerciario }]}>
+                    <Text variant="tiny" color={colors.textoTerciario}>
                         {entrada.dispositivo} · {formatearHora(entrada.timestamp)}
                     </Text>
                 </View>
-            </View>
+            </Surface>
         </View>
     );
 });
 
-// ─── Pantalla principal (Raw) ─────────────────────────────────────────────
-
-interface ScreenProps {
-    movimientos: Movimiento[];
-}
-
 const HistorialScreenRaw: React.FC<ScreenProps> = ({ movimientos }) => {
-    const { colors, isDark } = useTheme();
+    const { colors } = useTheme();
     const navigation = useNavigation();
     const { entradas, cargando, error } = useHistorial(movimientos);
 
@@ -145,9 +138,9 @@ const HistorialScreenRaw: React.FC<ScreenProps> = ({ movimientos }) => {
                     <Ionicons name="arrow-back" size={22} color={colors.textoPrincipal} />
                 </TouchableOpacity>
                 <View>
-                    <Text style={[styles.tituloCabecera, { color: colors.textoPrincipal }]}>Historial</Text>
-                    <Text style={[styles.subtituloCabecera, { color: colors.textoSecundario }]}>
-                        {entradas.length} movimientos locales
+                    <Text variant="h2" weight="bold">Historial</Text>
+                    <Text variant="tiny" weight="bold" color={colors.textoSecundario}>
+                        {entradas.length} MOVIMIENTOS LOCALES
                     </Text>
                 </View>
                 <View style={{ width: 40 }} />
@@ -157,16 +150,16 @@ const HistorialScreenRaw: React.FC<ScreenProps> = ({ movimientos }) => {
 
             {!cargando && error && (
                 <View style={styles.estadoVacio}>
-                    <Text style={{ fontSize: 48 }}>📡</Text>
-                    <Text style={[styles.estadoTexto, { color: colors.textoSecundario }]}>{error}</Text>
+                    <Ionicons name="wifi-outline" size={56} color={colors.textoTerciario} />
+                    <Text variant="body" color={colors.textoSecundario}>{error}</Text>
                 </View>
             )}
 
             {!cargando && !error && entradas.length === 0 && (
                 <View style={styles.estadoVacio}>
-                    <Text style={{ fontSize: 56 }}>📋</Text>
-                    <Text style={[styles.estadoTitulo, { color: colors.textoPrincipal }]}>Sin movimientos aún</Text>
-                    <Text style={[styles.estadoTexto, { color: colors.textoSecundario }]}>
+                    <Ionicons name="clipboard-outline" size={64} color={colors.textoTerciario} />
+                    <Text variant="h3" weight="bold">Sin movimientos aún</Text>
+                    <Text variant="body" color={colors.textoSecundario} align="center">
                         El historial se llena automáticamente al editar productos.
                     </Text>
                 </View>
@@ -178,25 +171,20 @@ const HistorialScreenRaw: React.FC<ScreenProps> = ({ movimientos }) => {
                     keyExtractor={(item: EntradaHistorial) => item.id || String(item.timestamp)}
                     estimatedItemSize={160}
                     renderItem={renderItem}
-                    contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 40 }}
+                    contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}
                     ListHeaderComponent={
-                        <View style={[styles.bannerInfo, {
-                            backgroundColor: colors.fondoPrimario,
-                            borderColor: colors.primario,
-                        }]}>
+                        <Surface variant="flat" padding="md" style={styles.bannerInfo}>
                             <Ionicons name="information-circle-outline" size={16} color={colors.primario} />
-                            <Text style={[styles.bannerTexto, { color: colors.primario }]}>
+                            <Text variant="small" weight="bold" color={colors.primario}>
                                 Auditoría Local-First · Sincronizada automáticamente
                             </Text>
-                        </View>
+                        </Surface>
                     }
                 />
             )}
         </SafeAreaView>
     );
 };
-
-// ─── Envoltura Reactiva ──────────────────────────────────────────────────
 
 const enhance = withObservables([], () => ({
     movimientos: database.collections.get<Movimiento>('movimientos')
@@ -206,44 +194,20 @@ const enhance = withObservables([], () => ({
 
 export const HistorialScreen = enhance(HistorialScreenRaw);
 
-// ─── Estilos ─────────────────────────────────────────────────────────────
-
 const styles = StyleSheet.create({
     contenedor: { flex: 1 },
-    cabecera: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 8,
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-    },
-    botonVolver: { padding: 8 },
-    tituloCabecera: { fontSize: 20, fontWeight: '800' },
-    subtituloCabecera: { fontSize: 13, fontWeight: '500', marginTop: 1 },
-    entradaContenedor: { flexDirection: 'row', marginBottom: 16 },
+    cabecera: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 16, borderBottomWidth: 1 },
+    botonVolver: { padding: 4, marginRight: 12 },
+    entradaContenedor: { flexDirection: 'row', marginBottom: TOKENS.spacing.md },
     timelineIzquierda: { alignItems: 'center', marginRight: 14, width: 36 },
-    timelineCirculo: { width: 36, height: 36, borderRadius: 18, borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-    timelineLinea: { width: 2, flex: 1, marginTop: 6, borderRadius: 1 },
-    tarjeta: { flex: 1, borderRadius: 12, padding: 14, borderWidth: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 9, elevation: 2, marginBottom: 4 },
-    tarjetaCabecera: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-    badgeAccion: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 9999 },
-    badgeTexto: { fontSize: 11, fontWeight: '600', letterSpacing: 0.125 },
-    tiempoTexto: { fontSize: 12, fontWeight: '500' },
-    descripcionTexto: { fontSize: 14, fontWeight: '600', lineHeight: 20, marginBottom: 8 },
-    filaCambio: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-    cambioLabel: { fontSize: 12, fontWeight: '700', marginRight: 4 },
-    cambioValorAntiguo: { fontSize: 12, textDecorationLine: 'line-through' },
-    cambioValorNuevo: { fontSize: 12, fontWeight: '700' },
-    comentarioTexto: { fontSize: 13, fontStyle: 'italic', padding: 8, borderRadius: 8, marginBottom: 8 },
-    tarjetaFooter: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
-    footerTexto: { fontSize: 11 },
-    bannerInfo: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 10, borderRadius: 10, borderWidth: 1, marginBottom: 16 },
-    bannerTexto: { fontSize: 13, fontWeight: '600' },
-    estadoVacio: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40, gap: 12 },
-    estadoTitulo: { fontSize: 20, fontWeight: '800', textAlign: 'center' },
-    estadoTexto: { fontSize: 15, textAlign: 'center', lineHeight: 22 },
+    timelineLinea: { width: 1, flex: 1, marginTop: 6 },
+    tarjeta: { flex: 1, marginBottom: 4 },
+    tarjetaCabecera: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    filaCambio: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
+    tarjetaFooter: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)', paddingTop: 8 },
+    bannerInfo: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
+    estadoVacio: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40, gap: 16 },
     skeletonCircle: { width: 36, height: 36, borderRadius: 18 },
-    skeletonLinea: { width: 2, flex: 1, marginTop: 6 },
+    skeletonLinea: { width: 1, flex: 1, marginTop: 6 },
     skeletonBloque: { height: 14, borderRadius: 7 },
 });

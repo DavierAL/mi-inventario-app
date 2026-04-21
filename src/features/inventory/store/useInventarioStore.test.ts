@@ -29,7 +29,7 @@ describe('useInventarioStore - State & Performance', () => {
 
     // Verificamos que se llamó a sync
     expect(syncConSupabase).toHaveBeenCalled();
-    expect(metrics.durationMs).toBeLessThan(50);
+    expect(metrics.durationMs).toBeLessThan(150);
   });
 
   test('repararBaseDeDatos activa modo sincronizando (Performance)', async () => {

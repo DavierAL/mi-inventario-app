@@ -1,12 +1,15 @@
 // ARCHIVO: src/features/inventory/components/ProductoCard.tsx
 
 import React, { memo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import Producto from '../../../core/database/models/Producto';
 import { formatearFecha } from '../../../core/utils/fecha';
 import { formatearPrecio } from '../../../core/utils/formato';
 import { useTheme } from '../../../core/ui/ThemeContext';
+
+import { Text, Surface, Badge } from '../../../core/ui/components';
+import { TOKENS } from '../../../core/ui/tokens';
 
 interface Props {
     item: Producto;
@@ -17,11 +20,15 @@ const ProductoCardComponent: React.FC<Props> = ({ item, onPress }) => {
     const { colors } = useTheme();
 
     return (
-        <View>
+        <Surface 
+            variant="elevated" 
+            style={styles.tarjetaProducto} 
+            padding="md"
+        >
             <TouchableOpacity
-                style={[styles.tarjetaProducto, { backgroundColor: colors.superficie }]}
                 onPress={() => onPress(item)}
                 activeOpacity={0.7}
+                style={{ flexDirection: 'row', alignItems: 'center' }}
             >
                 {/* Imagen del producto */}
                 <View style={[styles.contenedorImagen, { backgroundColor: colors.inputFondo, borderColor: colors.borde }]}>
@@ -35,38 +42,46 @@ const ProductoCardComponent: React.FC<Props> = ({ item, onPress }) => {
                         />
                     ) : (
                         <View style={[styles.imagenPlaceholder, { backgroundColor: colors.inputDeshabilitado }]}>
-                            <Text style={styles.imagenPlaceholderIcono}>📦</Text>
+                            <Text variant="h2">📦</Text>
                         </View>
                     )}
                 </View>
             
                 <View style={styles.infoPrincipal}>
-                    <Text style={[styles.textoSKU, { color: colors.primario }]}>{item.sku}</Text>
-                    <Text style={[styles.textoMarca, { color: colors.textoSecundario }]}>{item.marca}</Text>
-                    <Text style={[styles.textoDescripcion, { color: colors.textoPrincipal }]} numberOfLines={2}>{item.descripcion}</Text>
-                    <Text style={[styles.textoCodigoBarras, { color: colors.textoSecundario }]}>Cód: {item.codBarras}</Text>
-                    {item.fvActualTs ? (
-                        <Text style={[styles.textoFV, { color: colors.error }]}>FV: {formatearFecha(item.fvActualTs)}</Text>
-                    ) : null}
+                    <Text variant="tiny" weight="bold" color={colors.primario}>{item.sku}</Text>
+                    <Text variant="small" weight="bold" color={colors.textoSecundario} style={{ opacity: 0.7 }}>
+                        {item.marca.toUpperCase()}
+                    </Text>
+                    <Text variant="body" weight="bold" numberOfLines={2}>{item.descripcion}</Text>
+                    
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                        <Text variant="tiny" color={colors.textoTerciario} style={{ fontFamily: 'monospace' }}>
+                            {item.codBarras}
+                        </Text>
+                        {item.fvActualTs && (
+                            <Badge 
+                                label={`FV: ${formatearFecha(item.fvActualTs)}`}
+                                variant="error"
+                                style={{ marginLeft: 8 }}
+                            />
+                        )}
+                    </View>
                 </View>
 
-                {/* Panel lateral: Precios y Stock */}
+                {/* Panel lateral: Stock */}
                 <View style={[styles.infoPrecios, { borderLeftColor: colors.borde }]}>
-                    <View style={styles.filaPrecio}>
-                        <Text style={[styles.textoPrecioTitulo, { color: colors.textoSecundario }]}>Web</Text>
-                        <Text style={[styles.textoPrecioNumero, { color: colors.textoPrincipal }]}>{formatearPrecio(item.precioWeb)}</Text>
-                    </View>
-                    <View style={styles.filaPrecio}>
-                        <Text style={[styles.textoPrecioTitulo, { color: colors.textoSecundario }]}>P. Tienda</Text>
-                        <Text style={[styles.textoPrecioNumero, { color: colors.primario }]}>{formatearPrecio(item.precioTienda)}</Text>
-                    </View>
-                    <View style={[styles.filaStock, { backgroundColor: colors.fondoPrimario }]}>
-                        <Text style={[styles.textoStockTitulo, { color: colors.textoSecundario }]}>Stock</Text>
-                        <Text style={[styles.textoStockNumero, { color: colors.exito }]}>{item.stockMaster}</Text>
-                    </View>
+                    <Text variant="tiny" weight="bold" color={colors.textoSecundario}>STOCK</Text>
+                    <Text 
+                        variant="h1" 
+                        weight="bold" 
+                        color={item.stockMaster > 0 ? colors.exito : colors.error}
+                    >
+                        {item.stockMaster}
+                    </Text>
+                    <Text variant="tiny" color={colors.textoTerciario}>UNIDADES</Text>
                 </View>
             </TouchableOpacity>
-        </View>
+        </Surface>
     );
 };
 

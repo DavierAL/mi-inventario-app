@@ -4,10 +4,7 @@
  * Diseño: Notion Design System — dark-mode-first, warm charcoal surfaces, whisper borders.
  */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import {
-    View, Text, StyleSheet, TouchableOpacity, ScrollView,
-    StatusBar, Alert, ActivityIndicator, Modal, Linking,
-} from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Alert, ActivityIndicator, Modal, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -27,7 +24,8 @@ import { useTheme } from '../../../core/ui/ThemeContext';
 import { RootStackParamList } from '../../../core/types/navigation';
 import { useNetworkStatus } from '../../../core/utils/useNetworkStatus';
 import { useLogisticsSync } from '../hooks/useLogisticsSync';
-import { SHADOWS } from '../../../core/ui/shadows';
+import { Text, Surface, Button, Badge } from '../../../core/ui/components';
+import { TOKENS } from '../../../core/ui/tokens';
 
 type StorePanelNavProp = NativeStackNavigationProp<RootStackParamList, 'StorePanel'>;
 type StorePanelRoute = RouteProp<RootStackParamList, 'StorePanel'>;
@@ -305,94 +303,93 @@ export const StorePanelScreen = () => {
                     <Ionicons name="arrow-back" size={22} color={colors.textoPrincipal} />
                 </TouchableOpacity>
                 <View style={{ flex: 1 }}>
-                    <Text style={[styles.titulo, { color: colors.textoPrincipal }]}>Panel Tienda</Text>
-                    <Text style={[styles.subtitulo, { color: colors.textoSecundario }]}>Recepción y Entrega POD</Text>
+                    <Text variant="h2" weight="bold">Panel Tienda</Text>
+                    <Text variant="small" color={colors.textoSecundario}>Recepción y Entrega POD</Text>
                 </View>
-                <TouchableOpacity
-                    style={[styles.btnEscaner, { backgroundColor: colors.fondoPrimario }]}
+                <Button 
+                    label="Escanear"
+                    variant="secondary"
+                    size="sm"
+                    icon={<Ionicons name="qr-code-outline" size={18} color={colors.primario} />}
                     onPress={handleAbrirEscaner}
-                    activeOpacity={0.85}
-                >
-                    <Ionicons name="qr-code-outline" size={18} color={colors.primario} />
-                    <Text style={[styles.btnEscanerText, { color: colors.primario }]}>Escanear</Text>
-                </TouchableOpacity>
+                />
             </View>
 
             <ScrollView contentContainerStyle={styles.scroll}>
 
                 {/* Sin envio cargado */}
                 {!envio && (
-                    <View style={styles.placeholderCard}>
-                        <Ionicons name="cube-outline" size={56} color={colors.textoTerciario} />
-                        <Text style={[styles.placeholderTitulo, { color: colors.textoPrincipal }]}>Sin envio cargado</Text>
-                        <Text style={[styles.placeholderSubtexto, { color: colors.textoSecundario }]}>
-                            Escanea el QR del envio o selecciónalo desde el Panel de Picking.
+                    <Surface variant="flat" padding="xxl" style={styles.placeholderCard}>
+                        <Ionicons name="cube-outline" size={64} color={colors.textoTerciario} />
+                        <Text variant="h3" weight="bold" style={{ marginTop: TOKENS.spacing.md }}>
+                            Sin envío cargado
                         </Text>
-                        <TouchableOpacity
-                            style={[styles.btnPrimario, styles.btnGrande, { marginTop: 24, alignSelf: 'center', backgroundColor: colors.primario }]}
+                        <Text variant="body" align="center" color={colors.textoSecundario} style={{ marginTop: TOKENS.spacing.sm }}>
+                            Escanea el QR del envío o selecciónalo desde el Panel de Picking.
+                        </Text>
+                        <Button 
+                            label="Escanear QR"
+                            variant="primary"
+                            style={{ marginTop: TOKENS.spacing.xl, width: '100%' }}
+                            icon={<Ionicons name="qr-code-outline" size={18} color="#FFF" />}
                             onPress={handleAbrirEscaner}
-                        >
-                            <Ionicons name="qr-code-outline" size={16} color="#fff" style={{ marginRight: 8 }} />
-                            <Text style={styles.btnPrimarioText}>Escanear QR</Text>
-                        </TouchableOpacity>
-                    </View>
+                        />
+                    </Surface>
                 )}
 
                 {/* Datos del envio */}
                 {envio && (
                     <>
-                        <View style={[styles.card, {
-                            backgroundColor: colors.superficie,
-                            borderColor: colors.borde,
-                        }]}>
+                        <Surface variant="elevated" padding="lg" style={styles.card}>
                             <View style={styles.cardHeader}>
                                 <View style={{ flex: 1 }}>
-                                    <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Código de Envío</Text>
-                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <Text style={[styles.cardValor, { color: colors.textoPrincipal }]}>{envio.codPedido}</Text>
-                                    </View>
+                                    <Text variant="tiny" weight="bold" color={colors.textoTerciario}>
+                                        CÓDIGO DE ENVÍO
+                                    </Text>
+                                    <Text variant="h2" weight="bold">{envio.codPedido}</Text>
                                 </View>
-                                 {badge && (
-                                     <View style={[styles.badge, { backgroundColor: badge.bg }]}>
-                                         <Text style={[styles.badgeText, { color: badge.text }]}>{badge.label}</Text>
-                                     </View>
-                                 )}
+                                <Badge 
+                                    label={envio.estado.replace('_', ' ')} 
+                                    variant={envio.estado === 'Entregado' ? 'success' : 'info'} 
+                                />
                             </View>
 
                             <View style={[styles.divider, { backgroundColor: colors.borde }]} />
 
                              <View style={styles.infoRow}>
-                                <Ionicons name="person-outline" size={15} color={colors.textoTerciario} />
-                                <View style={{ marginLeft: 8, flex: 1 }}>
-                                    <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Cliente</Text>
-                                    <Text style={[styles.cardValor, { color: colors.textoPrincipal }]}>{envio.cliente}</Text>
-                                    {envio.telefono ? (
-                                        <Text style={[styles.cardMeta, { color: colors.textoSecundario }]}>{envio.telefono}</Text>
-                                    ) : null}
+                                <Ionicons name="person-outline" size={16} color={colors.textoTerciario} />
+                                <View style={{ marginLeft: 12, flex: 1 }}>
+                                    <Text variant="tiny" weight="bold" color={colors.textoTerciario}>CLIENTE</Text>
+                                    <Text variant="body" weight="medium">{envio.cliente}</Text>
+                                    {envio.telefono && (
+                                        <Text variant="small" color={colors.textoSecundario}>{envio.telefono}</Text>
+                                    )}
                                 </View>
                             </View>
 
-                            {/* Entrega & Dirección V6 */}
+                            {/* Entrega & Dirección */}
                             {(envio.direccion || envio.distrito) && (
-                                <View style={[styles.infoRow, { marginTop: 12 }]}>
-                                    <Ionicons name="location-outline" size={15} color={colors.textoTerciario} />
-                                    <View style={{ marginLeft: 8, flex: 1 }}>
-                                        <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Dirección de Entrega</Text>
-                                        <Text style={[styles.cardValor, { color: colors.textoPrincipal, fontSize: 14 }]}>
+                                <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
+                                    <Ionicons name="location-outline" size={16} color={colors.textoTerciario} />
+                                    <View style={{ marginLeft: 12, flex: 1 }}>
+                                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>DIRECCIÓN</Text>
+                                        <Text variant="body">
                                             {envio.direccion}{envio.distrito ? `, ${envio.distrito}` : ''}
                                         </Text>
-                                        {envio.referencia ? (
-                                            <Text style={[styles.cardMeta, { color: colors.textoSecundario, marginTop: 2 }]}>
+                                        {envio.referencia && (
+                                            <Text variant="small" color={colors.textoSecundario} style={{ marginTop: 2 }}>
                                                 Ref: {envio.referencia}
                                             </Text>
-                                        ) : null}
+                                        )}
                                         {envio.gmapsUrl && (
                                             <TouchableOpacity 
-                                                style={[styles.btnLink, { marginTop: 8 }]} 
+                                                style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center' }} 
                                                 onPress={handleAbrirGmaps}
                                             >
                                                 <Ionicons name="map-outline" size={14} color={colors.primario} />
-                                                <Text style={[styles.btnLinkText, { color: colors.primario }]}>Ver en Google Maps</Text>
+                                                <Text variant="small" weight="bold" color={colors.primario} style={{ marginLeft: 4 }}>
+                                                    Ver en Google Maps
+                                                </Text>
                                             </TouchableOpacity>
                                         )}
                                     </View>
@@ -400,23 +397,11 @@ export const StorePanelScreen = () => {
                             )}
 
                             {envio.operador && (
-                                <View style={[styles.infoRow, { marginTop: 12 }]}>
-                                    <Ionicons name="bus-outline" size={15} color={colors.textoTerciario} />
-                                    <View style={{ marginLeft: 8 }}>
-                                        <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Operador Logístico</Text>
-                                        <Text style={[styles.cardValor, { color: colors.textoPrincipal, fontSize: 14 }]}>
-                                            {envio.operador.toUpperCase()}
-                                        </Text>
-                                    </View>
-                                </View>
-                            )}
-
-                            {envio.operador && (
-                                <View style={[styles.infoRow, { marginTop: 8 }]}>
-                                    <Ionicons name="briefcase-outline" size={15} color={colors.textoTerciario} />
-                                    <View style={{ marginLeft: 8 }}>
-                                        <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Operador</Text>
-                                        <Text style={[styles.cardValor, { color: colors.textoPrincipal }]}>{envio.operador}</Text>
+                                <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
+                                    <Ionicons name="bicycle-outline" size={16} color={colors.textoTerciario} />
+                                    <View style={{ marginLeft: 12 }}>
+                                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>OPERADOR</Text>
+                                        <Text variant="body" weight="medium">{envio.operador.toUpperCase()}</Text>
                                     </View>
                                 </View>
                             )}
@@ -424,86 +409,71 @@ export const StorePanelScreen = () => {
                             {envio.notas && (
                                 <>
                                     <View style={[styles.divider, { backgroundColor: colors.borde }]} />
-                                    <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Notas</Text>
-                                    <Text style={[styles.cardValor, { fontWeight: '400', color: colors.textoSecundario, marginTop: 4 }]}>
+                                    <Text variant="tiny" weight="bold" color={colors.textoTerciario}>NOTAS</Text>
+                                    <Text variant="small" color={colors.textoSecundario} style={{ marginTop: 4 }}>
                                         {envio.notas}
                                     </Text>
                                 </>
                             )}
-                        </View>
+                        </Surface>
 
                         {/* Sección POD */}
-                        <Text style={[styles.seccionTitulo, { color: colors.textoPrincipal, marginTop: 16 }]}>Evidencia de Entrega (POD)</Text>
+                        <Text variant="h3" weight="bold" style={{ color: colors.textoPrincipal, marginTop: TOKENS.spacing.xl, marginBottom: TOKENS.spacing.sm }}>
+                            Evidencia de Entrega (POD)
+                        </Text>
 
                         {fotoUri ? (
-                            <View style={[styles.card, {
-                                backgroundColor: colors.superficie,
-                                borderColor: colors.borde,
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                            }]}>
+                            <Surface variant="elevated" padding="lg" style={{ flexDirection: 'row', alignItems: 'center' }}>
                                 <View style={[styles.fotoCheck, { backgroundColor: isDark ? '#0a1f12' : '#f0fdf4' }]}>
                                     <Ionicons name="checkmark-circle" size={32} color="#22c55e" />
                                 </View>
-                                <View style={{ flex: 1, marginLeft: 12 }}>
-                                    <Text style={[styles.cardValor, { color: colors.textoPrincipal }]}>Foto capturada</Text>
-                                    <Text style={[styles.cardLabel, { color: colors.textoTerciario }]} numberOfLines={1}>
-                                        {fotoUri.split('/').pop()}
+                                <View style={{ flex: 1, marginLeft: TOKENS.spacing.md }}>
+                                    <Text variant="body" weight="bold">Foto capturada</Text>
+                                    <Text variant="small" color={colors.textoTerciario} numberOfLines={1}>
+                                        Guardada localmente
                                     </Text>
                                 </View>
-                                <TouchableOpacity onPress={handleAbrirCamara}>
-                                    <Ionicons name="camera-outline" size={22} color={colors.textoSecundario} />
-                                </TouchableOpacity>
-                            </View>
+                                <Button 
+                                    label="Cambiar"
+                                    variant="ghost"
+                                    size="sm"
+                                    onPress={handleAbrirCamara}
+                                />
+                            </Surface>
                         ) : (
-                            <TouchableOpacity
-                                style={[styles.fotoPlaceholder, {
-                                    backgroundColor: colors.superficie,
-                                    borderColor: colors.borde,
-                                }]}
-                                onPress={handleAbrirCamara}
-                                activeOpacity={0.85}
-                            >
-                                <Ionicons name="camera-outline" size={40} color={colors.textoTerciario} />
-                                <Text style={[styles.fotoPlaceholderText, { color: colors.textoTerciario }]}>
-                                    Toca para capturar evidencia
+                            <Surface variant="outline" padding="xl" style={{ alignItems: 'center', borderStyle: 'dashed' }}>
+                                <Ionicons name="camera-outline" size={48} color={colors.textoTerciario} />
+                                <Text variant="body" color={colors.textoSecundario} style={{ marginTop: TOKENS.spacing.sm, textAlign: 'center' }}>
+                                    Es necesario capturar una foto para confirmar la entrega.
                                 </Text>
-                            </TouchableOpacity>
+                                <Button 
+                                    label="Tomar Fotografía"
+                                    variant="secondary"
+                                    style={{ marginTop: TOKENS.spacing.lg }}
+                                    icon={<Ionicons name="camera" size={18} color={colors.primario} />}
+                                    onPress={handleAbrirCamara}
+                                />
+                            </Surface>
                         )}
 
-                        {/* Botón confirmar entrega */}
-                        {envio.estado !== 'Entregado' && (
-                            <TouchableOpacity
-                                style={[
-                                    styles.btnPrimario,
-                                    styles.btnGrande,
-                                    { backgroundColor: !fotoUri ? colors.textoTerciario : colors.primario },
-                                ]}
-                                onPress={handleConfirmarEntrega}
-                                disabled={!fotoUri || procesando}
-                                activeOpacity={0.85}
-                            >
-                                {procesando
-                                    ? <ActivityIndicator color="#fff" style={{ marginRight: 8 }} />
-                                    : <Ionicons name="checkmark-circle-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
-                                }
-                                <Text style={styles.btnPrimarioText}>
-                                    {procesando ? 'Guardando...' : 'Confirmar Entrega'}
-                                </Text>
-                            </TouchableOpacity>
-                        )}
+                        {/* Botón Final */}
+                        <Button 
+                            label={procesando ? "Guardando..." : "Confirmar Entrega"}
+                            variant="primary"
+                            loading={procesando}
+                            disabled={!fotoUri || (envio && envio.estado === 'Entregado')}
+                            style={{ marginTop: TOKENS.spacing.xxl, marginBottom: TOKENS.spacing.huge }}
+                            onPress={handleConfirmarEntrega}
+                            icon={!procesando && <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />}
+                        />
 
                         {envio.estado === 'Entregado' && (
-                            <View style={[styles.card, {
-                                backgroundColor: colors.superficie,
-                                borderColor: colors.borde,
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                gap: 12,
-                            }]}>
-                                <Ionicons name="checkmark-circle" size={28} color="#22c55e" />
-                                <Text style={[styles.cardValor, { color: '#22c55e' }]}>envio entregado con éxito</Text>
-                            </View>
+                            <Surface variant="flat" padding="md" style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#0a1f12' : '#f0fdf4', marginBottom: TOKENS.spacing.xl }}>
+                                <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
+                                <Text variant="body" weight="bold" color="#22c55e" style={{ marginLeft: 8 }}>
+                                    Envío entregado con éxito
+                                </Text>
+                            </Surface>
                         )}
                     </>
                 )}
@@ -642,7 +612,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         borderWidth: 1,
         padding: 16,
-        ...SHADOWS.CARD,
+        elevation: 2,
     },
     cardHeader: {
         flexDirection: 'row',
@@ -695,7 +665,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         paddingVertical: 40,
-        ...SHADOWS.CARD,
+        elevation: 2,
     },
     fotoPlaceholderText: {
         fontSize: 14,
@@ -791,7 +761,6 @@ const styles = StyleSheet.create({
         backgroundColor: '#f6f5f4', // superficieAlta
         alignItems: 'center',
         justifyContent: 'center',
-        ...SHADOWS.CARD,
         elevation: 8,
     },
     camaraHint: {

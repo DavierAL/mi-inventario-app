@@ -5,10 +5,7 @@
  * Diseño: Notion Design System (dark-mode-first, warm neutrals, whisper borders, Notion Blue).
  */
 import React, { memo, useState } from 'react';
-import {
-    View, Text, StyleSheet, TouchableOpacity,
-    StatusBar, FlatList, ActivityIndicator, TextInput
-} from 'react-native';
+import { View, StyleSheet, TouchableOpacity, StatusBar, FlatList, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -28,15 +25,16 @@ import { useLogisticsSync } from '../hooks/useLogisticsSync';
 import { SkeletonCard } from '../../../core/ui/SkeletonCard';
 import { SHADOWS } from '../../../core/ui/shadows';
 
+import { 
+    Text, 
+    Surface, 
+    Button, 
+    Badge, 
+    Input 
+} from '../../../core/ui/components';
+import { TOKENS } from '../../../core/ui/tokens';
+
 type PickingNavProp = NativeStackNavigationProp<RootStackParamList, 'PickingList'>;
-
-// ─── Colores por estado (Notion semantic palette) ────────────────────────────
-
-const ESTADO_BADGE: Record<EstadoPedido, { bg: string; text: string; label: string }> = {
-    Pendiente:  { bg: 'rgba(235, 87, 87, 0.1)', text: '#eb5757', label: 'Pendiente' }, // Notion Red
-    En_Tienda:  { bg: 'rgba(0, 117, 222, 0.1)', text: '#0075de', label: 'En Tienda' }, // Notion Blue
-    Entregado:  { bg: 'rgba(75, 160, 66, 0.15)', text: '#4ba042', label: 'Entregado' }, // Notion Green
-};
 
 // ─── Tarjeta de envio ───────────────────────────────────────────────────────
 
@@ -47,82 +45,87 @@ interface PedidoCardProps {
 }
 
 const PedidoCard = memo(({ envio, onDespachar, onVerPanel }: PedidoCardProps) => {
-    const { colors, isDark } = useTheme();
-    const badge = ESTADO_BADGE[envio.estado as EstadoPedido] ?? ESTADO_BADGE.Pendiente;
+    const { colors } = useTheme();
     const puedeDespachar = envio.estado === 'Pendiente';
 
+    // Mapeo semántico para el Badge del Design System
+    const getBadgeVariant = (estado: string): any => {
+        switch (estado) {
+            case 'Pendiente': return 'error';
+            case 'En_Tienda': return 'info';
+            case 'Entregado': return 'success';
+            default: return 'default';
+        }
+    };
+
     return (
-        <View style={[styles.card, {
-            backgroundColor: colors.superficie,
-            borderColor: colors.borde,
-            shadowColor: isDark ? '#000' : '#000',
-        }]}>
+        <Surface variant="elevated" style={styles.card} padding="lg">
             {/* Cabecera de la tarjeta */}
             <View style={styles.cardHeader}>
                 <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={[styles.cardCodigo, { color: colors.textoPrincipal }]}>{envio.codPedido}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+                        <Text variant="h3" weight="bold">{envio.codPedido}</Text>
                     </View>
-                    <Text style={[styles.cardCliente, { color: colors.textoSecundario }]} numberOfLines={1}>{envio.cliente}</Text>
-                </View>
-                <View style={[styles.badge, { backgroundColor: badge.bg }]}>
-                    <Text style={[styles.badgeText, { color: badge.text }]}>{badge.label}</Text>
-                </View>
-            </View>
-
-            {/* Info Logística V6 */}
-            <View style={styles.logisticaRow}>
-                {envio.distrito ? (
-                    <View style={styles.metaItem}>
-                        <Ionicons name="location-outline" size={12} color={colors.textoTerciario} />
-                        <Text style={[styles.cardMeta, { color: colors.textoTerciario, marginLeft: 4 }]}>{envio.distrito}</Text>
-                    </View>
-                ) : null}
-            </View>
-
-            {envio.operador && (
-                <View style={[styles.opLogisticoBadge, { backgroundColor: colors.fondoPrimario }]}>
-                    <Text style={[styles.opLogisticoText, { color: colors.primario }]}>
-                        {envio.operador.toUpperCase()}
+                    <Text variant="body" color={colors.textoSecundario} numberOfLines={1}>
+                        {envio.cliente}
                     </Text>
                 </View>
-            )}
+                <Badge 
+                    label={envio.estado.replace('_', ' ')} 
+                    variant={getBadgeVariant(envio.estado)} 
+                />
+            </View>
 
-            {/* Info secundaria */}
-            {envio.operador ? (
-                <Text style={[styles.cardMeta, { color: colors.textoTerciario, marginTop: 4 }]}>
-                    <Ionicons name="person-outline" size={12} color={colors.textoTerciario} /> {envio.operador}
-                </Text>
-            ) : null}
+            {/* Info Logística */}
+            <View style={styles.logisticaRow}>
+                {envio.distrito && (
+                    <View style={styles.metaItem}>
+                        <Ionicons name="location-outline" size={12} color={colors.textoTerciario} />
+                        <Text variant="small" color={colors.textoTerciario} style={{ marginLeft: 4 }}>
+                            {envio.distrito}
+                        </Text>
+                    </View>
+                )}
+                {envio.operador && (
+                    <View style={[styles.metaItem, { marginLeft: TOKENS.spacing.md }]}>
+                        <Ionicons name="bicycle-outline" size={12} color={colors.textoTerciario} />
+                        <Text variant="small" color={colors.textoTerciario} style={{ marginLeft: 4 }}>
+                            {envio.operador}
+                        </Text>
+                    </View>
+                )}
+            </View>
+
             {envio.notas ? (
-                <Text style={[styles.cardNotas, { color: colors.textoSecundario }]} numberOfLines={2}>{envio.notas}</Text>
+                <View style={styles.notasContainer}>
+                    <Text variant="small" color={colors.textoSecundario} numberOfLines={2}>
+                        {envio.notas}
+                    </Text>
+                </View>
             ) : null}
 
-            {/* Acciones */}
+            {/* Acciones del Design System */}
             <View style={styles.cardActions}>
                 {puedeDespachar && (
-                    <TouchableOpacity
-                        style={[styles.btnPrimario, { backgroundColor: colors.primario }]}
-                        onPress={() => {
-                            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                            onDespachar(envio);
-                        }}
-                        activeOpacity={0.85}
-                    >
-                        <Ionicons name="arrow-forward-circle-outline" size={16} color="#fff" style={{ marginRight: 6 }} />
-                        <Text style={styles.btnPrimarioText}>Despachar</Text>
-                    </TouchableOpacity>
+                    <Button 
+                        label="Despachar"
+                        variant="primary"
+                        size="sm"
+                        style={{ flex: 1, marginRight: TOKENS.spacing.sm }}
+                        icon={<Ionicons name="arrow-forward" size={16} color="#FFF" />}
+                        onPress={() => onDespachar(envio)}
+                    />
                 )}
-                <TouchableOpacity
-                    style={[styles.btnSecundario, { backgroundColor: colors.fondoPrimario }]}
+                <Button 
+                    label="Ver Panel"
+                    variant="secondary"
+                    size="sm"
+                    style={{ flex: puedeDespachar ? 1 : 2 }}
+                    icon={<Ionicons name="qr-code-outline" size={16} color={colors.primario} />}
                     onPress={() => onVerPanel(envio)}
-                    activeOpacity={0.85}
-                >
-                    <Ionicons name="qr-code-outline" size={16} color={colors.primario} style={{ marginRight: 4 }} />
-                    <Text style={[styles.btnSecundarioText, { color: colors.primario }]}>Ver Panel</Text>
-                </TouchableOpacity>
+                />
             </View>
-        </View>
+        </Surface>
     );
 });
 
@@ -241,98 +244,87 @@ export const PickingScreen = () => {
                     <Ionicons name="arrow-back" size={22} color={colors.textoPrincipal} />
                 </TouchableOpacity>
                 <View style={{ flex: 1 }}>
-                    <Text style={[styles.titulo, { color: colors.textoPrincipal }]}>Logística</Text>
-                    <Text style={[styles.subtitulo, { color: colors.textoSecundario }]}>Panel de Picking</Text>
+                    <Text variant="h2" weight="bold">Logística</Text>
+                    <Text variant="small" color={colors.textoSecundario}>Panel de Picking</Text>
                 </View>
-                <TouchableOpacity
-                    style={[styles.btnFab, { backgroundColor: colors.primario }]}
-                    onPress={() => navigation.navigate('StorePanel', {})}
-                    activeOpacity={0.85}
-                >
-                    <Ionicons name="qr-code-outline" size={20} color="#fff" />
+                <TouchableOpacity onPress={reSincronizar} style={styles.syncBtn} disabled={cargando}>
+                    {cargando ? (
+                        <ActivityIndicator size="small" color={colors.primario} />
+                    ) : (
+                        <Ionicons name="sync" size={22} color={colors.primario} />
+                    )}
                 </TouchableOpacity>
             </View>
 
-            {/* Indicador de sincronización */}
-            {(cargando || error) && (
-                <View style={[styles.syncIndicator, {
-                    backgroundColor: error ? (isDark ? '#2d1010' : '#fff0f0') : (isDark ? '#0f1e2d' : '#f0f8ff'),
-                    borderColor: colors.borde,
-                }]}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                        {cargando && <ActivityIndicator size="small" color={colors.primario} style={{ marginRight: 8 }} />}
-                        <Text style={[styles.syncText, { color: error ? colors.error : colors.primario }]}>
-                            {error ? '⚠️ ' + error : '🔄 Sincronizando pedidos...'}
-                        </Text>
-                    </View>
-                    {!cargando && error && (
-                        <TouchableOpacity onPress={reSincronizar} style={[styles.retryBtn, { backgroundColor: isDark ? '#3d1010' : 'rgba(211, 47, 47, 0.1)' }]}>
-                            <Text style={[styles.retryText, { color: colors.error }]}>Reintentar</Text>
-                        </TouchableOpacity>
-                    )}
-                </View>
-            )}
+            {/* Buscador y Filtros */}
+            <View style={[styles.filtrosBox, { backgroundColor: colors.superficie, borderBottomColor: colors.borde, padding: TOKENS.spacing.lg }]}>
+                <Input 
+                    placeholder="Buscar por código o cliente..."
+                    value={busqueda}
+                    onChangeText={setBusqueda}
+                    icon={<Ionicons name="search-outline" size={20} color={colors.textoTerciario} />}
+                    containerStyle={{ marginBottom: TOKENS.spacing.md }}
+                />
 
-            {/* Buscador & Orden */}
-            <View style={[styles.barraHerramientas, { backgroundColor: colors.superficie, borderBottomColor: colors.borde }]}>
-                <View style={[styles.contenedorBuscador, { backgroundColor: colors.fondoBuscador, borderColor: colors.borde }]}>
-                    <Ionicons name="search-outline" size={18} color={colors.placeholder} style={styles.iconoBuscador} />
-                    <TextInput
-                        style={[styles.inputBuscador, { color: colors.textoPrincipal }]}
-                        placeholder="Buscar por código o cliente..."
-                        placeholderTextColor={colors.placeholder}
-                        value={busqueda}
-                        onChangeText={setBusqueda}
-                    />
-                    {busqueda.length > 0 && (
-                        <TouchableOpacity onPress={() => setBusqueda('')} style={styles.btnLimpiar}>
-                            <Ionicons name="close-circle" size={16} color={colors.placeholder} />
-                        </TouchableOpacity>
-                    )}
-                </View>
-                <TouchableOpacity
-                    style={[styles.btnOrden, { borderColor: colors.borde, backgroundColor: colors.fondo }]}
-                    onPress={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        setOrdenDesc(!ordenDesc);
-                    }}
-                >
-                    <Ionicons name={ordenDesc ? 'arrow-down' : 'arrow-up'} size={18} color={colors.textoSecundario} />
-                </TouchableOpacity>
-            </View>
-
-            {/* Filtros de estado */}
-            <View style={[styles.estadosRow, {
-                backgroundColor: colors.superficie,
-                borderBottomColor: colors.borde,
-            }]}>
-                {Object.entries(ESTADO_BADGE).map(([estado, cfg]) => {
-                    const isSelected = filtroEstado === estado;
-                    const isDimmed = filtroEstado !== null && !isSelected;
-                    return (
-                        <TouchableOpacity 
-                            key={estado} 
-                            style={[styles.badgeBtn, {
-                                backgroundColor: cfg.bg,
-                                borderColor: isSelected ? cfg.text : 'transparent',
-                                borderWidth: 1,
-                                opacity: isDimmed ? 0.4 : 1,
-                            }]}
-                            onPress={() => handleToggleFiltro(estado as EstadoPedido)}
-                            activeOpacity={0.7}
+                <View style={styles.filtrosRow}>
+                    <TouchableOpacity
+                        onPress={() => handleToggleFiltro('Pendiente')}
+                        style={[
+                            styles.filtroChip,
+                            { backgroundColor: colors.fondoPrimario },
+                            filtroEstado === 'Pendiente' && { backgroundColor: colors.primario }
+                        ]}
+                    >
+                        <Text 
+                            variant="small" 
+                            weight="medium"
+                            color={filtroEstado === 'Pendiente' ? '#FFF' : colors.primario}
                         >
-                            <Text style={[styles.badgeText, { color: cfg.text }]}>{cfg.label}</Text>
-                        </TouchableOpacity>
-                    );
-                })}
+                            Pendientes
+                        </Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                        onPress={() => handleToggleFiltro('En_Tienda')}
+                        style={[
+                            styles.filtroChip,
+                            { backgroundColor: colors.fondoPrimario, marginLeft: TOKENS.spacing.sm },
+                            filtroEstado === 'En_Tienda' && { backgroundColor: colors.primario }
+                        ]}
+                    >
+                        <Text 
+                            variant="small" 
+                            weight="medium"
+                            color={filtroEstado === 'En_Tienda' ? '#FFF' : colors.primario}
+                        >
+                            En Tienda
+                        </Text>
+                    </TouchableOpacity>
+
+                    <View style={{ flex: 1 }} />
+
+                    <TouchableOpacity 
+                        onPress={() => setOrdenDesc(!ordenDesc)} 
+                        style={[styles.ordenBtn, { backgroundColor: colors.fondoPrimario }]}
+                    >
+                        <Ionicons 
+                            name={ordenDesc ? "filter" : "filter-outline"} 
+                            size={18} 
+                            color={colors.primario} 
+                        />
+                    </TouchableOpacity>
+                </View>
             </View>
 
-            {/* Lista reactiva de pedidos */}
-            {cargando ? (
-                <View style={{ flex: 1, paddingTop: 12 }}>
-                    {[1, 2, 3, 4, 5].map(i => <SkeletonCard key={i} />)}
-                </View>
-            ) : (
+            {/* Lista reactiva de envíos */}
+            <View style={{ flex: 1 }}>
+                {cargando && (
+                    <View style={{ padding: TOKENS.spacing.lg }}>
+                        <SkeletonCard />
+                        <SkeletonCard />
+                    </View>
+                )}
+                
                 <PickingList 
                     busqueda={busqueda} 
                     filtroEstado={filtroEstado} 
@@ -341,7 +333,7 @@ export const PickingScreen = () => {
                     onDespachar={handleDespachar} 
                     onVerPanel={handleVerPanel} 
                 />
-            )}
+            </View>
 
             <BottomBar
                 modoActivo="logistica"
@@ -577,5 +569,37 @@ const styles = StyleSheet.create({
     retryText: {
         fontSize: 12,
         fontWeight: '600',
+    },
+    filtroChip: {
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 20,
+    },
+    ordenBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    filtrosBox: {
+        paddingVertical: 12,
+    },
+    filtrosRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+    },
+    notasContainer: {
+        marginTop: 8,
+        padding: 8,
+        borderRadius: 4,
+    },
+    syncBtn: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });

@@ -13,13 +13,12 @@ jest.mock('../hooks/useLogisticsSync', () => ({
 }));
 
 describe('PickingScreen UI & Performance', () => {
-  const mockPedidos = [
+  const mockEnvios = [
     {
       id: '1',
       codPedido: 'PED-001',
       cliente: 'Juan Perez',
       estado: 'Pendiente',
-      canal: 'woocommerce',
       distrito: 'Miraflores',
     },
   ];
@@ -35,7 +34,7 @@ describe('PickingScreen UI & Performance', () => {
   test('Renderizado de PickingList con datos', () => {
     const { getByText } = render(
       <PickingList 
-        pedidos={mockPedidos as any} 
+        pedidos={mockEnvios as any} 
         busqueda="" 
         filtroEstado={null} 
         ordenDesc={true} 

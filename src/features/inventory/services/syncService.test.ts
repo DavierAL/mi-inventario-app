@@ -10,20 +10,21 @@ describe('SyncService - Unit Tests & Performance', () => {
     jest.clearAllMocks();
   });
 
-  test('Mapeo de pedidos desde Supabase (Branch Coverage)', async () => {
-    const mockPedido = {
-      id: 123,
-      woo_order_id: 456,
-      cliente_nombre: 'Juan',
-      cliente_apellido: 'Perez',
-      estado: 'impresion_etiqueta',
+  test('Mapeo de envios desde Supabase (Performance)', async () => {
+    const mockEnvio = {
+      id: 'uuid-123',
+      cod_pedido: 'PED-123',
+      cliente: 'Juan Perez',
+      estado: 'Entregado',
+      telefono: '999888777',
+      distrito: 'Miraflores',
       created_at: '2026-04-20T00:00:00Z',
       updated_at: '2026-04-20T01:00:00Z',
     };
 
     (supabase.from as jest.Mock).mockReturnValue({
       select: jest.fn().mockReturnThis(),
-      gt: jest.fn().mockResolvedValue({ data: [mockPedido], error: null }),
+      gt: jest.fn().mockResolvedValue({ data: [mockEnvio], error: null }),
     });
 
     (global.fetch as jest.Mock).mockResolvedValue({
@@ -31,57 +32,28 @@ describe('SyncService - Unit Tests & Performance', () => {
       json: jest.fn().mockResolvedValue({ data: { productos: [] } }),
     });
 
-    // Medimos el performance del pull completo
-    const { metrics } = await benchmark('Sync Pull Mapping Pedidos', async () => {
+    // Medimos el performance del pull completo de envios
+    const { metrics } = await benchmark('Sync Pull Mapping Envios', async () => {
       await syncConSupabase({ forceFull: true });
     });
 
     expect(metrics.durationMs).toBeLessThan(100); 
   });
 
-  test('Mapeo de items de pedido (Performance)', async () => {
-      const mockItem = {
-          id: 1,
-          pedido_id: 123,
-          sku_woo: 'SKU001',
-          descripcion_woo: 'Producto Test',
-          cantidad_pedida: 2,
-          precio_unitario_woo: 10.5,
-          created_at: '2026-04-20T00:00:00Z',
-          updated_at: '2026-04-20T01:00:00Z',
-      };
-
-      (supabase.from as jest.Mock).mockImplementation((table) => ({
-          select: jest.fn().mockReturnThis(),
-          gt: jest.fn().mockResolvedValue({ 
-              data: table === 'pedidos' ? [] : [mockItem], 
-              error: null 
-          }),
-      }));
-
-      const { metrics } = await benchmark('Sync Pull Mapping Items', async () => {
-          await syncConSupabase();
-      });
-
-      expect(metrics.durationMs).toBeLessThan(50);
-  });
-
-  test('Manejo de estados desconocidos en mapearEstadoEntrante', async () => {
-      // Este test cubrira la rama "return 'Pendiente'" de mapearEstadoEntrante
-      const mockPedido = {
-        id: 1,
-        estado: 'estado_desconocido_xyz',
+  test('Manejo de estados normalizados en sync', async () => {
+      const mockEnvio = {
+        id: 'uuid-456',
+        cod_pedido: 'PED-456',
+        estado: 'pendiente', // En minúsculas, debe ser manejado por el modelo
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       };
 
       (supabase.from as jest.Mock).mockReturnValue({
         select: jest.fn().mockReturnThis(),
-        gt: jest.fn().mockResolvedValue({ data: [mockPedido], error: null }),
+        gt: jest.fn().mockResolvedValue({ data: [mockEnvio], error: null }),
       });
 
-      // No necesitamos verificar el resultado exacto aquí si solo queremos cobertura,
-      // pero es buena práctica hacerlo.
       await syncConSupabase();
   });
 });
