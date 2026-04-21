@@ -12,26 +12,30 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { FlashList } from '@shopify/flash-list';
+const FlashListAny = FlashList as any;
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import withObservables from '@nozbe/with-observables';
 import { Q } from '@nozbe/watermelondb';
 import { database } from '../../../core/database';
 import Pedido, { EstadoPedido } from '../../../core/database/models/Pedido';
+import { LogisticsRepository } from '../repository/logisticsRepository';
 import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
 import { useTheme } from '../../../core/ui/ThemeContext';
 import { RootStackParamList } from '../../../core/types/navigation';
 import { useLogisticsSync } from '../hooks/useLogisticsSync';
+import { SkeletonCard } from '../../../core/ui/SkeletonCard';
 import { SHADOWS } from '../../../core/ui/shadows';
 
 type PickingNavProp = NativeStackNavigationProp<RootStackParamList, 'PickingList'>;
 
 // ─── Colores por estado (Notion semantic palette) ────────────────────────────
 
-const ESTADO_BADGE: Record<EstadoPedido, { bg: string; bgDark: string; text: string; label: string }> = {
-    Pendiente:  { bg: '#fff4ed', bgDark: '#2d1a0a', text: '#dd5b00', label: 'Pendiente' },
-    En_Tienda:  { bg: '#f2f9ff', bgDark: '#0f2035', text: '#62aef0', label: 'En Tienda' },
-    Entregado:  { bg: '#f0fdf4', bgDark: '#0a1f12', text: '#22c55e', label: 'Entregado' },
+const ESTADO_BADGE: Record<EstadoPedido, { bg: string; text: string; label: string }> = {
+    Pendiente:  { bg: 'fondoPrimario', text: 'error', label: 'Pendiente' },
+    En_Tienda:  { bg: 'fondoPrimario', text: 'primario', label: 'En Tienda' },
+    Entregado:  { bg: 'fondoPrimario', text: 'exito', label: 'Entregado' },
 };
 
 // ─── Tarjeta de pedido ───────────────────────────────────────────────────────
@@ -66,8 +70,8 @@ const PedidoCard = memo(({ pedido, onDespachar, onVerPanel }: PedidoCardProps) =
                     </View>
                     <Text style={[styles.cardCliente, { color: colors.textoSecundario }]} numberOfLines={1}>{pedido.cliente}</Text>
                 </View>
-                <View style={[styles.badge, { backgroundColor: isDark ? badge.bgDark : badge.bg }]}>
-                    <Text style={[styles.badgeText, { color: badge.text }]}>{badge.label}</Text>
+                <View style={[styles.badge, { backgroundColor: colors[badge.bg as keyof typeof colors] as string }]}>
+                    <Text style={[styles.badgeText, { color: colors[badge.text as keyof typeof colors] as string }]}>{badge.label}</Text>
                 </View>
             </View>
 
@@ -145,10 +149,11 @@ interface ListaBaseProps {
 const ListaBase = memo(({ pedidos, isFiltrado, onDespachar, onVerPanel }: ListaBaseProps) => {
     const { colors } = useTheme();
     return (
-        <FlatList
+        <FlashListAny
             data={pedidos}
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
+            keyExtractor={(item: any) => item.id}
+            estimatedItemSize={160}
+            renderItem={({ item }: any) => (
                 <PedidoCard pedido={item} onDespachar={onDespachar} onVerPanel={onVerPanel} />
             )}
             contentContainerStyle={styles.lista}
@@ -214,12 +219,12 @@ export const PickingScreen = () => {
     const [ordenDesc, setOrdenDesc] = useState(true);
 
     const handleDespachar = async (pedido: Pedido) => {
-        await database.write(async () => {
-            await pedido.update((p) => {
-                p.estado = 'En_Tienda';
-            });
-        });
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        try {
+            await LogisticsRepository.actualizarEstado(pedido, 'En_Tienda');
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        } catch (err) {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+        }
     };
 
     const handleVerPanel = (pedido: Pedido) => {
@@ -319,8 +324,8 @@ export const PickingScreen = () => {
                         <TouchableOpacity 
                             key={estado} 
                             style={[styles.badgeBtn, {
-                                backgroundColor: isDark ? cfg.bgDark : cfg.bg,
-                                borderColor: isSelected ? cfg.text : 'transparent',
+                                backgroundColor: colors[cfg.bg as keyof typeof colors] as string,
+                                borderColor: isSelected ? (colors[cfg.text as keyof typeof colors] as string) : 'transparent',
                                 borderWidth: 1,
                                 opacity: isDimmed ? 0.4 : 1,
                             }]}
@@ -334,14 +339,20 @@ export const PickingScreen = () => {
             </View>
 
             {/* Lista reactiva de pedidos */}
-            <PickingList 
-                busqueda={busqueda} 
-                filtroEstado={filtroEstado} 
-                ordenDesc={ordenDesc}
-                isFiltrado={Boolean(busqueda.trim().length > 0 || filtroEstado !== null)}
-                onDespachar={handleDespachar} 
-                onVerPanel={handleVerPanel} 
-            />
+            {cargando ? (
+                <View style={{ flex: 1, paddingTop: 12 }}>
+                    {[1, 2, 3, 4, 5].map(i => <SkeletonCard key={i} />)}
+                </View>
+            ) : (
+                <PickingList 
+                    busqueda={busqueda} 
+                    filtroEstado={filtroEstado} 
+                    ordenDesc={ordenDesc}
+                    isFiltrado={Boolean(busqueda.trim().length > 0 || filtroEstado !== null)}
+                    onDespachar={handleDespachar} 
+                    onVerPanel={handleVerPanel} 
+                />
+            )}
 
             <BottomBar
                 modoActivo="logistica"

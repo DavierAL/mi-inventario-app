@@ -23,7 +23,7 @@ jest.mock('expo-image', () => {
   const React = require('react');
   const { View } = require('react-native');
   return {
-    Image: (props: any) => React.createElement(View, props),
+    Image: (props) => React.createElement(View, props),
   };
 });
 

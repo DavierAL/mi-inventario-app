@@ -68,7 +68,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
       const { data: pedidosRemote, error: errP } = await supabase
         .from('pedidos')
         .select('*')
-        .gt('updated_at', lastPulledDate);
+        .gte('updated_at', lastPulledDate);
       
       if (errP) throw errP;
 
@@ -106,7 +106,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
       const { data: itemsRemote, error: errI } = await supabase
         .from('pedido_items')
         .select('*')
-        .gt('updated_at', lastPulledDate);
+        .gte('updated_at', lastPulledDate);
 
       if (errI) {
           console.warn('[Sync] No se pudieron obtener items de pedidos:', errI.message);
@@ -123,12 +123,15 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         updated_at: new Date(row.updated_at).getTime(),
       }));
 
+      // Separación lógica para WatermelonDB (created vs updated)
+      const isInitialSync = !lastPulledAt || options.forceFull;
+
       return {
         changes: {
-          productos: { created: [], updated: productosUpdated, deleted: [] },
+          productos: { created: isInitialSync ? productosUpdated : [], updated: isInitialSync ? [] : productosUpdated, deleted: [] },
           movimientos: { created: [], updated: [], deleted: [] },
-          pedidos: { created: [], updated: pedidosUpdated, deleted: [] },
-          pedido_items: { created: [], updated: itemsUpdated, deleted: [] },
+          pedidos: { created: isInitialSync ? pedidosUpdated : [], updated: isInitialSync ? [] : pedidosUpdated, deleted: [] },
+          pedido_items: { created: isInitialSync ? itemsUpdated : [], updated: isInitialSync ? [] : itemsUpdated, deleted: [] },
         },
         timestamp: Date.now(),
       };
@@ -151,22 +154,26 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         }
       }
 
-      // Push Pedidos (Supabase)
+      // Push Pedidos (Supabase) - Batching Rule 4.1
       if (changes.pedidos) {
         const allPedidoChanges = [...changes.pedidos.created, ...changes.pedidos.updated];
-        for (const record of allPedidoChanges) {
-            // Actualizar estado en Supabase
-            const { error } = await supabase
-                .from('pedidos')
-                .update({ 
-                    estado: record.estado.toLowerCase(),
-                    url_foto: record.url_foto,
-                    operador: record.operador,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('id', record.id);
-            
-            if (error) console.error('[Sync] Error pushing pedido:', error.message);
+        // Particionamiento en lotes de 100 para mayor seguridad (Límite regla: 500)
+        const batchSize = 100;
+        for (let i = 0; i < allPedidoChanges.length; i += batchSize) {
+          const batch = allPedidoChanges.slice(i, i + batchSize);
+          const updates = batch.map(record => ({
+            id: record.id,
+            estado: record.estado.toLowerCase(),
+            url_foto: record.url_foto,
+            operador: record.operador,
+            updated_at: new Date().toISOString()
+          }));
+
+          const { error } = await supabase
+            .from('pedidos')
+            .upsert(updates);
+          
+          if (error) console.error('[Sync] Error pushing pedido batch:', error.message);
         }
       }
     },

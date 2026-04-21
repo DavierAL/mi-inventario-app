@@ -20,6 +20,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Q } from '@nozbe/watermelondb';
 import { database } from '../../../core/database';
 import Pedido, { EstadoPedido } from '../../../core/database/models/Pedido';
+import { LogisticsRepository } from '../repository/logisticsRepository';
 import PedidoItem from '../../../core/database/models/PedidoItem';
 import { QueueService } from '../../../core/services/QueueService';
 import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
@@ -34,10 +35,10 @@ type StorePanelRoute = RouteProp<RootStackParamList, 'StorePanel'>;
 
 // ─── Badge config por estado ──────────────────────────────────────────────────
 
-const ESTADO_BADGE: Record<EstadoPedido, { bg: string; bgDark: string; text: string; label: string }> = {
-    Pendiente:  { bg: '#fff4ed', bgDark: '#2d1a0a', text: '#dd5b00', label: 'Pendiente' },
-    En_Tienda:  { bg: '#f2f9ff', bgDark: '#0f2035', text: '#62aef0', label: 'En Tienda' },
-    Entregado:  { bg: '#f0fdf4', bgDark: '#0a1f12', text: '#22c55e', label: 'Entregado' },
+const ESTADO_BADGE: Record<EstadoPedido, { bg: string; text: string; label: string }> = {
+    Pendiente:  { bg: 'fondoPrimario', text: 'error', label: 'Pendiente' },
+    En_Tienda:  { bg: 'fondoPrimario', text: 'primario', label: 'En Tienda' },
+    Entregado:  { bg: 'fondoPrimario', text: 'exito', label: 'Entregado' },
 };
 
 // ─── Componente principal ─────────────────────────────────────────────────────
@@ -75,7 +76,7 @@ export const StorePanelScreen = () => {
 
     const cargarPedidoPorId = async (id: string) => {
         try {
-            const p = await database.get<Pedido>('pedidos').find(id);
+            const p = await LogisticsRepository.obtenerPorId(id);
             setPedido(p);
         } catch {
             Toast.show({ type: 'error', text1: 'Pedido no encontrado en local' });
@@ -362,8 +363,8 @@ export const StorePanelScreen = () => {
                                     </View>
                                 </View>
                                 {badge && (
-                                    <View style={[styles.badge, { backgroundColor: isDark ? badge.bgDark : badge.bg }]}>
-                                        <Text style={[styles.badgeText, { color: badge.text }]}>{badge.label}</Text>
+                                    <View style={[styles.badge, { backgroundColor: colors[badge.bg as keyof typeof colors] as string }]}>
+                                        <Text style={[styles.badgeText, { color: colors[badge.text as keyof typeof colors] as string }]}>{badge.label}</Text>
                                     </View>
                                 )}
                             </View>
