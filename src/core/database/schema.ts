@@ -1,7 +1,7 @@
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
 export const schema = appSchema({
-  version: 5,
+  version: 6,
   tables: [
     tableSchema({
       name: 'productos',
@@ -46,6 +46,33 @@ export const schema = appSchema({
         { name: 'pod_local_uri', type: 'string', isOptional: true }, // URI foto local (pre-upload)
         { name: 'url_foto', type: 'string', isOptional: true },      // URL Supabase Storage (post-upload)
         { name: 'notas', type: 'string', isOptional: true },
+        
+        // --- Nuevos campos V6 (WooCommerce / Logística avanzada) ---
+        { name: 'woo_order_id', type: 'number', isIndexed: true, isOptional: true },
+        { name: 'canal', type: 'string', isOptional: true },
+        { name: 'cliente_telefono', type: 'string', isOptional: true },
+        { name: 'direccion', type: 'string', isOptional: true },
+        { name: 'distrito', type: 'string', isOptional: true },
+        { name: 'referencia', type: 'string', isOptional: true },
+        { name: 'gmaps_url', type: 'string', isOptional: true },
+        { name: 'fecha_entrega', type: 'string', isOptional: true },
+        { name: 'metodo_pago_display', type: 'string', isOptional: true },
+        { name: 'total_woo', type: 'number', isOptional: true },
+        { name: 'operador_logistico', type: 'string', isOptional: true },
+        { name: 'tracking_interno', type: 'string', isOptional: true },
+
+        { name: 'created_at', type: 'number' },
+        { name: 'updated_at', type: 'number' },
+      ]
+    }),
+    tableSchema({
+      name: 'pedido_items',
+      columns: [
+        { name: 'pedido_id', type: 'string', isIndexed: true },
+        { name: 'descripcion_woo', type: 'string' },
+        { name: 'sku_woo', type: 'string', isOptional: true },
+        { name: 'cantidad_pedida', type: 'number' },
+        { name: 'precio_unitario_woo', type: 'number' },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ]

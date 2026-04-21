@@ -27,6 +27,8 @@ export interface EntradaHistorial {
     cambios: {
         fvAnterior?: string;
         fvNuevo?: string;
+        fvAnteriorTs?: number;
+        fvNuevoTs?: number;
         comentario?: string;
     };
     timestamp: number;       // Unix ms para ordenar y formatear

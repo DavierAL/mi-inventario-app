@@ -56,7 +56,14 @@ const PedidoCard = memo(({ pedido, onDespachar, onVerPanel }: PedidoCardProps) =
             {/* Cabecera de la tarjeta */}
             <View style={styles.cardHeader}>
                 <View style={{ flex: 1 }}>
-                    <Text style={[styles.cardCodigo, { color: colors.textoPrincipal }]}>{pedido.codPedido}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Text style={[styles.cardCodigo, { color: colors.textoPrincipal }]}>{pedido.codPedido}</Text>
+                        {pedido.canal === 'woocommerce' && (
+                            <View style={styles.canalBadge}>
+                                <Text style={styles.canalBadgeText}>WOO</Text>
+                            </View>
+                        )}
+                    </View>
                     <Text style={[styles.cardCliente, { color: colors.textoSecundario }]} numberOfLines={1}>{pedido.cliente}</Text>
                 </View>
                 <View style={[styles.badge, { backgroundColor: isDark ? badge.bgDark : badge.bg }]}>
@@ -64,9 +71,33 @@ const PedidoCard = memo(({ pedido, onDespachar, onVerPanel }: PedidoCardProps) =
                 </View>
             </View>
 
+            {/* Info Logística V6 */}
+            <View style={styles.logisticaRow}>
+                {pedido.distrito ? (
+                    <View style={styles.metaItem}>
+                        <Ionicons name="location-outline" size={12} color={colors.textoTerciario} />
+                        <Text style={[styles.cardMeta, { color: colors.textoTerciario, marginLeft: 4 }]}>{pedido.distrito}</Text>
+                    </View>
+                ) : null}
+                {pedido.fechaEntrega ? (
+                    <View style={styles.metaItem}>
+                        <Ionicons name="calendar-outline" size={12} color={colors.textoTerciario} />
+                        <Text style={[styles.cardMeta, { color: colors.textoTerciario, marginLeft: 4 }]}>{pedido.fechaEntrega}</Text>
+                    </View>
+                ) : null}
+            </View>
+
+            {pedido.operadorLogistico && (
+                <View style={[styles.opLogisticoBadge, { backgroundColor: pedido.operadorLogistico === 'salva' ? '#e0f2fe' : '#fef3c7' }]}>
+                    <Text style={[styles.opLogisticoText, { color: pedido.operadorLogistico === 'salva' ? '#0369a1' : '#b45309' }]}>
+                        {pedido.operadorLogistico.toUpperCase()}
+                    </Text>
+                </View>
+            )}
+
             {/* Info secundaria */}
             {pedido.operador ? (
-                <Text style={[styles.cardMeta, { color: colors.textoTerciario }]}>
+                <Text style={[styles.cardMeta, { color: colors.textoTerciario, marginTop: 4 }]}>
                     <Ionicons name="person-outline" size={12} color={colors.textoTerciario} /> {pedido.operador}
                 </Text>
             ) : null}
@@ -86,7 +117,7 @@ const PedidoCard = memo(({ pedido, onDespachar, onVerPanel }: PedidoCardProps) =
                         activeOpacity={0.85}
                     >
                         <Ionicons name="arrow-forward-circle-outline" size={16} color="#fff" style={{ marginRight: 6 }} />
-                        <Text style={styles.btnPrimarioText}>Despachar a Tienda</Text>
+                        <Text style={styles.btnPrimarioText}>Despachar</Text>
                     </TouchableOpacity>
                 )}
                 <TouchableOpacity
@@ -95,7 +126,7 @@ const PedidoCard = memo(({ pedido, onDespachar, onVerPanel }: PedidoCardProps) =
                     activeOpacity={0.85}
                 >
                     <Ionicons name="qr-code-outline" size={16} color={colors.primario} style={{ marginRight: 4 }} />
-                    <Text style={[styles.btnSecundarioText, { color: colors.primario }]}>Panel Tienda</Text>
+                    <Text style={[styles.btnSecundarioText, { color: colors.primario }]}>Ver Panel</Text>
                 </TouchableOpacity>
             </View>
         </View>
@@ -144,7 +175,7 @@ interface ListaReactivaParams {
     isFiltrado: boolean;
 }
 
-const ListaReactiva = withObservables(['busqueda', 'filtroEstado', 'ordenDesc'], ({ busqueda, filtroEstado, ordenDesc }: ListaReactivaParams) => {
+export const PickingList = withObservables(['busqueda', 'filtroEstado', 'ordenDesc'], ({ busqueda, filtroEstado, ordenDesc }: ListaReactivaParams) => {
     let condiciones: any[] = [];
     
     if (filtroEstado) {
@@ -303,7 +334,7 @@ export const PickingScreen = () => {
             </View>
 
             {/* Lista reactiva de pedidos */}
-            <ListaReactiva 
+            <PickingList 
                 busqueda={busqueda} 
                 filtroEstado={filtroEstado} 
                 ordenDesc={ordenDesc}
@@ -428,6 +459,38 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '700',
         letterSpacing: -0.1,
+    },
+    canalBadge: {
+        backgroundColor: '#0075de',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+        marginLeft: 8,
+    },
+    canalBadgeText: {
+        color: '#fff',
+        fontSize: 10,
+        fontWeight: '800',
+    },
+    logisticaRow: {
+        flexDirection: 'row',
+        gap: 12,
+        marginTop: 6,
+    },
+    metaItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    opLogisticoBadge: {
+        alignSelf: 'flex-start',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 4,
+        marginTop: 8,
+    },
+    opLogisticoText: {
+        fontSize: 11,
+        fontWeight: '700',
     },
     cardCliente: {
         fontSize: 14,

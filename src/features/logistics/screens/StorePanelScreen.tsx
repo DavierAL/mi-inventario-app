@@ -6,7 +6,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
     View, Text, StyleSheet, TouchableOpacity, ScrollView,
-    StatusBar, Alert, ActivityIndicator, Modal,
+    StatusBar, Alert, ActivityIndicator, Modal, Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,17 +14,18 @@ import * as Haptics from 'expo-haptics';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import Toast from 'react-native-toast-message';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Q } from '@nozbe/watermelondb';
-import Toast from 'react-native-toast-message';
-import { useNetworkStatus } from '../../../core/utils/useNetworkStatus';
 import { database } from '../../../core/database';
 import Pedido, { EstadoPedido } from '../../../core/database/models/Pedido';
+import PedidoItem from '../../../core/database/models/PedidoItem';
 import { QueueService } from '../../../core/services/QueueService';
 import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
 import { useTheme } from '../../../core/ui/ThemeContext';
 import { RootStackParamList } from '../../../core/types/navigation';
+import { useNetworkStatus } from '../../../core/utils/useNetworkStatus';
 import { useLogisticsSync } from '../hooks/useLogisticsSync';
 import { SHADOWS } from '../../../core/ui/shadows';
 
@@ -50,6 +51,7 @@ export const StorePanelScreen = () => {
 
     const [permisoCamera, pedirPermiso] = useCameraPermissions();
     const [pedido, setPedido] = useState<Pedido | null>(null);
+    const [items, setItems] = useState<PedidoItem[]>([]);
     const [modoEscaner, setModoEscaner] = useState(false);
     const [modoFoto, setModoFoto] = useState(false);
     const [procesando, setProcesando] = useState(false);
@@ -63,12 +65,28 @@ export const StorePanelScreen = () => {
         if (pedidoId) cargarPedidoPorId(pedidoId);
     }, [route.params?.pedidoId]);
 
+    useEffect(() => {
+        if (pedido) {
+            pedido.items.fetch().then((res: any) => setItems(res));
+        } else {
+            setItems([]);
+        }
+    }, [pedido]);
+
     const cargarPedidoPorId = async (id: string) => {
         try {
             const p = await database.get<Pedido>('pedidos').find(id);
             setPedido(p);
         } catch {
             Toast.show({ type: 'error', text1: 'Pedido no encontrado en local' });
+        }
+    };
+
+    const handleAbrirGmaps = () => {
+        if (pedido?.gmapsUrl) {
+            Linking.openURL(pedido.gmapsUrl).catch(() => {
+                Toast.show({ type: 'error', text1: 'No se pudo abrir el enlace' });
+            });
         }
     };
 
@@ -338,7 +356,10 @@ export const StorePanelScreen = () => {
                             <View style={styles.cardHeader}>
                                 <View style={{ flex: 1 }}>
                                     <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Código de Pedido</Text>
-                                    <Text style={[styles.cardValor, { color: colors.textoPrincipal }]}>{pedido.codPedido}</Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        <Text style={[styles.cardValor, { color: colors.textoPrincipal }]}>{pedido.codPedido}</Text>
+                                        {pedido.canal === 'woocommerce' && <Text style={styles.badgeWoo}>WooCommerce</Text>}
+                                    </View>
                                 </View>
                                 {badge && (
                                     <View style={[styles.badge, { backgroundColor: isDark ? badge.bgDark : badge.bg }]}>
@@ -349,13 +370,55 @@ export const StorePanelScreen = () => {
 
                             <View style={[styles.divider, { backgroundColor: colors.borde }]} />
 
-                            <View style={styles.infoRow}>
+                             <View style={styles.infoRow}>
                                 <Ionicons name="person-outline" size={15} color={colors.textoTerciario} />
-                                <View style={{ marginLeft: 8 }}>
+                                <View style={{ marginLeft: 8, flex: 1 }}>
                                     <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Cliente</Text>
                                     <Text style={[styles.cardValor, { color: colors.textoPrincipal }]}>{pedido.cliente}</Text>
+                                    {pedido.clienteTelefono ? (
+                                        <Text style={[styles.cardMeta, { color: colors.textoSecundario }]}>{pedido.clienteTelefono}</Text>
+                                    ) : null}
                                 </View>
                             </View>
+
+                            {/* Entrega & Dirección V6 */}
+                            {(pedido.direccion || pedido.distrito) && (
+                                <View style={[styles.infoRow, { marginTop: 12 }]}>
+                                    <Ionicons name="location-outline" size={15} color={colors.textoTerciario} />
+                                    <View style={{ marginLeft: 8, flex: 1 }}>
+                                        <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Dirección de Entrega</Text>
+                                        <Text style={[styles.cardValor, { color: colors.textoPrincipal, fontSize: 14 }]}>
+                                            {pedido.direccion}{pedido.distrito ? `, ${pedido.distrito}` : ''}
+                                        </Text>
+                                        {pedido.referencia ? (
+                                            <Text style={[styles.cardMeta, { color: colors.textoSecundario, marginTop: 2 }]}>
+                                                Ref: {pedido.referencia}
+                                            </Text>
+                                        ) : null}
+                                        {pedido.gmapsUrl && (
+                                            <TouchableOpacity 
+                                                style={[styles.btnLink, { marginTop: 8 }]} 
+                                                onPress={handleAbrirGmaps}
+                                            >
+                                                <Ionicons name="map-outline" size={14} color={colors.primario} />
+                                                <Text style={[styles.btnLinkText, { color: colors.primario }]}>Ver en Google Maps</Text>
+                                            </TouchableOpacity>
+                                        )}
+                                    </View>
+                                </View>
+                            )}
+
+                            {pedido.operadorLogistico && (
+                                <View style={[styles.infoRow, { marginTop: 12 }]}>
+                                    <Ionicons name="bus-outline" size={15} color={colors.textoTerciario} />
+                                    <View style={{ marginLeft: 8 }}>
+                                        <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Operador Logístico</Text>
+                                        <Text style={[styles.cardValor, { color: colors.textoPrincipal, fontSize: 14 }]}>
+                                            {pedido.operadorLogistico.toUpperCase()}
+                                        </Text>
+                                    </View>
+                                </View>
+                            )}
 
                             {pedido.operador && (
                                 <View style={[styles.infoRow, { marginTop: 8 }]}>
@@ -378,8 +441,49 @@ export const StorePanelScreen = () => {
                             )}
                         </View>
 
+                        {/* LISTA DE PRODUCTOS V6 */}
+                        <Text style={[styles.seccionTitulo, { color: colors.textoPrincipal }]}>Productos del Pedido</Text>
+                        <View style={[styles.card, { backgroundColor: colors.superficie, borderColor: colors.borde, padding: 0 }]}>
+                            {items.length === 0 ? (
+                                <View style={{ padding: 16, alignItems: 'center' }}>
+                                    <Text style={{ color: colors.textoTerciario, fontSize: 13 }}>No hay items registrados</Text>
+                                </View>
+                            ) : (
+                                items.map((item, idx) => (
+                                    <View key={item.id} style={[
+                                        styles.itemRow, 
+                                        idx < items.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.borde }
+                                    ]}>
+                                        <View style={styles.itemCantidad}>
+                                            <Text style={styles.itemCantidadText}>{item.cantidadPedida}</Text>
+                                        </View>
+                                        <View style={{ flex: 1, marginLeft: 12 }}>
+                                            <Text style={[styles.itemNombre, { color: colors.textoPrincipal }]}>{item.descripcionWoo}</Text>
+                                            {item.skuWoo ? <Text style={[styles.itemSku, { color: colors.textoTerciario }]}>SKU: {item.skuWoo}</Text> : null}
+                                        </View>
+                                        <Text style={[styles.itemPrecio, { color: colors.textoSecundario }]}>
+                                            S/ {item.precioUnitarioWoo?.toFixed(2)}
+                                        </Text>
+                                    </View>
+                                ))
+                            )}
+                            
+                            {pedido.metodoPagoDisplay || pedido.totalWoo ? (
+                                <View style={[styles.pagoResumen, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#f9fafb', borderTopWidth: 1, borderTopColor: colors.borde }]}>
+                                    <View style={styles.pagoRow}>
+                                        <Text style={[styles.pagoLabel, { color: colors.textoSecundario }]}>Pago:</Text>
+                                        <Text style={[styles.pagoValor, { color: colors.textoPrincipal }]}>{pedido.metodoPagoDisplay || '---'}</Text>
+                                    </View>
+                                    <View style={styles.pagoRow}>
+                                        <Text style={[styles.totalLabel, { color: colors.textoPrincipal }]}>TOTAL:</Text>
+                                        <Text style={[styles.totalValor, { color: colors.primario }]}>S/ {pedido.totalWoo?.toFixed(2) || '0.00'}</Text>
+                                    </View>
+                                </View>
+                            ) : null}
+                        </View>
+
                         {/* Sección POD */}
-                        <Text style={[styles.seccionTitulo, { color: colors.textoPrincipal }]}>Evidencia de Entrega (POD)</Text>
+                        <Text style={[styles.seccionTitulo, { color: colors.textoPrincipal, marginTop: 16 }]}>Evidencia de Entrega (POD)</Text>
 
                         {fotoUri ? (
                             <View style={[styles.card, {
@@ -503,6 +607,82 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '600',
     },
+    badgeWoo: {
+        backgroundColor: '#0075de',
+        color: '#fff',
+        fontSize: 10,
+        fontWeight: '800',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 4,
+        marginLeft: 8,
+        overflow: 'hidden',
+    },
+    btnLink: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+    },
+    btnLinkText: {
+        fontSize: 13,
+        fontWeight: '600',
+        textDecorationLine: 'underline',
+    },
+    itemRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 12,
+    },
+    itemCantidad: {
+        width: 24,
+        height: 24,
+        borderRadius: 4,
+        backgroundColor: 'rgba(0,117,222,0.1)',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    itemCantidadText: {
+        color: '#0075de',
+        fontSize: 12,
+        fontWeight: '700',
+    },
+    itemNombre: {
+        fontSize: 14,
+        fontWeight: '600',
+    },
+    itemSku: {
+        fontSize: 11,
+        marginTop: 2,
+    },
+    itemPrecio: {
+        fontSize: 13,
+        fontWeight: '500',
+    },
+    pagoResumen: {
+        padding: 12,
+        gap: 4,
+    },
+    pagoRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    pagoLabel: {
+        fontSize: 12,
+        fontWeight: '500',
+    },
+    pagoValor: {
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    totalLabel: {
+        fontSize: 14,
+        fontWeight: '700',
+    },
+    totalValor: {
+        fontSize: 16,
+        fontWeight: '800',
+    },
     scroll: {
         padding: 16,
         gap: 12,
@@ -527,6 +707,10 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '700',
         letterSpacing: -0.1,
+    },
+    cardMeta: {
+        fontSize: 12,
+        fontWeight: '500',
     },
     divider: {
         height: 1,

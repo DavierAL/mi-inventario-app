@@ -5,10 +5,45 @@ import { schema } from './schema';
 import Producto from './models/Producto';
 import Movimiento from './models/Movimiento';
 import Pedido from './models/Pedido';
+import PedidoItem from './models/PedidoItem';
 import OutboxJob from './models/OutboxJob';
 
 const migrations = schemaMigrations({
   migrations: [
+    {
+      toVersion: 6,
+      steps: [
+        addColumns({
+          table: 'pedidos',
+          columns: [
+            { name: 'woo_order_id', type: 'number', isOptional: true, isIndexed: true },
+            { name: 'canal', type: 'string', isOptional: true },
+            { name: 'cliente_telefono', type: 'string', isOptional: true },
+            { name: 'direccion', type: 'string', isOptional: true },
+            { name: 'distrito', type: 'string', isOptional: true },
+            { name: 'referencia', type: 'string', isOptional: true },
+            { name: 'gmaps_url', type: 'string', isOptional: true },
+            { name: 'fecha_entrega', type: 'string', isOptional: true },
+            { name: 'metodo_pago_display', type: 'string', isOptional: true },
+            { name: 'total_woo', type: 'number', isOptional: true },
+            { name: 'operador_logistico', type: 'string', isOptional: true },
+            { name: 'tracking_interno', type: 'string', isOptional: true },
+          ],
+        }),
+        createTable({
+          name: 'pedido_items',
+          columns: [
+            { name: 'pedido_id', type: 'string', isIndexed: true },
+            { name: 'descripcion_woo', type: 'string' },
+            { name: 'sku_woo', type: 'string', isOptional: true },
+            { name: 'cantidad_pedida', type: 'number' },
+            { name: 'precio_unitario_woo', type: 'number' },
+            { name: 'created_at', type: 'number' },
+            { name: 'updated_at', type: 'number' },
+          ],
+        }),
+      ],
+    },
     {
       toVersion: 5,
       steps: [] // Limpieza lógica de columnas obsoletas V4. Nota: WatermelonDB no soporta DROP COLUMN — columnas eliminadas del schema pero no del SQLite físico.
@@ -75,5 +110,5 @@ const adapter = new SQLiteAdapter({
 
 export const database = new Database({
   adapter,
-  modelClasses: [Producto, Movimiento, Pedido, OutboxJob],
+  modelClasses: [Producto, Movimiento, Pedido, PedidoItem, OutboxJob],
 });

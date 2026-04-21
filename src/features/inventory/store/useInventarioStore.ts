@@ -27,7 +27,7 @@ interface InventarioState {
     sincronizandoFondo: boolean;
 
     // Acciones
-    conectarInventario: () => void;
+    conectarInventario: () => Promise<void>;
     setProductoEditando: (producto: Producto | null) => void;
     guardarEdicion: (fv: string, fechaEdicion: string, comentario: string) => Promise<ResultadoOperacion>;
     cargarDatosSync: () => void;
@@ -45,11 +45,12 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
 
     conectarInventario: () => {
         set({ cargando: true, error: null });
-        syncConSupabase()
+        return syncConSupabase()
             .then(() => set({ cargando: false, lastSync: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) }))
             .catch(err => {
                 console.error("Sync Error:", err);
-                set({ error: MENSAJES.ERROR_CONEXION_REALTIME, cargando: false });
+                const msg = err instanceof Error ? err.message : String(err);
+                set({ error: `${MENSAJES.ERROR_CONEXION_REALTIME}\n(${msg})`, cargando: false });
             });
     },
 
@@ -72,7 +73,8 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
             });
         } catch (err) {
             console.error("Repair Sync Error:", err);
-            set({ error: "No se pudo completar la reparación." });
+            const msg = err instanceof Error ? err.message : String(err);
+            set({ error: `No se pudo completar la reparación.\n${msg}` });
         } finally {
             set({ sincronizandoFondo: false });
         }

@@ -5,7 +5,7 @@ import { QueueService } from '../../../core/services/QueueService';
 import { ProductoInventario, EntradaHistorial, TipoAccionHistorial } from '../../../core/types/inventario';
 import Movimiento from '../../../core/database/models/Movimiento';
 import Producto from '../../../core/database/models/Producto';
-import { parseFVToTimestamp, formatearFecha } from '../../../core/utils/fecha';
+import { parseFVToTimestamp, parseFVToDate, formatearFecha } from '../../../core/utils/fecha';
 
 /**
  * InventarioRepository — Director de Orquesta
@@ -53,8 +53,8 @@ export const InventarioRepository = {
                 if (p) {
                     await p.update(record => {
                         if (datos.Stock_Master !== undefined) record.stockMaster = datos.Stock_Master;
-                        if (datos.FV_Actual_TS !== undefined) record.fvActualTs = datos.FV_Actual_TS;
-                        else if (datos.FV_Actual) record.fvActualTs = parseFVToTimestamp(datos.FV_Actual);
+                        if (datos.FV_Actual_TS !== undefined) record.fvActualTs = new Date(datos.FV_Actual_TS);
+                        else record.fvActualTs = parseFVToDate(datos.FV_Actual);
                         
                         if (datos.Fecha_edicion) record.fechaEdicion = datos.Fecha_edicion;
                         if (datos.Comentarios) record.comentarios = datos.Comentarios;
