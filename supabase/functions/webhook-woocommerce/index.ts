@@ -54,14 +54,27 @@ serve(async (req: Request) => {
   // ─── 1. Leer body RAW (antes de parsear — necesario para validar HMAC) ───
   const rawBody = await req.text();
 
-  // ─── 2. Validar firma HMAC ────────────────────────────────────────────────
+  // ─── 2. Verificar Topic (Permitir pings de WooCommerce sin validar firma) ──
+  const topic = req.headers.get('x-wc-webhook-topic') || '';
+  
+  // Si no es un tema de pedidos (ej: es un ping de verificación), respondemos 200
+  if (!topic.includes('order')) {
+    console.log(`[webhook-woocommerce] Recibido topic: ${topic}. Respondiendo 200 OK.`);
+    return jsonResponse({ success: true, message: 'Topic accepted' });
+  }
+
+  // ─── 3. Validar firma HMAC (Solo para pedidos reales) ─────────────────────
   const signature = req.headers.get('x-wc-webhook-signature');
   const webhookSecret = Deno.env.get('WOO_WEBHOOK_SECRET') ?? '';
 
   const firmaValida = await validarFirmaWebhook(rawBody, signature, webhookSecret);
 
   if (!firmaValida) {
-    console.error('[webhook-woocommerce] Firma HMAC inválida. Posible request no autorizado.');
+    console.error(`[webhook-woocommerce] Firma HMAC inválida.`);
+    console.log(`[debug] Signature recibida: ${signature}`);
+    console.log(`[debug] Secret length: ${webhookSecret.length}`);
+    console.log(`[debug] Secret starts with: ${webhookSecret.substring(0, 3)}...`);
+    console.log(`[debug] Topic: ${topic}`);
 
     // Registrar intento rechazado en audit_log
     await supabase.from('audit_log').insert({
@@ -69,6 +82,8 @@ serve(async (req: Request) => {
       accion: 'WEBHOOK_REJECTED',
       datos_nuevos: { 
         motivo: 'firma_hmac_invalida',
+        signature_recibida: signature,
+        topic: topic,
         ip: req.headers.get('x-forwarded-for') 
       },
       ip: req.headers.get('x-forwarded-for'),
@@ -77,19 +92,12 @@ serve(async (req: Request) => {
     return errorResponse('Unauthorized', 401);
   }
 
-  // ─── 3. Parsear payload ───────────────────────────────────────────────────
+  // ─── 4. Parsear payload ───────────────────────────────────────────────────
   let order: WooOrder;
   try {
     order = JSON.parse(rawBody);
   } catch {
     return errorResponse('Invalid JSON payload', 400);
-  }
-
-  // Verificar que es el tipo de evento correcto (order.created)
-  const topic = req.headers.get('x-wc-webhook-topic') || '';
-  if (!topic.includes('order')) {
-    console.log(`[webhook-woocommerce] Ignorando topic: ${topic}`);
-    return jsonResponse({ success: true, message: 'Topic ignored' });
   }
 
   console.log(`[webhook-woocommerce] Procesando pedido WooCommerce #${order.number} (id: ${order.id})`);

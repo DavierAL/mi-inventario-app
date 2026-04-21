@@ -1,7 +1,7 @@
 // supabase/functions/_shared/helpers.ts
 // Funciones compartidas entre Edge Functions
 
-import type { WooOrder, WooMeta, EstadoPedido, OperadorLogistico } from './types.js';
+import type { WooOrder, WooMeta, EstadoPedido, OperadorLogistico } from './types.ts';
 
 // ─── Validación HMAC del webhook de WooCommerce ──────────────────────────────
 

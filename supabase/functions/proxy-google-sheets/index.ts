@@ -6,13 +6,11 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
-  // 1. Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // 2. Validate Method
     if (req.method !== "POST") {
       return new Response(JSON.stringify({ error: "Method not allowed" }), {
         status: 405,
@@ -20,23 +18,26 @@ serve(async (req) => {
       });
     }
 
-    // 3. Get Secrets
     const sheetsWebhookUrl = Deno.env.get("SHEETS_WEBHOOK_URL");
     const appToken = Deno.env.get("APP_TOKEN");
 
     if (!sheetsWebhookUrl || !appToken) {
-      console.error("Missing configuration: SHEETS_WEBHOOK_URL or APP_TOKEN");
       return new Response(
         JSON.stringify({ error: "Function configuration error" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // 4. Parse Payload
     const payload = await req.json();
-    console.log("[proxy-google-sheets] Enviando petición a Google Sheets", payload);
+    
+    // Soporte para 'accion' (nuevo) o 'tipo' (legacy QueueService)
+    const action = payload.accion || payload.tipo || "webhook_modificacion";
+    
+    // Si viene 'datos', los usamos, si no el payload completo
+    const data = payload.datos || payload;
 
-    // 5. Proxy to Google Apps Script
+    console.log(`[proxy-google-sheets] Reenviando a Sheets. Acción: ${action}`);
+
     const fetchResponse = await fetch(sheetsWebhookUrl, {
       method: "POST",
       headers: {
@@ -45,15 +46,14 @@ serve(async (req) => {
         "X-Auth-Token": appToken,
       },
       body: JSON.stringify({
-        accion: "webhook_modificacion",
-        datos: payload,
+        accion: action,
+        datos: data,
         token: appToken,
       }),
     });
 
     const responseText = await fetchResponse.text();
 
-    // 6. Return response
     try {
       const json = JSON.parse(responseText);
       return new Response(JSON.stringify(json), {
