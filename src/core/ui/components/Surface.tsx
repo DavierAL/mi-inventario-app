@@ -8,7 +8,9 @@ interface SurfaceProps extends ViewProps {
     variant?: 'flat' | 'elevated' | 'outline';
     padding?: keyof typeof TOKENS.spacing;
     radius?: keyof typeof TOKENS.radius;
-    children: React.ReactNode;
+    children?: React.ReactNode;
+    style?: ViewStyle;
+    testID?: string;
 }
 
 export const Surface: React.FC<SurfaceProps> = ({ 
@@ -17,6 +19,7 @@ export const Surface: React.FC<SurfaceProps> = ({
     radius = 'md',
     children, 
     style,
+    testID,
     ...props 
 }) => {
     const { colors, isDark } = useTheme();
@@ -47,7 +50,7 @@ export const Surface: React.FC<SurfaceProps> = ({
     };
 
     return (
-        <View style={[getBaseStyle(), style]} {...props}>
+        <View testID={testID} style={[getBaseStyle(), style]} {...props}>
             {children}
         </View>
     );

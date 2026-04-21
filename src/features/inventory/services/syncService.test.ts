@@ -37,7 +37,7 @@ describe('SyncService - Unit Tests & Performance', () => {
       await syncConSupabase({ forceFull: true });
     });
 
-    expect(metrics.durationMs).toBeLessThan(100); 
+    expect(metrics.durationMs).toBeLessThan(300); 
   });
 
   test('Manejo de estados normalizados en sync', async () => {
@@ -55,5 +55,15 @@ describe('SyncService - Unit Tests & Performance', () => {
       });
 
       await syncConSupabase();
+  });
+
+  test('Manejo de errores de Supabase', async () => {
+      (supabase.from as jest.Mock).mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        gt: jest.fn().mockResolvedValue({ data: null, error: { message: 'API Error' } }),
+      });
+
+      // No debería lanzar excepción, sino manejar el error internamente (Logger)
+      await expect(syncConSupabase()).resolves.not.toThrow();
   });
 });

@@ -1,0 +1,1132 @@
+
+> mi-inventario-app@1.0.0 test
+> jest
+
+PASS src/core/ui/components/__tests__/Shimmer.test.tsx (10.33 s)
+FAIL src/core/utils/__tests__/useNetworkStatus.test.ts (10.822 s)
+  ● useNetworkStatus Hook › se actualiza cuando cambia la conexion
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: true
+
+    [0m [90m 36 |[39m         })[33m;[39m
+     [90m 37 |[39m         
+    [31m[1m>[22m[39m[90m 38 |[39m         expect(result[33m.[39mcurrent[33m.[39misConnected)[33m.[39mtoBe([36mfalse[39m)[33m;[39m
+     [90m    |[39m                                            [31m[1m^[22m[39m
+     [90m 39 |[39m     })[33m;[39m
+     [90m 40 |[39m })[33m;[39m
+     [90m 41 |[39m[0m
+
+      at Object.toBe (src/core/utils/__tests__/useNetworkStatus.test.ts:38:44)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+FAIL src/core/ui/components/__tests__/Typography.test.tsx (11.382 s)
+  ● Typography Component › aplica color secundario
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "#666666"
+    Received: "secondary"
+
+    [0m [90m 31 |[39m         [36mconst[39m text [33m=[39m getByText([32m'Sub'[39m)[33m;[39m
+     [90m 32 |[39m         [36mconst[39m style [33m=[39m [33mStyleSheet[39m[33m.[39mflatten(text[33m.[39mprops[33m.[39mstyle)[33m;[39m
+    [31m[1m>[22m[39m[90m 33 |[39m         expect(style[33m.[39mcolor)[33m.[39mtoBe([32m'#666666'[39m)[33m;[39m
+     [90m    |[39m                             [31m[1m^[22m[39m
+     [90m 34 |[39m     })[33m;[39m
+     [90m 35 |[39m })[33m;[39m
+     [90m 36 |[39m[0m
+
+      at Object.toBe (src/core/ui/components/__tests__/Typography.test.tsx:33:29)
+
+PASS src/core/ui/components/__tests__/Surface.test.tsx
+PASS src/core/ui/components/__tests__/AnimatedPressable.test.tsx
+PASS src/core/ui/components/__tests__/Button.test.tsx
+FAIL src/features/inventory/screens/InventarioListScreen.test.tsx (14.347 s)
+  ● InventarioListScreen - Unit & Performance › Renderizado inicial y benchmark de carga
+
+    Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+
+    Check the render method of `InventarioListScreen`.
+
+    [0m [90m 56 |[39m     test([32m'Renderizado inicial y benchmark de carga'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+     [90m 57 |[39m         [36mconst[39m { metrics } [33m=[39m [36mawait[39m benchmark([32m'InventarioList Load'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 58 |[39m             render([33m<[39m[33mInventarioListScreen[39m [33m/[39m[33m>[39m)[33m;[39m
+     [90m    |[39m                   [31m[1m^[22m[39m
+     [90m 59 |[39m         })[33m;[39m
+     [90m 60 |[39m
+     [90m 61 |[39m         expect(metrics[33m.[39mdurationMs)[33m.[39mtoBeLessThan([35m5000[39m)[33m;[39m[0m
+
+      at createFiberFromTypeAndProps (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12185:28)
+      at createFiberFromElement (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12199:14)
+      at createChild (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4475:26)
+      at reconcileChildrenArray (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4805:25)
+      at reconcileChildFibersImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5122:30)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5227:33
+      at reconcileChildren (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5735:13)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7551:13)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at src/features/inventory/screens/InventarioListScreen.test.tsx:58:19
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at fn (src/core/utils/benchmark.ts:16:24)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/core/utils/benchmark.ts:27:2)
+      at apply (src/core/utils/benchmark.ts:11:32)
+      at Object.<anonymous> (src/features/inventory/screens/InventarioListScreen.test.tsx:57:44)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ● InventarioListScreen - Unit & Performance › Cambio de búsqueda actualiza el estado
+
+    Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+
+    Check the render method of `InventarioListScreen`.
+
+    [0m [90m 63 |[39m
+     [90m 64 |[39m     test([32m'Cambio de búsqueda actualiza el estado'[39m[33m,[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 65 |[39m         [36mconst[39m { getByPlaceholderText } [33m=[39m render([33m<[39m[33mInventarioListScreen[39m [33m/[39m[33m>[39m)[33m;[39m
+     [90m    |[39m                                                [31m[1m^[22m[39m
+     [90m 66 |[39m         [36mconst[39m input [33m=[39m getByPlaceholderText([33mMENSAJES[39m[33m.[39m[33mBUSCAR_PLACEHOLDER[39m)[33m;[39m
+     [90m 67 |[39m         
+     [90m 68 |[39m         fireEvent[33m.[39mchangeText(input[33m,[39m [32m'Coca Cola'[39m)[33m;[39m[0m
+
+      at createFiberFromTypeAndProps (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12185:28)
+      at createFiberFromElement (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12199:14)
+      at createChild (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4475:26)
+      at reconcileChildrenArray (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4805:25)
+      at reconcileChildFibersImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5122:30)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5227:33
+      at reconcileChildren (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5735:13)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7551:13)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/features/inventory/screens/InventarioListScreen.test.tsx:65:48)
+
+FAIL src/features/scanner/screens/ScannerScreen.test.tsx (14.45 s)
+  ● ScannerScreen - Unit › Renderiza correctamente
+
+    Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+
+    Check the render method of `ScannerScreen`.
+
+    [0m [90m 29 |[39m
+     [90m 30 |[39m     test([32m'Renderiza correctamente'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 31 |[39m         [36mconst[39m { getByText } [33m=[39m render([33m<[39m[33mScannerScreen[39m [33m/[39m[33m>[39m)[33m;[39m
+     [90m    |[39m                                     [31m[1m^[22m[39m
+     [90m 32 |[39m         expect(getByText([33mMENSAJES[39m[33m.[39m[33mALINEA_CODIGO[39m))[33m.[39mtoBeTruthy()[33m;[39m
+     [90m 33 |[39m     })[33m;[39m
+     [90m 34 |[39m[0m
+
+      at createFiberFromTypeAndProps (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12185:28)
+      at createFiberFromElement (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12199:14)
+      at reconcileChildFibersImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5049:31)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5227:33
+      at reconcileChildren (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5735:13)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7551:13)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/features/scanner/screens/ScannerScreen.test.tsx:31:37)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ● ScannerScreen - Unit › Botón cancelar llama a goBack
+
+    Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+
+    Check the render method of `ScannerScreen`.
+
+    [0m [90m 34 |[39m
+     [90m 35 |[39m     test([32m'Botón cancelar llama a goBack'[39m[33m,[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 36 |[39m         [36mconst[39m { getByText } [33m=[39m render([33m<[39m[33mScannerScreen[39m [33m/[39m[33m>[39m)[33m;[39m
+     [90m    |[39m                                     [31m[1m^[22m[39m
+     [90m 37 |[39m         fireEvent[33m.[39mpress(getByText([33mMENSAJES[39m[33m.[39m[33mTERMINAR_LOTE[39m))[33m;[39m
+     [90m 38 |[39m         expect(mockGoBack)[33m.[39mtoHaveBeenCalled()[33m;[39m
+     [90m 39 |[39m     })[33m;[39m[0m
+
+      at createFiberFromTypeAndProps (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12185:28)
+      at createFiberFromElement (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12199:14)
+      at reconcileChildFibersImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5049:31)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5227:33
+      at reconcileChildren (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5735:13)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7551:13)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/features/scanner/screens/ScannerScreen.test.tsx:36:37)
+
+PASS src/core/database/database.test.ts
+  ● Console
+
+    console.log
+      [BENCHMARK] DB Batch Insert 100: 5ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+    console.log
+      [BENCHMARK] DB Query Fetch: 0ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+FAIL src/features/logistics/screens/PickingScreen.test.tsx (14.63 s)
+  ● PickingScreen UI & Performance › Renderizado inicial y performance
+
+    Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+
+    Check the render method of `PickingScreen`.
+
+    [0m [90m 26 |[39m   test([32m'Renderizado inicial y performance'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+     [90m 27 |[39m     [36mconst[39m { metrics } [33m=[39m [36mawait[39m benchmark([32m'PickingScreen Initial Render'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 28 |[39m         render([33m<[39m[33mPickingScreen[39m [33m/[39m[33m>[39m)[33m;[39m
+     [90m    |[39m               [31m[1m^[22m[39m
+     [90m 29 |[39m     })[33m;[39m
+     [90m 30 |[39m
+     [90m 31 |[39m     expect(metrics[33m.[39mdurationMs)[33m.[39mtoBeLessThan([35m5000[39m)[33m;[39m[0m
+
+      at createFiberFromTypeAndProps (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12185:28)
+      at createFiberFromElement (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12199:14)
+      at createChild (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4475:26)
+      at reconcileChildrenArray (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4805:25)
+      at reconcileChildFibersImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5122:30)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5227:33
+      at reconcileChildren (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5735:13)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7551:13)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at src/features/logistics/screens/PickingScreen.test.tsx:28:15
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at fn (src/core/utils/benchmark.ts:16:24)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/core/utils/benchmark.ts:27:2)
+      at apply (src/core/utils/benchmark.ts:11:32)
+      at Object.<anonymous> (src/features/logistics/screens/PickingScreen.test.tsx:27:40)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ● PickingScreen UI & Performance › Renderizado de PickingList con datos
+
+    Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+
+    [0m [90m 33 |[39m
+     [90m 34 |[39m   test([32m'Renderizado de PickingList con datos'[39m[33m,[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 35 |[39m     [36mconst[39m { getByText } [33m=[39m render(
+     [90m    |[39m                                 [31m[1m^[22m[39m
+     [90m 36 |[39m       [33m<[39m[33mPickingList[39m 
+     [90m 37 |[39m         pedidos[33m=[39m{mockEnvios [36mas[39m any} 
+     [90m 38 |[39m         busqueda[33m=[39m[32m""[39m [0m
+
+      at createFiberFromTypeAndProps (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12185:28)
+      at createFiberFromElement (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12199:14)
+      at reconcileChildFibersImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5049:31)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5227:33
+      at reconcileChildren (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5735:13)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7551:13)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performSyncWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2109:7)
+      at flushSyncWorkAcrossRoots_impl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1954:21)
+      at flushSpawnedWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11467:9)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11311:9)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10445:15)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/features/logistics/screens/PickingScreen.test.tsx:35:33)
+
+  ● PickingScreen UI & Performance › Interacción con filtros en PickingScreen
+
+    Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+
+    Check the render method of `PickingScreen`.
+
+    [0m [90m 50 |[39m
+     [90m 51 |[39m   test([32m'Interacción con filtros en PickingScreen'[39m[33m,[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 52 |[39m     [36mconst[39m { getByText[33m,[39m getByPlaceholderText } [33m=[39m render([33m<[39m[33mPickingScreen[39m [33m/[39m[33m>[39m)[33m;[39m
+     [90m    |[39m                                                       [31m[1m^[22m[39m
+     [90m 53 |[39m     
+     [90m 54 |[39m     [36mconst[39m input [33m=[39m getByPlaceholderText([32m'Buscar por código o cliente...'[39m)[33m;[39m
+     [90m 55 |[39m     fireEvent[33m.[39mchangeText(input[33m,[39m [32m'PED-001'[39m)[33m;[39m[0m
+
+      at createFiberFromTypeAndProps (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12185:28)
+      at createFiberFromElement (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12199:14)
+      at createChild (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4475:26)
+      at reconcileChildrenArray (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4805:25)
+      at reconcileChildFibersImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5122:30)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5227:33
+      at reconcileChildren (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5735:13)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7551:13)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/features/logistics/screens/PickingScreen.test.tsx:52:55)
+
+PASS src/core/ui/components/__tests__/Badge.test.tsx
+PASS src/features/inventory/store/useInventarioStore.test.ts
+  ● Console
+
+    console.log
+      [BENCHMARK] Store Connection Load: 53ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+    console.log
+      [BENCHMARK] Store Repair Database: 1ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+    console.error
+      Sync Error: Error: Network Fail
+          at Object.<anonymous> (C:\mi-inventario-app\src\features\inventory\store\useInventarioStore.test.ts:45:60)
+          at Generator.next (<anonymous>)
+          at asyncGeneratorStep (C:\mi-inventario-app\node_modules\@babel\runtime\helpers\asyncToGenerator.js:3:17)
+          at _next (C:\mi-inventario-app\node_modules\@babel\runtime\helpers\asyncToGenerator.js:17:9)
+          at C:\mi-inventario-app\node_modules\@babel\runtime\helpers\asyncToGenerator.js:22:7
+          at new Promise (<anonymous>)
+          at Object.<anonymous> (C:\mi-inventario-app\node_modules\@babel\runtime\helpers\asyncToGenerator.js:14:12)
+          at Promise.finally.completed (C:\mi-inventario-app\node_modules\jest-circus\build\jestAdapterInit.js:1557:28)
+          at new Promise (<anonymous>)
+          at callAsyncCircusFn (C:\mi-inventario-app\node_modules\jest-circus\build\jestAdapterInit.js:1497:10)
+          at _callCircusTest (C:\mi-inventario-app\node_modules\jest-circus\build\jestAdapterInit.js:1007:40)
+          at processTicksAndRejections (node:internal/process/task_queues:104:5)
+          at _runTest (C:\mi-inventario-app\node_modules\jest-circus\build\jestAdapterInit.js:947:3)
+          at C:\mi-inventario-app\node_modules\jest-circus\build\jestAdapterInit.js:849:7
+          at _runTestsForDescribeBlock (C:\mi-inventario-app\node_modules\jest-circus\build\jestAdapterInit.js:862:11)
+          at _runTestsForDescribeBlock (C:\mi-inventario-app\node_modules\jest-circus\build\jestAdapterInit.js:857:11)
+          at run (C:\mi-inventario-app\node_modules\jest-circus\build\jestAdapterInit.js:761:3)
+          at runAndTransformResultsToJestFormat (C:\mi-inventario-app\node_modules\jest-circus\build\jestAdapterInit.js:1918:21)
+          at jestAdapter (C:\mi-inventario-app\node_modules\jest-circus\build\runner.js:101:19)
+          at runTestInternal (C:\mi-inventario-app\node_modules\jest-runner\build\testWorker.js:275:16)
+          at runTest (C:\mi-inventario-app\node_modules\jest-runner\build\testWorker.js:343:7)
+          at Object.worker (C:\mi-inventario-app\node_modules\jest-runner\build\testWorker.js:497:12)
+
+    [0m [90m 56 |[39m             [33m.[39mthen(() [33m=>[39m [36mset[39m({ cargando[33m:[39m [36mfalse[39m[33m,[39m lastSync[33m:[39m [36mnew[39m [33mDate[39m()[33m.[39mtoLocaleTimeString([32m'es-ES'[39m[33m,[39m { hour[33m:[39m [32m'2-digit'[39m[33m,[39m minute[33m:[39m [32m'2-digit'[39m }) }))
+     [90m 57 |[39m             [33m.[39m[36mcatch[39m(err [33m=>[39m {
+    [31m[1m>[22m[39m[90m 58 |[39m                 console[33m.[39merror([32m"Sync Error:"[39m[33m,[39m err)[33m;[39m
+     [90m    |[39m                         [31m[1m^[22m[39m
+     [90m 59 |[39m                 [36mconst[39m msg [33m=[39m err [36minstanceof[39m [33mError[39m [33m?[39m err[33m.[39mmessage [33m:[39m [33mString[39m(err)[33m;[39m
+     [90m 60 |[39m                 [36mset[39m({ error[33m:[39m [32m`${MENSAJES.ERROR_CONEXION_REALTIME}\n(${msg})`[39m[33m,[39m cargando[33m:[39m [36mfalse[39m })[33m;[39m
+     [90m 61 |[39m             })[33m;[39m[0m
+
+      at error (src/features/inventory/store/useInventarioStore.ts:58:25)
+
+FAIL src/features/logistics/screens/StorePanelScreen.test.tsx (15.517 s)
+  ● StorePanelScreen - Unit & Performance › Renderizado inicial y benchmark
+
+    Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+
+    Check the render method of `StorePanelScreen`.
+
+    [0m [90m 40 |[39m     test([32m'Renderizado inicial y benchmark'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+     [90m 41 |[39m         [36mconst[39m { metrics } [33m=[39m [36mawait[39m benchmark([32m'StorePanel Load'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 42 |[39m             render([33m<[39m[33mStorePanelScreen[39m [33m/[39m[33m>[39m)[33m;[39m
+     [90m    |[39m                   [31m[1m^[22m[39m
+     [90m 43 |[39m         })[33m;[39m
+     [90m 44 |[39m
+     [90m 45 |[39m         expect(metrics[33m.[39mdurationMs)[33m.[39mtoBeLessThan([35m5000[39m)[33m;[39m[0m
+
+      at createFiberFromTypeAndProps (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12185:28)
+      at createFiberFromElement (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12199:14)
+      at createChild (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4475:26)
+      at reconcileChildrenArray (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4805:25)
+      at reconcileChildFibersImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5122:30)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5227:33
+      at reconcileChildren (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5735:13)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7551:13)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at src/features/logistics/screens/StorePanelScreen.test.tsx:42:19
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at fn (src/core/utils/benchmark.ts:16:24)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/core/utils/benchmark.ts:27:2)
+      at apply (src/core/utils/benchmark.ts:11:32)
+      at Object.<anonymous> (src/features/logistics/screens/StorePanelScreen.test.tsx:41:44)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+PASS src/core/utils/__tests__/formato.test.ts
+PASS src/features/scanner/hooks/useScanner.test.ts
+  ● Console
+
+    console.log
+      [BENCHMARK] Handle Scanned Code (Found): 4ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+    console.log
+      [BENCHMARK] Handle Scanned Code (Not Found): 3ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+PASS src/features/scanner/repository/scannerRepository.test.ts
+  ● Console
+
+    console.log
+      [BENCHMARK] Scanner Search: 0ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+PASS src/features/inventory/services/__tests__/syncService.test.ts
+  ● Console
+
+    console.warn
+      [WARN] [Sync] Abortado: Sin conexión a internet undefined
+
+    [0m [90m 55 |[39m       console[33m.[39merror([32m`[ERROR] ${message}`[39m[33m,[39m context)[33m;[39m
+     [90m 56 |[39m     } [36melse[39m [36mif[39m (level [33m===[39m [32m'warn'[39m) {
+    [31m[1m>[22m[39m[90m 57 |[39m       console[33m.[39mwarn([32m`[WARN] ${message}`[39m[33m,[39m context)[33m;[39m
+     [90m    |[39m               [31m[1m^[22m[39m
+     [90m 58 |[39m     } [36melse[39m {
+     [90m 59 |[39m       console[33m.[39mlog([32m`[${level.toUpperCase()}] ${message}`[39m[33m,[39m context)[33m;[39m
+     [90m 60 |[39m     }[0m
+
+      at Logger.warn (src/core/services/LoggerService.ts:57:15)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Logger.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+      at Logger.apply [as log] (src/core/services/LoggerService.ts:46:20)
+      at Logger.log [as warn] (src/core/services/LoggerService.ts:35:26)
+      at warn (src/features/inventory/services/syncService.ts:27:12)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+    console.log
+      [INFO] [Sync] Iniciando sincronización... undefined
+
+      at Logger.log (src/core/services/LoggerService.ts:59:15)
+
+    console.log
+      [INFO] [Sync] Éxito: 0 ↓, 0 ↑ (3ms) undefined
+
+      at Logger.log (src/core/services/LoggerService.ts:59:15)
+
+    console.log
+      [INFO] [Sync] Iniciando sincronización... undefined
+
+      at Logger.log (src/core/services/LoggerService.ts:59:15)
+
+    console.log
+      [INFO] [Sync] Éxito: 0 ↓, 0 ↑ (1ms) undefined
+
+      at Logger.log (src/core/services/LoggerService.ts:59:15)
+
+PASS src/features/inventory/services/syncService.test.ts
+  ● Console
+
+    console.log
+      [INFO] [Sync] Iniciando sincronización... undefined
+
+      at Logger.log (src/core/services/LoggerService.ts:59:15)
+
+    console.log
+      [INFO] [Sync] Éxito: 0 ↓, 0 ↑ (22ms) undefined
+
+      at Logger.log (src/core/services/LoggerService.ts:59:15)
+
+    console.log
+      [BENCHMARK] Sync Pull Mapping Envios: 24ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+    console.log
+      [INFO] [Sync] Iniciando sincronización... undefined
+
+      at Logger.log (src/core/services/LoggerService.ts:59:15)
+
+    console.log
+      [INFO] [Sync] Éxito: 0 ↓, 0 ↑ (1ms) undefined
+
+      at Logger.log (src/core/services/LoggerService.ts:59:15)
+
+PASS src/core/services/__tests__/ErrorService.test.ts
+PASS src/features/historial/hooks/useHistorial.test.ts
+  ● Console
+
+    console.log
+      [BENCHMARK] Historial Mapping: 11ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+PASS src/core/services/queue/__tests__/QueueRetryStrategy.test.ts
+PASS src/core/services/__tests__/LoggerService.test.ts
+PASS src/core/services/queue/__tests__/QueueProcessor.test.ts
+  ● Console
+
+    console.log
+      [QueueProcessor] Processing job 123 (webhook)
+
+      at QueueProcessor.log (src/core/services/queue/QueueProcessor.ts:52:13)
+
+    console.log
+      [QueueProcessor] Job 123 completed
+
+      at QueueProcessor.log (src/core/services/queue/QueueProcessor.ts:66:17)
+
+    console.log
+      [QueueProcessor] Stopped
+
+      at QueueProcessor.log [as stop] (src/core/services/queue/QueueProcessor.ts:31:13)
+
+    console.log
+      [QueueProcessor] Processing job 123 (webhook)
+
+      at QueueProcessor.log (src/core/services/queue/QueueProcessor.ts:52:13)
+
+    console.error
+      [QueueProcessor] Job 123 failed: Network Error
+
+    [0m [90m 70 |[39m       }
+     [90m 71 |[39m     } [36mcatch[39m (error[33m:[39m any) {
+    [31m[1m>[22m[39m[90m 72 |[39m       console[33m.[39merror([32m`[QueueProcessor] Job ${job.id} failed:`[39m[33m,[39m error[33m.[39mmessage)[33m;[39m
+     [90m    |[39m               [31m[1m^[22m[39m
+     [90m 73 |[39m       [36mawait[39m [36mthis[39m[33m.[39mhandleFailure(job[33m,[39m error)[33m;[39m
+     [90m 74 |[39m     }
+     [90m 75 |[39m   }[0m
+
+      at QueueProcessor.error (src/core/services/queue/QueueProcessor.ts:72:15)
+          at Generator.throw (<anonymous>)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _throw (node_modules/@babel/runtime/helpers/asyncToGenerator.js:20:9)
+
+    console.log
+      [QueueProcessor] Job 123 scheduled for retry at 2026-04-21T15:24:07.063Z
+
+      at QueueProcessor.log (src/core/services/queue/QueueProcessor.ts:81:15)
+
+    console.log
+      [QueueProcessor] Stopped
+
+      at QueueProcessor.log [as stop] (src/core/services/queue/QueueProcessor.ts:31:13)
+
+    console.log
+      [QueueProcessor] Started
+
+      at QueueProcessor.log (src/core/services/queue/QueueProcessor.ts:22:13)
+
+    console.log
+      [QueueProcessor] Stopped
+
+      at QueueProcessor.log [as stop] (src/core/services/queue/QueueProcessor.ts:31:13)
+
+    console.log
+      [QueueProcessor] Stopped
+
+      at QueueProcessor.log [as stop] (src/core/services/queue/QueueProcessor.ts:31:13)
+
+PASS src/core/utils/__tests__/benchmark.test.ts
+  ● Console
+
+    console.log
+      [BENCHMARK] test: 0ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+    console.log
+      [BENCHMARK] Slow: 19ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+    console.log
+      [BENCHMARK] Fast: 0ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+PASS src/core/utils/__tests__/fecha.test.ts
+PASS src/core/services/queue/__tests__/PersistentQueue.test.ts
+PASS src/features/inventory/repository/inventarioRepository.test.ts
+  ● Console
+
+    console.log
+      [BENCHMARK] Repo Search By Barcode: 2ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+    console.log
+      [BENCHMARK] Repo Full Update Flow: 1ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+PASS src/core/ui/components/__tests__/Input.test.tsx
+-------------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------------------------
+File                           | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                
+-------------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------------------------
+All files                      |   38.53 |    26.61 |   34.38 |   40.25 |                                                                                                  
+ core/constants                |   28.57 |        0 |   16.66 |   28.57 |                                                                                                  
+  mensajes.ts                  |   28.57 |        0 |   16.66 |   28.57 | 6,23-47                                                                                          
+ core/database                 |      80 |       50 |     100 |      80 |                                                                                                  
+  schema.ts                    |     100 |      100 |     100 |     100 |                                                                                                  
+  supabase.ts                  |   77.77 |       50 |     100 |   77.77 | 8,11                                                                                             
+ core/database/models          |     100 |      100 |     100 |     100 |                                                                                                  
+  Envio.ts                     |     100 |      100 |     100 |     100 |                                                                                                  
+  Log.ts                       |     100 |      100 |     100 |     100 |                                                                                                  
+  Movimiento.ts                |     100 |      100 |     100 |     100 |                                                                                                  
+  OutboxJob.ts                 |     100 |      100 |     100 |     100 |                                                                                                  
+  Producto.ts                  |     100 |      100 |     100 |     100 |                                                                                                  
+  SyncHistory.ts               |     100 |      100 |     100 |     100 |                                                                                                  
+ core/navigation               |       0 |      100 |       0 |       0 |                                                                                                  
+  AppNavigator.tsx             |       0 |      100 |       0 |       0 | 12-15                                                                                            
+ core/services                 |   70.83 |    73.68 |   76.92 |   75.55 |                                                                                                  
+  ErrorService.ts              |   55.55 |    71.42 |      60 |    62.5 | 53,56,59,72-81                                                                                   
+  LoggerService.ts             |   90.47 |       80 |    87.5 |   90.47 | 25-26                                                                                            
+ core/services/queue           |   53.38 |    37.14 |   61.11 |      56 |                                                                                                  
+  PersistentQueue.ts           |    61.9 |    33.33 |   68.42 |   63.41 | 64-67,82-102                                                                                     
+  QueueProcessor.ts            |   74.46 |    63.15 |      75 |   79.06 | 28-29,40,44,59,69,83-89                                                                          
+  QueueRetryStrategy.ts        |      50 |        0 |      60 |   53.33 | 28-38                                                                                            
+  jobHandlers.ts               |    7.14 |        0 |       0 |    7.69 | 11-85                                                                                            
+  types.ts                     |       0 |        0 |       0 |       0 |                                                                                                  
+ core/ui                       |    8.77 |        0 |       0 |    8.92 |                                                                                                  
+  BottomBar.tsx                |       0 |        0 |       0 |       0 | 17-122                                                                                           
+  ErrorBoundary.tsx            |       0 |        0 |       0 |       0 | 20-80                                                                                            
+  SkeletonCard.tsx             |      50 |      100 |       0 |      50 | 8-10                                                                                             
+  ThemeContext.tsx             |       0 |        0 |       0 |       0 | 16-55                                                                                            
+  colores.ts                   |     100 |      100 |     100 |     100 |                                                                                                  
+  shadows.ts                   |     100 |      100 |     100 |     100 |                                                                                                  
+  tokens.ts                    |     100 |      100 |     100 |     100 |                                                                                                  
+ core/ui/components            |   79.12 |    70.93 |      85 |   79.54 |                                                                                                  
+  AnimatedPressable.tsx        |   82.35 |      100 |      75 |      80 | 46-48                                                                                            
+  Badge.tsx                    |      75 |    57.14 |     100 |      75 | 26,30-32                                                                                         
+  Button.tsx                   |   69.56 |    66.66 |     100 |   72.72 | 58,62-64,78,82-84                                                                                
+  Input.tsx                    |   71.42 |    85.71 |   33.33 |   71.42 | 57-58                                                                                            
+  Shimmer.tsx                  |     100 |      100 |     100 |     100 |                                                                                                  
+  Surface.tsx                  |     100 |     87.5 |     100 |     100 | 38                                                                                               
+  Typography.tsx               |   66.66 |    56.25 |     100 |   66.66 | 28-31                                                                                            
+ core/utils                    |   50.39 |    46.66 |   58.33 |   50.92 |                                                                                                  
+  benchmark.ts                 |     100 |      100 |     100 |     100 |                                                                                                  
+  exportaciones.ts             |       0 |      100 |       0 |       0 | 5-54                                                                                             
+  fecha.ts                     |   59.09 |    45.23 |   85.71 |   59.61 | 17,30,62-72,81,90-95,110-120                                                                     
+  formato.ts                   |   83.33 |    83.33 |     100 |     100 | 5                                                                                                
+  sonidos.ts                   |       0 |        0 |       0 |       0 | 4-28                                                                                             
+  useDebounce.ts               |       0 |      100 |       0 |       0 | 5-17                                                                                             
+  useNetworkStatus.ts          |   76.92 |      100 |   83.33 |   76.92 | 46-48                                                                                            
+ core/validation               |   36.36 |        0 |       0 |   36.36 |                                                                                                  
+  schemas.ts                   |   36.36 |        0 |       0 |   36.36 | 10-12,55-63                                                                                      
+ features/analytics/hooks      |       0 |        0 |       0 |       0 |                                                                                                  
+  useAnalytics.ts              |       0 |        0 |       0 |       0 | 6-55                                                                                             
+ features/analytics/screens    |       0 |        0 |       0 |       0 |                                                                                                  
+  AnalyticsScreen.tsx          |       0 |        0 |       0 |       0 | 19-170                                                                                           
+ features/historial/hooks      |   81.25 |       50 |   83.33 |   78.57 |                                                                                                  
+  useHistorial.ts              |   81.25 |       50 |   83.33 |   78.57 | 48-50                                                                                            
+ features/historial/screens    |       0 |        0 |       0 |       0 |                                                                                                  
+  HistorialScreen.tsx          |       0 |        0 |       0 |       0 | 18-188                                                                                           
+ features/inventory/components |    6.84 |     1.47 |       0 |    7.04 |                                                                                                  
+  EditProductoModal.tsx        |    3.03 |     1.78 |       0 |    3.12 | 29-240                                                                                           
+  ProductoCard.tsx             |   42.85 |        0 |       0 |   42.85 | 20-29,90                                                                                         
+ features/inventory/hooks      |     3.7 |        0 |       0 |    4.16 |                                                                                                  
+  useFiltrosInventario.ts      |     3.7 |        0 |       0 |    4.16 | 17-59                                                                                            
+ features/inventory/repository |   53.19 |    38.23 |      50 |   55.81 |                                                                                                  
+  inventarioRepository.ts      |   53.19 |    38.23 |      50 |   55.81 | 37-38,80,110-132                                                                                 
+ features/inventory/screens    |   40.98 |       38 |   11.11 |   44.64 |                                                                                                  
+  InventarioListScreen.tsx     |   40.98 |       38 |   11.11 |   44.64 | 36,59-71,127,137,141-145,150,154-158,162-165,170-171,175,255-313                                 
+ features/inventory/services   |   18.88 |     3.15 |   23.07 |   21.51 |                                                                                                  
+  syncService.ts               |   18.88 |     3.15 |   23.07 |   21.51 | 12-16,41-174,191-206                                                                             
+ features/inventory/store      |   34.88 |     7.14 |   42.85 |      35 |                                                                                                  
+  useInventarioStore.ts        |   34.88 |     7.14 |   42.85 |      35 | 65-67,82-84,90-151                                                                               
+ features/logistics/hooks      |       0 |        0 |       0 |       0 |                                                                                                  
+  useLogisticsSync.ts          |       0 |        0 |       0 |       0 | 16-64                                                                                            
+ features/logistics/repository |      20 |      100 |       0 |      20 |                                                                                                  
+  logisticsRepository.ts       |      20 |      100 |       0 |      20 | 10-21                                                                                            
+ features/logistics/screens    |   29.53 |    17.64 |   16.27 |   31.49 |                                                                                                  
+  PickingScreen.tsx            |   43.33 |    40.38 |   28.57 |   46.42 | 55-57,116-125,176-194,214-218,223,227-228,243-357                                                
+  StorePanelScreen.tsx         |    23.3 |     5.94 |    4.54 |    24.8 | 64-65,70-74,79-81,87-100,105-113,117-120,124-132,136-180,185-236,243-257,270-280,311,389,446-523 
+ features/scanner/hooks        |   62.79 |       50 |      50 |   69.23 |                                                                                                  
+  useScanner.ts                |   62.79 |       50 |      50 |   69.23 | 31-32,49,82-83,91-109                                                                            
+ features/scanner/repository   |     100 |      100 |     100 |     100 |                                                                                                  
+  scannerRepository.ts         |     100 |      100 |     100 |     100 |                                                                                                  
+ features/scanner/screens      |   72.72 |      100 |      25 |   72.72 |                                                                                                  
+  ScannerScreen.tsx            |   72.72 |      100 |      25 |   72.72 | 57-67                                                                                            
+-------------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------------------------
+Jest: "global" coverage threshold for statements (90%) not met: 38.53%
+Jest: "global" coverage threshold for branches (90%) not met: 26.61%
+Jest: "global" coverage threshold for lines (90%) not met: 40.25%
+Jest: "global" coverage threshold for functions (90%) not met: 34.38%
+
+Summary of all failing tests
+FAIL src/core/utils/__tests__/useNetworkStatus.test.ts (10.822 s)
+  ● useNetworkStatus Hook › se actualiza cuando cambia la conexion
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: false
+    Received: true
+
+    [0m [90m 36 |[39m         })[33m;[39m
+     [90m 37 |[39m         
+    [31m[1m>[22m[39m[90m 38 |[39m         expect(result[33m.[39mcurrent[33m.[39misConnected)[33m.[39mtoBe([36mfalse[39m)[33m;[39m
+     [90m    |[39m                                            [31m[1m^[22m[39m
+     [90m 39 |[39m     })[33m;[39m
+     [90m 40 |[39m })[33m;[39m
+     [90m 41 |[39m[0m
+
+      at Object.toBe (src/core/utils/__tests__/useNetworkStatus.test.ts:38:44)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+FAIL src/core/ui/components/__tests__/Typography.test.tsx (11.382 s)
+  ● Typography Component › aplica color secundario
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "#666666"
+    Received: "secondary"
+
+    [0m [90m 31 |[39m         [36mconst[39m text [33m=[39m getByText([32m'Sub'[39m)[33m;[39m
+     [90m 32 |[39m         [36mconst[39m style [33m=[39m [33mStyleSheet[39m[33m.[39mflatten(text[33m.[39mprops[33m.[39mstyle)[33m;[39m
+    [31m[1m>[22m[39m[90m 33 |[39m         expect(style[33m.[39mcolor)[33m.[39mtoBe([32m'#666666'[39m)[33m;[39m
+     [90m    |[39m                             [31m[1m^[22m[39m
+     [90m 34 |[39m     })[33m;[39m
+     [90m 35 |[39m })[33m;[39m
+     [90m 36 |[39m[0m
+
+      at Object.toBe (src/core/ui/components/__tests__/Typography.test.tsx:33:29)
+
+FAIL src/features/inventory/screens/InventarioListScreen.test.tsx (14.347 s)
+  ● InventarioListScreen - Unit & Performance › Renderizado inicial y benchmark de carga
+
+    Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+
+    Check the render method of `InventarioListScreen`.
+
+    [0m [90m 56 |[39m     test([32m'Renderizado inicial y benchmark de carga'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+     [90m 57 |[39m         [36mconst[39m { metrics } [33m=[39m [36mawait[39m benchmark([32m'InventarioList Load'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 58 |[39m             render([33m<[39m[33mInventarioListScreen[39m [33m/[39m[33m>[39m)[33m;[39m
+     [90m    |[39m                   [31m[1m^[22m[39m
+     [90m 59 |[39m         })[33m;[39m
+     [90m 60 |[39m
+     [90m 61 |[39m         expect(metrics[33m.[39mdurationMs)[33m.[39mtoBeLessThan([35m5000[39m)[33m;[39m[0m
+
+      at createFiberFromTypeAndProps (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12185:28)
+      at createFiberFromElement (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12199:14)
+      at createChild (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4475:26)
+      at reconcileChildrenArray (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4805:25)
+      at reconcileChildFibersImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5122:30)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5227:33
+      at reconcileChildren (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5735:13)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7551:13)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at src/features/inventory/screens/InventarioListScreen.test.tsx:58:19
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at fn (src/core/utils/benchmark.ts:16:24)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/core/utils/benchmark.ts:27:2)
+      at apply (src/core/utils/benchmark.ts:11:32)
+      at Object.<anonymous> (src/features/inventory/screens/InventarioListScreen.test.tsx:57:44)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ● InventarioListScreen - Unit & Performance › Cambio de búsqueda actualiza el estado
+
+    Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+
+    Check the render method of `InventarioListScreen`.
+
+    [0m [90m 63 |[39m
+     [90m 64 |[39m     test([32m'Cambio de búsqueda actualiza el estado'[39m[33m,[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 65 |[39m         [36mconst[39m { getByPlaceholderText } [33m=[39m render([33m<[39m[33mInventarioListScreen[39m [33m/[39m[33m>[39m)[33m;[39m
+     [90m    |[39m                                                [31m[1m^[22m[39m
+     [90m 66 |[39m         [36mconst[39m input [33m=[39m getByPlaceholderText([33mMENSAJES[39m[33m.[39m[33mBUSCAR_PLACEHOLDER[39m)[33m;[39m
+     [90m 67 |[39m         
+     [90m 68 |[39m         fireEvent[33m.[39mchangeText(input[33m,[39m [32m'Coca Cola'[39m)[33m;[39m[0m
+
+      at createFiberFromTypeAndProps (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12185:28)
+      at createFiberFromElement (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12199:14)
+      at createChild (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4475:26)
+      at reconcileChildrenArray (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4805:25)
+      at reconcileChildFibersImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5122:30)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5227:33
+      at reconcileChildren (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5735:13)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7551:13)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/features/inventory/screens/InventarioListScreen.test.tsx:65:48)
+
+FAIL src/features/scanner/screens/ScannerScreen.test.tsx (14.45 s)
+  ● ScannerScreen - Unit › Renderiza correctamente
+
+    Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+
+    Check the render method of `ScannerScreen`.
+
+    [0m [90m 29 |[39m
+     [90m 30 |[39m     test([32m'Renderiza correctamente'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 31 |[39m         [36mconst[39m { getByText } [33m=[39m render([33m<[39m[33mScannerScreen[39m [33m/[39m[33m>[39m)[33m;[39m
+     [90m    |[39m                                     [31m[1m^[22m[39m
+     [90m 32 |[39m         expect(getByText([33mMENSAJES[39m[33m.[39m[33mALINEA_CODIGO[39m))[33m.[39mtoBeTruthy()[33m;[39m
+     [90m 33 |[39m     })[33m;[39m
+     [90m 34 |[39m[0m
+
+      at createFiberFromTypeAndProps (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12185:28)
+      at createFiberFromElement (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12199:14)
+      at reconcileChildFibersImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5049:31)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5227:33
+      at reconcileChildren (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5735:13)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7551:13)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/features/scanner/screens/ScannerScreen.test.tsx:31:37)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ● ScannerScreen - Unit › Botón cancelar llama a goBack
+
+    Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+
+    Check the render method of `ScannerScreen`.
+
+    [0m [90m 34 |[39m
+     [90m 35 |[39m     test([32m'Botón cancelar llama a goBack'[39m[33m,[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 36 |[39m         [36mconst[39m { getByText } [33m=[39m render([33m<[39m[33mScannerScreen[39m [33m/[39m[33m>[39m)[33m;[39m
+     [90m    |[39m                                     [31m[1m^[22m[39m
+     [90m 37 |[39m         fireEvent[33m.[39mpress(getByText([33mMENSAJES[39m[33m.[39m[33mTERMINAR_LOTE[39m))[33m;[39m
+     [90m 38 |[39m         expect(mockGoBack)[33m.[39mtoHaveBeenCalled()[33m;[39m
+     [90m 39 |[39m     })[33m;[39m[0m
+
+      at createFiberFromTypeAndProps (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12185:28)
+      at createFiberFromElement (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12199:14)
+      at reconcileChildFibersImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5049:31)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5227:33
+      at reconcileChildren (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5735:13)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7551:13)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/features/scanner/screens/ScannerScreen.test.tsx:36:37)
+
+FAIL src/features/logistics/screens/PickingScreen.test.tsx (14.63 s)
+  ● PickingScreen UI & Performance › Renderizado inicial y performance
+
+    Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+
+    Check the render method of `PickingScreen`.
+
+    [0m [90m 26 |[39m   test([32m'Renderizado inicial y performance'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+     [90m 27 |[39m     [36mconst[39m { metrics } [33m=[39m [36mawait[39m benchmark([32m'PickingScreen Initial Render'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 28 |[39m         render([33m<[39m[33mPickingScreen[39m [33m/[39m[33m>[39m)[33m;[39m
+     [90m    |[39m               [31m[1m^[22m[39m
+     [90m 29 |[39m     })[33m;[39m
+     [90m 30 |[39m
+     [90m 31 |[39m     expect(metrics[33m.[39mdurationMs)[33m.[39mtoBeLessThan([35m5000[39m)[33m;[39m[0m
+
+      at createFiberFromTypeAndProps (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12185:28)
+      at createFiberFromElement (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12199:14)
+      at createChild (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4475:26)
+      at reconcileChildrenArray (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4805:25)
+      at reconcileChildFibersImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5122:30)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5227:33
+      at reconcileChildren (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5735:13)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7551:13)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at src/features/logistics/screens/PickingScreen.test.tsx:28:15
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at fn (src/core/utils/benchmark.ts:16:24)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/core/utils/benchmark.ts:27:2)
+      at apply (src/core/utils/benchmark.ts:11:32)
+      at Object.<anonymous> (src/features/logistics/screens/PickingScreen.test.tsx:27:40)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ● PickingScreen UI & Performance › Renderizado de PickingList con datos
+
+    Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+
+    [0m [90m 33 |[39m
+     [90m 34 |[39m   test([32m'Renderizado de PickingList con datos'[39m[33m,[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 35 |[39m     [36mconst[39m { getByText } [33m=[39m render(
+     [90m    |[39m                                 [31m[1m^[22m[39m
+     [90m 36 |[39m       [33m<[39m[33mPickingList[39m 
+     [90m 37 |[39m         pedidos[33m=[39m{mockEnvios [36mas[39m any} 
+     [90m 38 |[39m         busqueda[33m=[39m[32m""[39m [0m
+
+      at createFiberFromTypeAndProps (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12185:28)
+      at createFiberFromElement (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12199:14)
+      at reconcileChildFibersImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5049:31)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5227:33
+      at reconcileChildren (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5735:13)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7551:13)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performSyncWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2109:7)
+      at flushSyncWorkAcrossRoots_impl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1954:21)
+      at flushSpawnedWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11467:9)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11311:9)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10445:15)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/features/logistics/screens/PickingScreen.test.tsx:35:33)
+
+  ● PickingScreen UI & Performance › Interacción con filtros en PickingScreen
+
+    Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+
+    Check the render method of `PickingScreen`.
+
+    [0m [90m 50 |[39m
+     [90m 51 |[39m   test([32m'Interacción con filtros en PickingScreen'[39m[33m,[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 52 |[39m     [36mconst[39m { getByText[33m,[39m getByPlaceholderText } [33m=[39m render([33m<[39m[33mPickingScreen[39m [33m/[39m[33m>[39m)[33m;[39m
+     [90m    |[39m                                                       [31m[1m^[22m[39m
+     [90m 53 |[39m     
+     [90m 54 |[39m     [36mconst[39m input [33m=[39m getByPlaceholderText([32m'Buscar por código o cliente...'[39m)[33m;[39m
+     [90m 55 |[39m     fireEvent[33m.[39mchangeText(input[33m,[39m [32m'PED-001'[39m)[33m;[39m[0m
+
+      at createFiberFromTypeAndProps (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12185:28)
+      at createFiberFromElement (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12199:14)
+      at createChild (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4475:26)
+      at reconcileChildrenArray (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4805:25)
+      at reconcileChildFibersImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5122:30)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5227:33
+      at reconcileChildren (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5735:13)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7551:13)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at Object.<anonymous> (src/features/logistics/screens/PickingScreen.test.tsx:52:55)
+
+FAIL src/features/logistics/screens/StorePanelScreen.test.tsx (15.517 s)
+  ● StorePanelScreen - Unit & Performance › Renderizado inicial y benchmark
+
+    Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: undefined. You likely forgot to export your component from the file it's defined in, or you might have mixed up default and named imports.
+
+    Check the render method of `StorePanelScreen`.
+
+    [0m [90m 40 |[39m     test([32m'Renderizado inicial y benchmark'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+     [90m 41 |[39m         [36mconst[39m { metrics } [33m=[39m [36mawait[39m benchmark([32m'StorePanel Load'[39m[33m,[39m [36masync[39m () [33m=>[39m {
+    [31m[1m>[22m[39m[90m 42 |[39m             render([33m<[39m[33mStorePanelScreen[39m [33m/[39m[33m>[39m)[33m;[39m
+     [90m    |[39m                   [31m[1m^[22m[39m
+     [90m 43 |[39m         })[33m;[39m
+     [90m 44 |[39m
+     [90m 45 |[39m         expect(metrics[33m.[39mdurationMs)[33m.[39mtoBeLessThan([35m5000[39m)[33m;[39m[0m
+
+      at createFiberFromTypeAndProps (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12185:28)
+      at createFiberFromElement (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:12199:14)
+      at createChild (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4475:26)
+      at reconcileChildrenArray (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4805:25)
+      at reconcileChildFibersImpl (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5122:30)
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5227:33
+      at reconcileChildren (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5735:13)
+      at beginWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:7551:13)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at performUnitOfWork (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10980:22)
+      at workLoopSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10816:41)
+      at renderRootSync (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10797:11)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10384:39)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at flushActQueue (node_modules/react/cjs/react.development.js:566:34)
+      at process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:859:10)
+      at actImplementation (node_modules/@testing-library/react-native/src/act.ts:30:25)
+      at renderWithAct (node_modules/@testing-library/react-native/src/render-act.ts:13:11)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:69:33)
+      at renderInternal (node_modules/@testing-library/react-native/src/render.tsx:44:10)
+      at src/features/logistics/screens/StorePanelScreen.test.tsx:42:19
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at fn (src/core/utils/benchmark.ts:16:24)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12
+      at apply (src/core/utils/benchmark.ts:27:2)
+      at apply (src/core/utils/benchmark.ts:11:32)
+      at Object.<anonymous> (src/features/logistics/screens/StorePanelScreen.test.tsx:41:44)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+
+Test Suites: 6 failed, 22 passed, 28 total
+Tests:       10 failed, 70 passed, 80 total
+Snapshots:   0 total
+Time:        23.062 s
+Ran all test suites.

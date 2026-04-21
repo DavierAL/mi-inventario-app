@@ -279,6 +279,18 @@ jest.mock('@react-native-community/netinfo', () => ({
   },
 }));
 
+// Mock Reanimated
+require('react-native-reanimated/mock');
+
+// Mock Worklets
+jest.mock('react-native-worklets', () => ({
+    Worklets: {
+        createRunOnJS: jest.fn(fn => fn),
+        createRunOnUI: jest.fn(fn => fn),
+        createSharedValue: jest.fn(val => ({ value: val })),
+    },
+}));
+
 // Mock UI Components
 jest.mock('./src/core/ui/BottomBar', () => {
     const React = require('react');
@@ -287,3 +299,7 @@ jest.mock('./src/core/ui/BottomBar', () => {
         BottomBar: () => React.createElement(View),
     };
 });
+
+// Polyfills para Reanimated en Node
+global._WORKLET = false;
+global._IS_FABRIC = false;

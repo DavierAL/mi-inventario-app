@@ -29,6 +29,7 @@ describe('Button Component', () => {
         const onPressMock = jest.fn();
         const { getByText } = render(<Button label="Press" onPress={onPressMock} />);
         
+        fireEvent(getByText('Press'), 'pressIn');
         fireEvent.press(getByText('Press'));
         
         expect(onPressMock).toHaveBeenCalledTimes(1);
@@ -52,34 +53,20 @@ describe('Button Component', () => {
     });
 
     it('aplica estilos segun variante (primary)', () => {
-        const { getByText } = render(<Button label="Primary" onPress={() => {}} variant="primary" />);
-        const textElement = getByText('Primary');
-        let current = textElement.parent;
-        while (current && current.props.activeOpacity === undefined) {
-            current = current.parent;
-        }
-        
-        const style = current?.props.style;
-        const flatStyle = StyleSheet.flatten(style);
-        
-        expect(flatStyle).toMatchObject({
-            backgroundColor: ThemeColors.light.primario,
-        });
+        const { getByTestId } = render(
+            <Button label="Primary" onPress={() => {}} variant="primary" testID="btn-primary" />
+        );
+        const button = getByTestId('btn-primary');
+        const flatStyle = StyleSheet.flatten(button.props.style);
+        expect(flatStyle.backgroundColor).toBe(ThemeColors.light.primario);
     });
 
     it('aplica estilos segun variante (danger)', () => {
-        const { getByText } = render(<Button label="Danger" onPress={() => {}} variant="danger" />);
-        const textElement = getByText('Danger');
-        let current = textElement.parent;
-        while (current && current.props.activeOpacity === undefined) {
-            current = current.parent;
-        }
-        
-        const style = current?.props.style;
-        const flatStyle = StyleSheet.flatten(style);
-        
-        expect(flatStyle).toMatchObject({
-            borderColor: expect.stringContaining('235'), // Rojo danger
-        });
+        const { getByTestId } = render(
+            <Button label="Danger" onPress={() => {}} variant="danger" testID="btn-danger" />
+        );
+        const button = getByTestId('btn-danger');
+        const flatStyle = StyleSheet.flatten(button.props.style);
+        expect(flatStyle.borderColor).toBe('rgba(235, 87, 87, 0.3)');
     });
 });

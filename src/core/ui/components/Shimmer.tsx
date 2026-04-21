@@ -1,6 +1,6 @@
 // src/core/ui/components/Shimmer.tsx
 import React, { useEffect } from 'react';
-import { StyleSheet, View, ViewStyle, StyleProp } from 'react-native';
+import { ViewStyle, StyleProp, DimensionValue } from 'react-native';
 import Animated, { 
     useSharedValue, 
     useAnimatedStyle, 
@@ -12,17 +12,19 @@ import Animated, {
 import { useTheme } from '../ThemeContext';
 
 interface ShimmerProps {
-    width: number | string;
-    height: number | string;
+    width: DimensionValue;
+    height: DimensionValue;
     borderRadius?: number;
     style?: StyleProp<ViewStyle>;
+    testID?: string;
 }
 
 export const Shimmer: React.FC<ShimmerProps> = ({
     width,
     height,
     borderRadius = 8,
-    style
+    style,
+    testID
 }) => {
     const { colors } = useTheme();
     const progress = useSharedValue(0);
@@ -35,20 +37,35 @@ export const Shimmer: React.FC<ShimmerProps> = ({
         );
     }, []);
 
+    // SOLUCIÓN: Asegurar estabilidad de tipos y formatos para Reanimated
+    const colorStart = String(colors.inputDeshabilitado);
+    const colorEnd = String(colors.borde); 
+
     const animatedStyle = useAnimatedStyle(() => {
-        const backgroundColor = interpolateColor(
-            progress.value,
-            [0, 1],
-            [colors.inputDeshabilitado, colors.borde]
-        );
-        return { backgroundColor };
-    });
+        return {
+            backgroundColor: interpolateColor(
+                progress.value,
+                [0, 1],
+                [colorStart, colorEnd]
+            )
+        };
+    }, [colorStart, colorEnd]);
+
+    // SOLUCIÓN AL ERROR DE TS: Definir el estilo base como ViewStyle explícito
+    // Esto evita que TS se confunda con los tipos complejos de Reanimated
+    const baseStyle: ViewStyle = { 
+        width, 
+        height, 
+        borderRadius, 
+        overflow: 'hidden' 
+    };
 
     return (
         <Animated.View 
-            layout={LinearTransition}
+            testID={testID}
+            layout={LinearTransition.duration(300)}
             style={[
-                { width, height, borderRadius },
+                baseStyle,
                 animatedStyle,
                 style
             ]} 

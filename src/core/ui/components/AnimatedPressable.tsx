@@ -51,6 +51,7 @@ export const AnimatedPressable: React.FC<AnimatedPressableProps> = ({
     return (
         <AnimatedPressableBase
             {...props}
+            testID={props.testID}
             onPressIn={handlePressIn}
             onPressOut={handlePressOut}
             style={[style, animatedStyle]}

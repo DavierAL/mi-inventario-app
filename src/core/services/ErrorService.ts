@@ -80,4 +80,17 @@ export class ErrorService {
     }
     throw new Error('Max retries exceeded');
   }
+
+  /**
+   * Identifies if an error is critical (e.g., DB corruption, Auth failure)
+   */
+  static isCritical(error: Error): boolean {
+    const msg = error.message.toLowerCase();
+    return (
+      msg.includes('corrupt') || 
+      msg.includes('unauthorized') || 
+      msg.includes('permission') ||
+      msg.includes('out of memory')
+    );
+  }
 }

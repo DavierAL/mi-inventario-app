@@ -20,7 +20,7 @@ interface ButtonProps {
     loading?: boolean;
     disabled?: boolean;
     icon?: React.ReactNode;
-    style?: ViewStyle;
+    testID?: string;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -31,7 +31,8 @@ export const Button: React.FC<ButtonProps> = ({
     loading = false,
     disabled = false,
     icon,
-    style
+    style,
+    testID
 }) => {
     const { colors } = useTheme();
 
@@ -86,6 +87,7 @@ export const Button: React.FC<ButtonProps> = ({
 
     return (
         <AnimatedPressable
+            testID={testID}
             onPress={handlePress}
             disabled={disabled || loading}
             style={[getBtnStyle(), disabled && { opacity: 0.5 }, style]}

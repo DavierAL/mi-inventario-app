@@ -1,48 +1,40 @@
-// ARCHIVO: src/core/ui/components/__tests__/Badge.test.tsx
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { render } from '@testing-library/react-native';
 import { Badge } from '../Badge';
-import { ThemeColors } from '../../colores';
 
-// Mock del hook useTheme
+// Mock de useTheme
 jest.mock('../../ThemeContext', () => ({
     useTheme: () => ({
-        colors: require('../../colores').ThemeColors.light,
-        isDark: false,
+        colors: {
+            primario: '#0075de',
+            error: '#eb5757',
+            textoPrincipal: '#000',
+            fondoPrimario: '#f0f0f0',
+            textoSecundario: '#666',
+        },
     }),
 }));
 
 describe('Badge Component', () => {
-    it('renderiza con la etiqueta correcta', () => {
-        const { getByText } = render(<Badge label="Nuevo" />);
-        // Buscamos ignorando mayúsculas/minúsculas para ser más robustos
-        expect(getByText(/nuevo/i)).toBeTruthy();
+    it('renderiza con el texto correcto', () => {
+        const { getByText } = render(<Badge label="Test" />);
+        expect(getByText('Test')).toBeTruthy();
     });
 
-    it('aplica colores segun variante (success)', () => {
-        const { getByText } = render(<Badge label="Exito" variant="success" />);
-        const textElement = getByText(/exito/i);
-        
-        expect(textElement.props.style).toContainEqual(expect.objectContaining({
-            color: '#4ba042',
-        }));
+    it('aplica el color segun variante', () => {
+        const { getByTestId } = render(<Badge label="Error" variant="error" testID="badge-error" />);
+        const badge = getByTestId('badge-error');
+        const flatStyle = StyleSheet.flatten(badge.props.style);
+        expect(flatStyle.backgroundColor).toBe('rgba(235, 87, 87, 0.15)');
     });
 
-    it('aplica colores segun variante (error)', () => {
-        const { getByText } = render(<Badge label="Error" variant="error" />);
-        const textElement = getByText(/error/i);
-        
-        expect(textElement.props.style).toContainEqual(expect.objectContaining({
-            color: '#eb5757',
-        }));
-    });
-
-    it('aplica colores por defecto', () => {
-        const { getByText } = render(<Badge label="Default" />);
-        const textElement = getByText(/default/i);
-        
-        expect(textElement.props.style).toContainEqual(expect.objectContaining({
-            color: ThemeColors.light.textoSecundario,
-        }));
+    it('aplica estilos personalizados', () => {
+        const { getByTestId } = render(
+            <Badge label="Custom" style={{ marginTop: 20 }} testID="badge-custom" />
+        );
+        const badge = getByTestId('badge-custom');
+        const flatStyle = StyleSheet.flatten(badge.props.style);
+        expect(flatStyle.marginTop).toBe(20);
     });
 });

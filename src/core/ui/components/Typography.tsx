@@ -11,7 +11,7 @@ interface CustomTextProps extends TextProps {
     align?: 'left' | 'center' | 'right';
 }
 
-export const Text: React.FC<CustomTextProps> = ({ 
+export const Typography: React.FC<CustomTextProps> = ({ 
     children, 
     variant = 'body', 
     weight,
@@ -33,9 +33,17 @@ export const Text: React.FC<CustomTextProps> = ({
         }
     };
 
+    const getTextColor = () => {
+        if (!color) return colors.textoPrincipal;
+        if (color === 'primary') return colors.primario;
+        if (color === 'secondary') return colors.textoSecundario;
+        if (color === 'error') return colors.error;
+        return color; // Color literal (hex/rgba)
+    };
+
     const textStyle: TextStyle = {
         ...getBaseStyle(),
-        color: color || colors.textoPrincipal,
+        color: getTextColor(),
         textAlign: align,
         // Si se pasa un peso explícito, sobreescribimos
         ...(weight === 'medium' && { fontWeight: '500' }),
@@ -49,3 +57,6 @@ export const Text: React.FC<CustomTextProps> = ({
         </RNText>
     );
 };
+
+// Mantenemos el alias Text para compatibilidad con el código existente
+export const Text = Typography;

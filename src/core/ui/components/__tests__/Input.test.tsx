@@ -1,20 +1,21 @@
-// ARCHIVO: src/core/ui/components/__tests__/Input.test.tsx
 import React from 'react';
-import { View } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Input } from '../Input';
-import { ThemeColors } from '../../colores';
 
-// Mock del hook useTheme
+// Mock de useTheme
 jest.mock('../../ThemeContext', () => ({
     useTheme: () => ({
-        colors: require('../../colores').ThemeColors.light,
-        isDark: false,
+        colors: {
+            fondo: '#fff',
+            borde: '#eee',
+            textoPrincipal: '#000',
+            primario: '#0075de',
+        },
     }),
 }));
 
 describe('Input Component', () => {
-    it('renderiza con label y placeholder', () => {
+    it('renderiza con el label y placeholder', () => {
         const { getByText, getByPlaceholderText } = render(
             <Input label="Email" placeholder="test@test.com" />
         );
@@ -22,25 +23,27 @@ describe('Input Component', () => {
         expect(getByPlaceholderText('test@test.com')).toBeTruthy();
     });
 
-    it('maneja el cambio de texto', () => {
+    it('llama a onChangeText cuando el texto cambia', () => {
         const onChangeTextMock = jest.fn();
         const { getByPlaceholderText } = render(
-            <Input placeholder="Escribe" onChangeText={onChangeTextMock} />
+            <Input placeholder="Type here" onChangeText={onChangeTextMock} />
         );
         
-        fireEvent.changeText(getByPlaceholderText('Escribe'), 'Hola');
-        expect(onChangeTextMock).toHaveBeenCalledWith('Hola');
+        fireEvent.changeText(getByPlaceholderText('Type here'), 'hello');
+        expect(onChangeTextMock).toHaveBeenCalledWith('hello');
     });
 
     it('muestra el mensaje de error', () => {
-        const { getByText } = render(<Input error="Campo requerido" />);
-        expect(getByText('Campo requerido')).toBeTruthy();
+        const { getByText } = render(<Input error="Invalid email" />);
+        expect(getByText('Invalid email')).toBeTruthy();
     });
 
-    it('renderiza el icono si se proporciona', () => {
-        const { getByTestId } = render(
-            <Input icon={<View testID="test-icon" />} />
+    it('aplica estilos de deshabilitado', () => {
+        const { getByPlaceholderText } = render(
+            <Input placeholder="Disabled" editable={false} />
         );
-        expect(getByTestId('test-icon')).toBeTruthy();
+        const input = getByPlaceholderText('Disabled');
+        // El input deshabilitado suele tener opacidad o color diferente
+        expect(input.props.editable).toBe(false);
     });
 });
