@@ -17,6 +17,7 @@ jest.mock('../repository/inventarioRepository', () => ({
 describe('useInventarioStore - State & Performance', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    useInventarioStore.getState().reset();
   });
 
   test('conectarInventario actualiza el estado y llama a sync (Carga)', async () => {

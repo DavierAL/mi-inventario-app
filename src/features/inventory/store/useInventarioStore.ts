@@ -32,9 +32,10 @@ interface InventarioState {
     guardarEdicion: (fv: string, fechaEdicion: string, comentario: string) => Promise<ResultadoOperacion>;
     cargarDatosSync: () => void;
     repararBaseDeDatos: () => Promise<void>;
+    reset: () => void;
 }
 
-export const useInventarioStore = create<InventarioState>((set, get) => ({
+const initialState = {
     cargando: false,
     error: null,
     modoOffline: false,
@@ -42,6 +43,12 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
     productoEditando: null,
     pendientesSync: 0,
     sincronizandoFondo: false,
+};
+
+export const useInventarioStore = create<InventarioState>((set, get) => ({
+    ...initialState,
+
+    reset: () => set(initialState),
 
     conectarInventario: () => {
         set({ cargando: true, error: null });

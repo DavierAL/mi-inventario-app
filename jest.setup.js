@@ -4,6 +4,53 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
 
+// Mock expo-audio
+jest.mock('expo-audio', () => ({
+  createAudioPlayer: jest.fn().mockImplementation(() => ({
+    play: jest.fn(),
+    seekTo: jest.fn(),
+  })),
+}));
+
+// Mock sonidos utility
+jest.mock('./src/core/utils/sonidos', () => ({
+  precargarSonidos: jest.fn(),
+  reproducirSonido: jest.fn(),
+}));
+
+// Mock expo-image
+jest.mock('expo-image', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    Image: (props: any) => React.createElement(View, props),
+  };
+});
+
+// Mock expo-image-manipulator
+jest.mock('expo-image-manipulator', () => ({
+  manipulateAsync: jest.fn().mockResolvedValue({ uri: 'file:///manipulated.jpg' }),
+  SaveFormat: { JPEG: 'jpeg', PNG: 'png' },
+}));
+
+// Mock global expo properties
+global.ExponentAsset = {
+  downloadAsync: jest.fn(),
+};
+
+// Mock expo-camera
+jest.mock('expo-camera', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    CameraView: (props) => React.createElement(View, props),
+    useCameraPermissions: () => [
+        { granted: true, status: 'granted' },
+        jest.fn().mockResolvedValue({ granted: true, status: 'granted' })
+    ],
+  };
+});
+
 // Mock Expo Modules Core
 jest.mock('expo-modules-core', () => ({
   EventEmitter: jest.fn().mockImplementation(() => ({
@@ -169,6 +216,47 @@ jest.mock('react-native-safe-area-context', () => {
     useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
   };
 });
+
+// Mock FileSystem
+jest.mock('expo-file-system', () => ({
+  documentDirectory: 'file:///test/',
+  cacheDirectory: 'file:///cache/',
+  getInfoAsync: jest.fn().mockResolvedValue({ exists: true }),
+  readAsStringAsync: jest.fn().mockResolvedValue(''),
+  writeAsStringAsync: jest.fn().mockResolvedValue(undefined),
+  deleteAsync: jest.fn().mockResolvedValue(undefined),
+  moveAsync: jest.fn().mockResolvedValue(undefined),
+  copyAsync: jest.fn().mockResolvedValue(undefined),
+  makeDirectoryAsync: jest.fn().mockResolvedValue(undefined),
+  EncodingType: { Base64: 'base64' },
+}));
+jest.mock('expo-file-system/legacy', () => ({
+  getInfoAsync: jest.fn().mockResolvedValue({ exists: true }),
+  readAsStringAsync: jest.fn().mockResolvedValue(''),
+  deleteAsync: jest.fn().mockResolvedValue(undefined),
+  EncodingType: { Base64: 'base64' },
+}));
+
+// Mock NetInfo
+jest.mock('@react-native-community/netinfo', () => ({
+  addEventListener: jest.fn().mockReturnValue(jest.fn()),
+  fetch: jest.fn().mockResolvedValue({
+    isConnected: true,
+    isInternetReachable: true,
+    type: 'wifi',
+  }),
+  useNetInfo: jest.fn().mockReturnValue({
+    isConnected: true,
+    isInternetReachable: true,
+    type: 'wifi',
+  }),
+  NetInfoStateType: {
+    unknown: 'unknown',
+    none: 'none',
+    wifi: 'wifi',
+    cellular: 'cellular',
+  },
+}));
 
 // Mock UI Components
 jest.mock('./src/core/ui/BottomBar', () => {
