@@ -2,10 +2,10 @@ import { InventarioRepository } from './inventarioRepository';
 import { database } from '../../../core/database';
 import { benchmark } from '../../../core/utils/benchmark';
 
-// Mock de QueueService
-jest.mock('../../../core/services/QueueService', () => ({
-  QueueService: {
-    encolar: jest.fn().mockResolvedValue({}),
+// Mock de QueueActions
+jest.mock('../../../core/services/queue', () => ({
+  QueueActions: {
+    enqueueWebhook: jest.fn().mockResolvedValue({}),
   },
 }));
 

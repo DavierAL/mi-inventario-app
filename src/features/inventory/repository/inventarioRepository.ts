@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 import { Q } from '@nozbe/watermelondb';
 import { database } from '../../../core/database';
-import { QueueService } from '../../../core/services/QueueService';
+import { QueueActions } from '../../../core/services/queue';
 import { ProductoInventario, EntradaHistorial, TipoAccionHistorial } from '../../../core/types/inventario';
 import Movimiento from '../../../core/database/models/Movimiento';
 import Producto from '../../../core/database/models/Producto';
@@ -102,7 +102,7 @@ export const InventarioRepository = {
             };
             
             // Encolamos para el proxy de Sheets
-            QueueService.encolar(payload).catch(() => {});
+            QueueActions.enqueueWebhook(payload).catch(() => {});
 
             return { exito: true, webhookEncolado: true };
 

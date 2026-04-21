@@ -1,5 +1,4 @@
-// ARCHIVO: src/core/utils/__tests__/useNetworkStatus.test.ts
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
 import { useNetworkStatus } from '../useNetworkStatus';
 import NetInfo from '@react-native-community/netinfo';
 
@@ -32,12 +31,10 @@ describe('useNetworkStatus Hook', () => {
     it('inicializa con el estado de NetInfo.fetch', async () => {
         const { result } = renderHook(() => useNetworkStatus());
 
-        await act(async () => {
-            // Esperar a que los efectos se completen
+        await waitFor(() => {
+            expect(result.current.isConnected).toBe(true);
+            expect(result.current.isOnline).toBe(true);
         });
-
-        expect(result.current.isConnected).toBe(true);
-        expect(result.current.isOnline).toBe(true);
     });
 
     it('actualiza isOnline correctamente cuando no hay internet', async () => {
@@ -49,38 +46,34 @@ describe('useNetworkStatus Hook', () => {
 
         const { result } = renderHook(() => useNetworkStatus());
 
-        await act(async () => {
-            // Esperar a que los efectos se completen
+        await waitFor(() => {
+            expect(result.current.isOnline).toBe(false);
         });
-
-        expect(result.current.isOnline).toBe(false);
     });
 
     it('se suscribe a cambios de red al montar', async () => {
         renderHook(() => useNetworkStatus());
         
-        await act(async () => {
-            // Esperar a que los efectos se completen
+        await waitFor(() => {
+            expect(NetInfo.addEventListener).toHaveBeenCalled();
         });
-
-        expect(NetInfo.addEventListener).toHaveBeenCalled();
     });
 
     it('proporciona una funcion refresh funcional', async () => {
         const { result } = renderHook(() => useNetworkStatus());
         
-        await act(async () => {
-            // Esperar a que los efectos se completen
+        await waitFor(() => {
+            expect(result.current.isConnected).toBe(true);
         });
         
         const newState = { ...mockState, type: 'cellular' };
         (NetInfo.fetch as jest.Mock).mockResolvedValue(newState);
 
-        await act(async () => {
-            const res = await result.current.refresh();
-            expect(res.type).toBe('cellular');
-        });
+        const res = await result.current.refresh();
+        expect(res.type).toBe('cellular');
 
-        expect(result.current.type).toBe('cellular');
+        await waitFor(() => {
+            expect(result.current.type).toBe('cellular');
+        });
     });
 });

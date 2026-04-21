@@ -18,7 +18,7 @@ import { Q } from '@nozbe/watermelondb';
 import { database } from '../../../core/database';
 import Envio, { EstadoPedido } from '../../../core/database/models/Envio';
 import { LogisticsRepository } from '../repository/logisticsRepository';
-import { QueueService } from '../../../core/services/QueueService';
+import { QueueActions } from '../../../core/services/queue';
 import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
 import { useTheme } from '../../../core/ui/ThemeContext';
 import { RootStackParamList } from '../../../core/types/navigation';
@@ -26,6 +26,9 @@ import { useNetworkStatus } from '../../../core/utils/useNetworkStatus';
 import { useLogisticsSync } from '../hooks/useLogisticsSync';
 import { Text, Surface, Button, Badge } from '../../../core/ui/components';
 import { TOKENS } from '../../../core/ui/tokens';
+import { Logger } from '../../../core/services/LoggerService';
+import { ErrorService } from '../../../core/services/ErrorService';
+import { validateData, EnvioSchema } from '../../../core/validation/schemas';
 
 type StorePanelNavProp = NativeStackNavigationProp<RootStackParamList, 'StorePanel'>;
 type StorePanelRoute = RouteProp<RootStackParamList, 'StorePanel'>;
@@ -184,25 +187,39 @@ export const StorePanelScreen = () => {
             Alert.alert('Foto requerida', 'Toma una foto de evidencia antes de confirmar.');
             return;
         }
+
+        Logger.info('[StorePanel] Iniciando confirmación de entrega', { 
+            pedidoId: envio.id, 
+            codPedido: envio.codPedido 
+        });
+
         try {
             setProcesando(true);
+            
+            // Validar estado actual antes de proceder
+            if (envio.estado === 'Entregado') {
+                throw new Error('Este pedido ya ha sido entregado.');
+            }
+
             await database.write(async () => {
                 await envio.update((p) => {
                     p.estado = 'Entregado';
                     p.podLocalUri = fotoUri;
                 });
             });
+
             const storagePath = `pedidos/${envio.codPedido}/pod_${Date.now()}.jpg`;
-            await QueueService.encolarFoto({
+            await QueueActions.enqueueFoto({
                 pedidoId: envio.id,
                 codPedido: envio.codPedido,
                 localUri: fotoUri,
                 storagePath,
             });
-            if (isOnline) {
-                QueueService.procesarColaFotos().catch(() => {});
-            }
             
+            Logger.info('[StorePanel] Entrega confirmada localmente y encolada', { 
+                pedidoId: envio.id 
+            });
+
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             Toast.show({
                 type: 'success',
@@ -210,8 +227,11 @@ export const StorePanelScreen = () => {
                 text2: isOnline ? 'Subiendo evidencia...' : 'Se sincronizará cuando haya red',
             });
             navigation.goBack();
-        } catch {
-            Toast.show({ type: 'error', text1: 'Error al confirmar entrega' });
+        } catch (error) {
+            ErrorService.handle(error, { 
+                operation: 'confirmarEntrega', 
+                pedidoId: envio.id 
+            });
         } finally {
             setProcesando(false);
         }
@@ -285,7 +305,131 @@ export const StorePanelScreen = () => {
 
     // ─── Vista principal ──────────────────────────────────────────────────────
 
-    const badge = envio ? (ESTADO_BADGE[envio.estado as EstadoPedido] ?? ESTADO_BADGE.En_Tienda) : null;
+    // ─── Componentes Memoizados ──────────────────────────────────────────────
+    
+    const OrderDetailsCard = React.memo(({ item }: { item: Envio }) => (
+        <Surface variant="elevated" padding="lg" style={styles.card}>
+            <View style={styles.cardHeader}>
+                <View style={{ flex: 1 }}>
+                    <Text variant="tiny" weight="bold" color={colors.textoTerciario}>
+                        CÓDIGO DE ENVÍO
+                    </Text>
+                    <Text variant="h2" weight="bold">{item.codPedido}</Text>
+                </View>
+                <Badge 
+                    label={item.estado.replace('_', ' ')} 
+                    variant={item.estado === 'Entregado' ? 'success' : 'info'} 
+                />
+            </View>
+
+            <View style={[styles.divider, { backgroundColor: colors.borde }]} />
+
+            <View style={styles.infoRow}>
+                <Ionicons name="person-outline" size={16} color={colors.textoTerciario} />
+                <View style={{ marginLeft: 12, flex: 1 }}>
+                    <Text variant="tiny" weight="bold" color={colors.textoTerciario}>CLIENTE</Text>
+                    <Text variant="body" weight="medium">{item.cliente}</Text>
+                    {item.telefono && (
+                        <Text variant="small" color={colors.textoSecundario}>{item.telefono}</Text>
+                    )}
+                </View>
+            </View>
+
+            {(item.direccion || item.distrito) && (
+                <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
+                    <Ionicons name="location-outline" size={16} color={colors.textoTerciario} />
+                    <View style={{ marginLeft: 12, flex: 1 }}>
+                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>DIRECCIÓN</Text>
+                        <Text variant="body">
+                            {item.direccion}{item.distrito ? `, ${item.distrito}` : ''}
+                        </Text>
+                        {item.referencia && (
+                            <Text variant="small" color={colors.textoSecundario} style={{ marginTop: 2 }}>
+                                Ref: {item.referencia}
+                            </Text>
+                        )}
+                        {item.gmapsUrl && (
+                            <TouchableOpacity 
+                                style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center' }} 
+                                onPress={handleAbrirGmaps}
+                            >
+                                <Ionicons name="map-outline" size={14} color={colors.primario} />
+                                <Text variant="small" weight="bold" color={colors.primario} style={{ marginLeft: 4 }}>
+                                    Ver en Google Maps
+                                </Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                </View>
+            )}
+
+            {item.operador && (
+                <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
+                    <Ionicons name="bicycle-outline" size={16} color={colors.textoTerciario} />
+                    <View style={{ marginLeft: 12 }}>
+                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>OPERADOR</Text>
+                        <Text variant="body" weight="medium">{item.operador.toUpperCase()}</Text>
+                    </View>
+                </View>
+            )}
+
+            {item.notas && (
+                <>
+                    <View style={[styles.divider, { backgroundColor: colors.borde }]} />
+                    <Text variant="tiny" weight="bold" color={colors.textoTerciario}>NOTAS</Text>
+                    <Text variant="small" color={colors.textoSecundario} style={{ marginTop: 4 }}>
+                        {item.notas}
+                    </Text>
+                </>
+            )}
+        </Surface>
+    ));
+
+    const PODEvidenceSection = React.memo(({ uri, isDelivered }: { uri: string | null, isDelivered: boolean }) => (
+        <>
+            <Text variant="h3" weight="bold" style={{ color: colors.textoPrincipal, marginTop: TOKENS.spacing.xl, marginBottom: TOKENS.spacing.sm }}>
+                Evidencia de Entrega (POD)
+            </Text>
+
+            {uri ? (
+                <Surface variant="elevated" padding="lg" style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={[styles.fotoCheck, { backgroundColor: isDark ? '#0a1f12' : '#f0fdf4' }]}>
+                        <Ionicons name="checkmark-circle" size={32} color="#22c55e" />
+                    </View>
+                    <View style={{ flex: 1, marginLeft: TOKENS.spacing.md }}>
+                        <Text variant="body" weight="bold">Foto capturada</Text>
+                        <Text variant="small" color={colors.textoTerciario} numberOfLines={1}>
+                            Guardada localmente
+                        </Text>
+                    </View>
+                    {!isDelivered && (
+                        <Button 
+                            label="Cambiar"
+                            variant="ghost"
+                            size="sm"
+                            onPress={handleAbrirCamara}
+                        />
+                    )}
+                </Surface>
+            ) : (
+                <Surface variant="outline" padding="xl" style={{ alignItems: 'center', borderStyle: 'dashed' }}>
+                    <Ionicons name="camera-outline" size={48} color={colors.textoTerciario} />
+                    <Text variant="body" color={colors.textoSecundario} style={{ marginTop: TOKENS.spacing.sm, textAlign: 'center' }}>
+                        Es necesario capturar una foto para confirmar la entrega.
+                    </Text>
+                    <Button 
+                        label="Tomar Fotografía"
+                        variant="secondary"
+                        style={{ marginTop: TOKENS.spacing.lg }}
+                        icon={<Ionicons name="camera" size={18} color={colors.primario} />}
+                        onPress={handleAbrirCamara}
+                    />
+                </Surface>
+            )}
+        </>
+    ));
+
+    // ─── Vista principal ──────────────────────────────────────────────────────
 
     return (
         <SafeAreaView style={[styles.contenedor, { backgroundColor: colors.fondo }]}>
@@ -340,128 +484,19 @@ export const StorePanelScreen = () => {
                 {/* Datos del envio */}
                 {envio && (
                     <>
-                        <Surface variant="elevated" padding="lg" style={styles.card}>
-                            <View style={styles.cardHeader}>
-                                <View style={{ flex: 1 }}>
-                                    <Text variant="tiny" weight="bold" color={colors.textoTerciario}>
-                                        CÓDIGO DE ENVÍO
-                                    </Text>
-                                    <Text variant="h2" weight="bold">{envio.codPedido}</Text>
-                                </View>
-                                <Badge 
-                                    label={envio.estado.replace('_', ' ')} 
-                                    variant={envio.estado === 'Entregado' ? 'success' : 'info'} 
-                                />
-                            </View>
-
-                            <View style={[styles.divider, { backgroundColor: colors.borde }]} />
-
-                             <View style={styles.infoRow}>
-                                <Ionicons name="person-outline" size={16} color={colors.textoTerciario} />
-                                <View style={{ marginLeft: 12, flex: 1 }}>
-                                    <Text variant="tiny" weight="bold" color={colors.textoTerciario}>CLIENTE</Text>
-                                    <Text variant="body" weight="medium">{envio.cliente}</Text>
-                                    {envio.telefono && (
-                                        <Text variant="small" color={colors.textoSecundario}>{envio.telefono}</Text>
-                                    )}
-                                </View>
-                            </View>
-
-                            {/* Entrega & Dirección */}
-                            {(envio.direccion || envio.distrito) && (
-                                <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
-                                    <Ionicons name="location-outline" size={16} color={colors.textoTerciario} />
-                                    <View style={{ marginLeft: 12, flex: 1 }}>
-                                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>DIRECCIÓN</Text>
-                                        <Text variant="body">
-                                            {envio.direccion}{envio.distrito ? `, ${envio.distrito}` : ''}
-                                        </Text>
-                                        {envio.referencia && (
-                                            <Text variant="small" color={colors.textoSecundario} style={{ marginTop: 2 }}>
-                                                Ref: {envio.referencia}
-                                            </Text>
-                                        )}
-                                        {envio.gmapsUrl && (
-                                            <TouchableOpacity 
-                                                style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center' }} 
-                                                onPress={handleAbrirGmaps}
-                                            >
-                                                <Ionicons name="map-outline" size={14} color={colors.primario} />
-                                                <Text variant="small" weight="bold" color={colors.primario} style={{ marginLeft: 4 }}>
-                                                    Ver en Google Maps
-                                                </Text>
-                                            </TouchableOpacity>
-                                        )}
-                                    </View>
-                                </View>
-                            )}
-
-                            {envio.operador && (
-                                <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
-                                    <Ionicons name="bicycle-outline" size={16} color={colors.textoTerciario} />
-                                    <View style={{ marginLeft: 12 }}>
-                                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>OPERADOR</Text>
-                                        <Text variant="body" weight="medium">{envio.operador.toUpperCase()}</Text>
-                                    </View>
-                                </View>
-                            )}
-
-                            {envio.notas && (
-                                <>
-                                    <View style={[styles.divider, { backgroundColor: colors.borde }]} />
-                                    <Text variant="tiny" weight="bold" color={colors.textoTerciario}>NOTAS</Text>
-                                    <Text variant="small" color={colors.textoSecundario} style={{ marginTop: 4 }}>
-                                        {envio.notas}
-                                    </Text>
-                                </>
-                            )}
-                        </Surface>
-
-                        {/* Sección POD */}
-                        <Text variant="h3" weight="bold" style={{ color: colors.textoPrincipal, marginTop: TOKENS.spacing.xl, marginBottom: TOKENS.spacing.sm }}>
-                            Evidencia de Entrega (POD)
-                        </Text>
-
-                        {fotoUri ? (
-                            <Surface variant="elevated" padding="lg" style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <View style={[styles.fotoCheck, { backgroundColor: isDark ? '#0a1f12' : '#f0fdf4' }]}>
-                                    <Ionicons name="checkmark-circle" size={32} color="#22c55e" />
-                                </View>
-                                <View style={{ flex: 1, marginLeft: TOKENS.spacing.md }}>
-                                    <Text variant="body" weight="bold">Foto capturada</Text>
-                                    <Text variant="small" color={colors.textoTerciario} numberOfLines={1}>
-                                        Guardada localmente
-                                    </Text>
-                                </View>
-                                <Button 
-                                    label="Cambiar"
-                                    variant="ghost"
-                                    size="sm"
-                                    onPress={handleAbrirCamara}
-                                />
-                            </Surface>
-                        ) : (
-                            <Surface variant="outline" padding="xl" style={{ alignItems: 'center', borderStyle: 'dashed' }}>
-                                <Ionicons name="camera-outline" size={48} color={colors.textoTerciario} />
-                                <Text variant="body" color={colors.textoSecundario} style={{ marginTop: TOKENS.spacing.sm, textAlign: 'center' }}>
-                                    Es necesario capturar una foto para confirmar la entrega.
-                                </Text>
-                                <Button 
-                                    label="Tomar Fotografía"
-                                    variant="secondary"
-                                    style={{ marginTop: TOKENS.spacing.lg }}
-                                    icon={<Ionicons name="camera" size={18} color={colors.primario} />}
-                                    onPress={handleAbrirCamara}
-                                />
-                            </Surface>
-                        )}
+                        <OrderDetailsCard item={envio} />
+                        
+                        <PODEvidenceSection 
+                            uri={fotoUri} 
+                            isDelivered={envio.estado === 'Entregado'} 
+                        />
 
                         {/* Botón Final */}
                         <Button 
                             label={procesando ? "Guardando..." : "Confirmar Entrega"}
                             variant="primary"
                             loading={procesando}
-                            disabled={!fotoUri || (envio && envio.estado === 'Entregado')}
+                            disabled={!fotoUri || envio.estado === 'Entregado'}
                             style={{ marginTop: TOKENS.spacing.xxl, marginBottom: TOKENS.spacing.huge }}
                             onPress={handleConfirmarEntrega}
                             icon={!procesando && <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />}

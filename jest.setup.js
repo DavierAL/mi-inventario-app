@@ -1,4 +1,7 @@
 // jest.setup.js
+global.process.env.EXPO_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+global.process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = 'test-key';
+global.process.env.EXPO_PUBLIC_CLOUD_FUNCTION_URL = 'https://test.supabase.co/functions/v1/proxy';
 
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
@@ -86,7 +89,18 @@ const mockTable = {
     query: jest.fn().mockReturnThis(),
     fetch: jest.fn().mockResolvedValue([]),
     fetchCount: jest.fn().mockResolvedValue(0),
-    create: jest.fn().mockResolvedValue({}),
+    create: jest.fn().mockImplementation((fn) => {
+        const item = {
+            update: jest.fn().mockImplementation((updateFn) => {
+                if (updateFn) updateFn(item);
+                return Promise.resolve(item);
+            }),
+            destroyPermanently: jest.fn().mockResolvedValue(undefined),
+        };
+        if (fn) fn(item);
+        return Promise.resolve(item);
+    }),
+    find: jest.fn().mockResolvedValue({}),
     observeWithColumns: jest.fn().mockReturnValue({ subscribe: jest.fn() }),
 };
 
@@ -107,9 +121,16 @@ jest.mock('@nozbe/watermelondb', () => ({
     or: jest.fn(),
     and: jest.fn(),
     sortBy: jest.fn(),
+    take: jest.fn(),
     desc: 'DESC',
     asc: 'ASC',
     like: jest.fn(),
+    oneOf: jest.fn(),
+    eq: jest.fn(),
+    lt: jest.fn(),
+    gt: jest.fn(),
+    lte: jest.fn(),
+    gte: jest.fn(),
     sanitizeLikeString: jest.fn(s => s),
   },
 }));

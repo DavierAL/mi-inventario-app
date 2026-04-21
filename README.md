@@ -19,10 +19,10 @@ supabase functions deploy api-versiones
 
 ### 5. Configurar secrets de las Edge Functions
 ```bash
-supabase secrets set WOO_CONSUMER_KEY=ck_827fa0bc7cd18f710b2e385de7d74c46ec4e3624
-supabase secrets set WOO_CONSUMER_SECRET=cs_c3afc2adf2d6a3801e0c1b7454fc28e86004c173
-supabase secrets set WOO_WEBHOOK_SECRET=tu_webhook_secret_hmac
-supabase secrets set WOO_STORE_URL=https://mascotify.pe/wp-json/wc/v3
+supabase secrets set WOO_CONSUMER_KEY=your_consumer_key_here
+supabase secrets set WOO_CONSUMER_SECRET=your_consumer_secret_here
+supabase secrets set WOO_WEBHOOK_SECRET=your_webhook_secret_hmac
+supabase secrets set WOO_STORE_URL=https://your-store.com/wp-json/wc/v3
 ```
 
 ### 6. Configurar el webhook en WooCommerce
@@ -30,7 +30,7 @@ En WooCommerce → Ajustes → Avanzado → Webhooks:
 - Nombre: Mascotify Backend
 - Estado: Activo
 - Tema: Pedido creado
-- URL de entrega: `https://TU_PROJECT.supabase.co/functions/v1/webhook-woocommerce`
+- URL de entrega: `https://YOUR_PROJECT.supabase.co/functions/v1/webhook-woocommerce`
 - Versión API: WC/v3
 
 ### 7. Activar pg_cron para los triggers programados
@@ -41,15 +41,15 @@ Luego ejecutar el migration 15 manualmente desde el SQL editor.
 
 ### App Móvil (Expo) — .env
 ```
-EXPO_PUBLIC_SUPABASE_URL=https://TU_PROJECT.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key
+EXPO_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 ```
 
 ### Panel Web (Next.js) — .env.local
 ```
-NEXT_PUBLIC_SUPABASE_URL=https://TU_PROJECT.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_anon_key
-SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 ```
 
 ## Roles del sistema

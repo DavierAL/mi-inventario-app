@@ -1,10 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
+function validateSupabaseConfig() {
+  const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('[Supabase] Missing configuration. Ensure .env is loaded.');
+  if (!url) {
+    throw new Error('Missing EXPO_PUBLIC_SUPABASE_URL');
+  }
+  if (!anonKey) {
+    throw new Error('Missing EXPO_PUBLIC_SUPABASE_ANON_KEY');
+  }
+
+  return { url, anonKey };
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const config = validateSupabaseConfig();
+export const supabase = createClient(config.url, config.anonKey);

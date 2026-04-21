@@ -21,7 +21,7 @@ export const MENSAJES = {
     TITULO_APP: 'Inventario Activo',
     PRODUCTOS_REGISTRADOS: (cont: number, total: number, filtrando: boolean) => 
         filtrando ? `${cont} de ${total} productos` : `${total} productos registrados`,
-    BUSCAR_PLACEHOLDER: 'Buscar SKU, código o título...',
+    BUSCAR_PLACEHOLDER: 'Buscar por nombre, SKU o marca...',
     SIN_RESULTADOS: (busqueda: string) => busqueda ? `Sin resultados para "${busqueda}"` : 'Sin inventario',
     MODO_OFFLINE_BANNER: (sync: string) => `📵 Caché local · Última sync: ${sync}`,
 

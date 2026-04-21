@@ -9,6 +9,10 @@ import { formatearFecha } from '../../../core/utils/fecha';
 import { formatearPrecio } from '../../../core/utils/formato';
 import { useTheme } from '../../../core/ui/ThemeContext';
 
+import { Logger } from '../../../core/services/LoggerService';
+import { ErrorService } from '../../../core/services/ErrorService';
+import { validateData, EditProductoSchema } from '../../../core/validation/schemas';
+
 interface Props {
     visible: boolean;
     producto: Producto | null;
@@ -25,6 +29,7 @@ export const EditProductoModal: React.FC<Props> = ({
     const { colors, isDark } = useTheme();
 
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errors, setErrors] = useState<Record<string, string[]>>({});
 
     const [formFV, setFormFV] = useState<string>('');
     const [formFechaEdicion] = useState<string>(new Date().toLocaleDateString('es-ES'));
@@ -37,6 +42,7 @@ export const EditProductoModal: React.FC<Props> = ({
             const fvStr = formatearFecha(producto.fvActualTs);  
             setFormFV(fvStr);
             setFormComentario(producto.comentarios ? String(producto.comentarios) : '');
+            setErrors({});
 
             if (fvStr) {
                 const partes = fvStr.split('/');
@@ -58,12 +64,54 @@ export const EditProductoModal: React.FC<Props> = ({
             const dia = String(fecha.getDate()).padStart(2, '0');
             const mes = String(fecha.getMonth() + 1).padStart(2, '0');
             const anio = fecha.getFullYear();
-            setFormFV(`${dia}/${mes}/${anio}`);
+            const nuevaFecha = `${dia}/${mes}/${anio}`;
+            setFormFV(nuevaFecha);
+            if (errors.fv_actual) {
+                setErrors(prev => {
+                    const { fv_actual, ...rest } = prev;
+                    return rest;
+                });
+            }
+        }
+    };
+
+    const handleConfirmar = async () => {
+        if (isSubmitting) return;
+
+        // 1. Validar con Zod
+        const validation = validateData(EditProductoSchema, {
+            fv_actual: formFV,
+            comentarios: formComentario,
+        });
+
+        if (!validation.isValid) {
+            setErrors(validation.errors as any);
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            return;
+        }
+
+        setIsSubmitting(true);
+        Logger.info('[EditModal] Intentando guardar cambios', { sku: producto?.sku });
+
+        try {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            await onGuardar(formFV, formFechaEdicion, formComentario);
+            Logger.info('[EditModal] Cambios guardados con éxito', { sku: producto?.sku });
+        } catch (error) {
+            ErrorService.handle(error, { 
+                component: 'EditProductoModal', 
+                operation: 'onGuardar' 
+            });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
     useEffect(() => {
-        if (!visible) setIsSubmitting(false);
+        if (!visible) {
+            setIsSubmitting(false);
+            setErrors({});
+        }
     }, [visible]);
 
     if (!producto) return null;
@@ -80,19 +128,15 @@ export const EditProductoModal: React.FC<Props> = ({
             <KeyboardAvoidingView 
                 behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} 
                 style={{ flex: 1, justifyContent: 'flex-end' }}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
             >
                 <View style={[styles.modalContenedor, { backgroundColor: colors.superficie, maxHeight: '90%' }]}>
                     
-                    {/* 📌 BARRA DE ARRASTRE TIPO iOS */}
                     <View style={styles.handleContainer}>
                         <View style={[styles.handleBar, { backgroundColor: colors.borde }]} />
                     </View>
  
-                    {/* SCROLL PARA EVITAR CLIPPING CON TECLADO */}
                     <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
-                {/* Cabecera / Imagen */}
                 <View style={[styles.cabeceraModal, { marginTop: -10 }]}>
                     <View style={[styles.contenedorImagenModal, { backgroundColor: colors.inputDeshabilitado, borderColor: colors.borde }]}>
                         {producto.imagen ? (
@@ -114,7 +158,6 @@ export const EditProductoModal: React.FC<Props> = ({
                     </View>
                 </View>
 
-                {/* Resumen de Precios */}
                 <View style={[styles.filaPrecios, { backgroundColor: colors.fondoPrimario }]}>
                     <View style={styles.precioItem}>
                         <Text style={[styles.precioLabel, { color: colors.textoSecundario }]}>Precio Web</Text>
@@ -127,7 +170,6 @@ export const EditProductoModal: React.FC<Props> = ({
                     </View>
                 </View>
 
-                {/* Fila Stock (solo lectura) + Vencimiento */}
                 <View style={styles.filaFormulario}>
                     <View style={styles.columnaFormulario}>
                         <Text style={[styles.label, { color: colors.textoSecundario }]}>Stock Físico</Text>
@@ -140,7 +182,10 @@ export const EditProductoModal: React.FC<Props> = ({
                     <View style={styles.columnaFormulario}>
                         <Text style={[styles.label, { color: colors.textoSecundario }]}>Vencimiento</Text>
                         <TouchableOpacity
-                            style={[styles.inputTouchable, { backgroundColor: colors.fondoPrimario, borderColor: colors.primario }]}
+                            style={[
+                                styles.inputTouchable, 
+                                { backgroundColor: colors.fondoPrimario, borderColor: errors.fv_actual ? '#eb5757' : colors.primario }
+                            ]}
                             onPress={() => {
                                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                                 setMostrarDatePicker(true);
@@ -151,10 +196,14 @@ export const EditProductoModal: React.FC<Props> = ({
                             </Text>
                             <Text style={styles.iconoCalendario}>📅</Text>
                         </TouchableOpacity>
+                        {errors.fv_actual && (
+                            <Text style={{ color: '#eb5757', fontSize: 10, marginTop: 4, fontWeight: '600' }}>
+                                {errors.fv_actual[0]}
+                            </Text>
+                        )}
                     </View>
                 </View>
 
-                    {/* Selector Nativo */}
                     {mostrarDatePicker && (
                         <DateTimePicker
                             value={fechaSeleccionada}
@@ -175,14 +224,31 @@ export const EditProductoModal: React.FC<Props> = ({
 
                     <Text style={[styles.label, { color: colors.textoSecundario }]}>Comentarios</Text>
                     <TextInput
-                        style={[styles.input, styles.inputMultilinea, { backgroundColor: colors.inputFondo, color: colors.textoPrincipal, borderColor: colors.borde }]}
+                        style={[
+                            styles.input, 
+                            styles.inputMultilinea, 
+                            { backgroundColor: colors.inputFondo, color: colors.textoPrincipal, borderColor: errors.comentarios ? '#eb5757' : colors.borde }
+                        ]}
                         multiline
                         returnKeyType="done"
                         value={formComentario}
-                        onChangeText={setFormComentario}
+                        onChangeText={(val) => {
+                            setFormComentario(val);
+                            if (errors.comentarios) {
+                                setErrors(prev => {
+                                    const { comentarios, ...rest } = prev;
+                                    return rest;
+                                });
+                            }
+                        }}
                         placeholder="Añadir nota de revisión..."
                         placeholderTextColor={colors.placeholder}
                     />
+                    {errors.comentarios && (
+                        <Text style={{ color: '#eb5757', fontSize: 10, marginTop: 4, fontWeight: '600' }}>
+                            {errors.comentarios[0]}
+                        </Text>
+                    )}
 
                     <View style={styles.filaBotones}>
                         <TouchableOpacity
@@ -197,18 +263,7 @@ export const EditProductoModal: React.FC<Props> = ({
                                 { backgroundColor: isSubmitting ? colors.inputDeshabilitado : colors.primario },
                                 isSubmitting && { borderColor: 'transparent' }
                             ]}
-                            onPress={async () => {
-                                if (isSubmitting) return;
-                                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                                setIsSubmitting(true);
-                                try {
-                                    await onGuardar(formFV, formFechaEdicion, formComentario);
-                                } finally {
-                                    // El modal se cierra por cambio de estado en el store, 
-                                    // pero por seguridad limpiamos el estado local si sigue vivo.
-                                    setIsSubmitting(false);
-                                }
-                            }}
+                            onPress={handleConfirmar}
                             disabled={isSubmitting}
                         >
                             {isSubmitting ? (

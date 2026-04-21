@@ -1,7 +1,7 @@
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
 export const schema = appSchema({
-  version: 6,
+  version: 8,
   tables: [
     tableSchema({
       name: 'productos',
@@ -12,7 +12,7 @@ export const schema = appSchema({
         { name: 'stock_master', type: 'number' },
         { name: 'precio_web', type: 'number' },
         { name: 'precio_tienda', type: 'number' },
-        { name: 'fv_actual_ts', type: 'number', isOptional: true, isIndexed: true }, // Nuevo campo V4
+        { name: 'fv_actual_ts', type: 'number', isOptional: true, isIndexed: true },
         { name: 'fecha_edicion', type: 'string', isOptional: true },
         { name: 'comentarios', type: 'string', isOptional: true },
         { name: 'marca', type: 'string' },
@@ -29,8 +29,8 @@ export const schema = appSchema({
         { name: 'descripcion', type: 'string' },
         { name: 'marca', type: 'string' },
         { name: 'accion', type: 'string' },
-        { name: 'fv_anterior_ts', type: 'number', isOptional: true, isIndexed: true }, // Nuevo campo V4
-        { name: 'fv_nuevo_ts', type: 'number', isOptional: true, isIndexed: true }, // Nuevo campo V4
+        { name: 'fv_anterior_ts', type: 'number', isOptional: true, isIndexed: true },
+        { name: 'fv_nuevo_ts', type: 'number', isOptional: true, isIndexed: true },
         { name: 'comentario', type: 'string', isOptional: true },
         { name: 'dispositivo', type: 'string' },
         { name: 'timestamp', type: 'number', isIndexed: true },
@@ -65,15 +65,36 @@ export const schema = appSchema({
         { name: 'updated_at', type: 'number' },
       ]
     }),
-    // Nueva tabla para reemplazar AsyncStorage (V4)
     tableSchema({
       name: 'outbox_jobs',
       columns: [
         { name: 'payload', type: 'string' },
         { name: 'job_type', type: 'string', isIndexed: true },
-        { name: 'status', type: 'string', isIndexed: true }, // PENDING | COMPLETED | FAILED
+        { name: 'status', type: 'string', isIndexed: true },
+        { name: 'attempts', type: 'number' },
+        { name: 'next_retry_at', type: 'number', isOptional: true },
+        { name: 'last_error', type: 'string', isOptional: true },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
+      ]
+    }),
+    tableSchema({
+      name: 'logs',
+      columns: [
+        { name: 'level', type: 'string' },
+        { name: 'message', type: 'string' },
+        { name: 'context', type: 'string' },
+        { name: 'timestamp', type: 'number' },
+      ]
+    }),
+    tableSchema({
+      name: 'sync_history',
+      columns: [
+        { name: 'last_sync_at', type: 'number' },
+        { name: 'status', type: 'string' },
+        { name: 'pulled_count', type: 'number' },
+        { name: 'pushed_count', type: 'number' },
+        { name: 'error_message', type: 'string', isOptional: true },
       ]
     })
   ]
