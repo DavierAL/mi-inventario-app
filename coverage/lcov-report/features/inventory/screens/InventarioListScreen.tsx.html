@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">36.7% </span>
+                <span class="strong">36.25% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>29/79</span>
+                <span class='fraction'>29/80</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.87% </span>
+                <span class="strong">36.36% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>21/62</span>
+                <span class='fraction'>24/66</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">20.83% </span>
+                <span class="strong">20% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>5/24</span>
+                <span class='fraction'>5/25</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">42.02% </span>
+                <span class="strong">41.42% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>29/69</span>
+                <span class='fraction'>29/70</span>
             </div>
         
             
@@ -423,7 +423,21 @@
 <a name='L358'></a><a href='#L358'>358</a>
 <a name='L359'></a><a href='#L359'>359</a>
 <a name='L360'></a><a href='#L360'>360</a>
-<a name='L361'></a><a href='#L361'>361</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L361'></a><a href='#L361'>361</a>
+<a name='L362'></a><a href='#L362'>362</a>
+<a name='L363'></a><a href='#L363'>363</a>
+<a name='L364'></a><a href='#L364'>364</a>
+<a name='L365'></a><a href='#L365'>365</a>
+<a name='L366'></a><a href='#L366'>366</a>
+<a name='L367'></a><a href='#L367'>367</a>
+<a name='L368'></a><a href='#L368'>368</a>
+<a name='L369'></a><a href='#L369'>369</a>
+<a name='L370'></a><a href='#L370'>370</a>
+<a name='L371'></a><a href='#L371'>371</a>
+<a name='L372'></a><a href='#L372'>372</a>
+<a name='L373'></a><a href='#L373'>373</a>
+<a name='L374'></a><a href='#L374'>374</a>
+<a name='L375'></a><a href='#L375'>375</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -489,6 +503,14 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -714,6 +736,12 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -860,10 +888,18 @@ const ListaBase = memo(({ productos, onPress, busqueda, onScroll, listRef, refre
             }
             ListEmptyComponent={
                 &lt;View style={styles.listaVacia}&gt;
-                    &lt;Text style={styles.listaVaciaIcono}&gt;🔍&lt;/Text&gt;
-                    &lt;Text style={[styles.listaVaciaTexto, { color: colors.textoSecundario }]}&gt;
-                        {MENSAJES.SIN_RESULTADOS(busqueda || '')}
+                    &lt;Ionicons name="cube-outline" size={64} color={colors.textoTerciario} /&gt;
+                    &lt;Text style={[styles.listaVaciaTexto, { color: colors.textoSecundario, marginTop: 16, textAlign: 'center' }]}&gt;
+                        {busqueda ? MENSAJES.SIN_RESULTADOS(busqueda) : 'No hay productos en el inventario local.'}
                     &lt;/Text&gt;
+                    {!busqueda &amp;&amp; (
+                        &lt;TouchableOpacity 
+                            style={[styles.botonReintentar, { backgroundColor: colors.primario, marginTop: 20 }]}
+                            onPress={onRefresh}
+                        &gt;
+                            &lt;Text style={styles.textoBotonReintentar}&gt;Sincronizar Ahora&lt;/Text&gt;
+                        &lt;/TouchableOpacity&gt;
+                    )}
                 &lt;/View&gt;
             }
         /&gt;
@@ -1071,17 +1107,23 @@ export const InventarioListScreen = () =&gt; {
                 &lt;/View&gt;
 &nbsp;
                 &lt;View style={{ flex: 1, width: '100%' }}&gt;
-                    {/* LISTA REACTIVA: Inyectamos la Query y el Filtro */}
-                    &lt;ListaReactiva 
-                        query={queryProductos} 
-                        filtroRapido={filtroRapido} 
-                        onPress={setProductoEditando} 
-                        busqueda={busqueda}
-                        onScroll={handleScroll}
-                        listRef={listRef}
-                        refrescando={refrescando}
-                        onRefresh={handleRefresh}
-                    /&gt;
+                    {/* SKELETON LOADERS: Mientras carga o sincroniza por primera vez */}
+                    {cargando ? (
+<span class="branch-0 cbranch-no" title="branch not covered" >                        &lt;View style={{ flex: 1, paddingTop: 12 }}&gt;</span>
+                            {[1, 2, 3, 4, 5, 6].map(<span class="fstat-no" title="function not covered" >i </span>=&gt; <span class="cstat-no" title="statement not covered" >&lt;SkeletonCard key={i} /&gt;)</span>}
+                        &lt;/View&gt;
+                    ) : (
+                        &lt;ListaReactiva 
+                            query={queryProductos} 
+                            filtroRapido={filtroRapido} 
+                            onPress={setProductoEditando} 
+                            busqueda={busqueda}
+                            onScroll={handleScroll}
+                            listRef={listRef}
+                            refrescando={refrescando}
+                            onRefresh={handleRefresh}
+                        /&gt;
+                    )}
                 &lt;/View&gt;
 &nbsp;
                 {mostrarBotonSubir &amp;&amp; (
@@ -1150,7 +1192,7 @@ const styles = StyleSheet.create({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-21T02:50:21.299Z
+                at 2026-04-21T03:18:04.215Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

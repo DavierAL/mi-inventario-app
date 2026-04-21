@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for core/database/models/PedidoItem.ts</title>
+    <title>Code coverage report for features/logistics/repository/logisticsRepository.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../../prettify.css" />
     <link rel="stylesheet" href="../../../base.css" />
@@ -19,13 +19,13 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../../index.html">All files</a> / <a href="index.html">core/database/models</a> PedidoItem.ts</h1>
+        <h1><a href="../../../index.html">All files</a> / <a href="index.html">features/logistics/repository</a> logisticsRepository.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">40% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>2/5</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">25% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>1/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">40% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>2/5</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -84,48 +84,54 @@
 <a name='L19'></a><a href='#L19'>19</a>
 <a name='L20'></a><a href='#L20'>20</a>
 <a name='L21'></a><a href='#L21'>21</a>
-<a name='L22'></a><a href='#L22'>22</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">14x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">14x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Model } from '@nozbe/watermelondb';
-import { field, text, date, readonly, relation } from '@nozbe/watermelondb/decorators';
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { database } from '../../../core/database';
+import Pedido, { EstadoPedido } from '../../../core/database/models/Pedido';
 &nbsp;
-export default class PedidoItem extends Model {
-  static table = 'pedido_items';
+export const LogisticsRepository = {
+  /**
+   * Actualiza el estado de un pedido en la base de datos local.
+   * El syncService se encargará de propagar el cambio a Supabase.
+   */
+<span class="fstat-no" title="function not covered" >  as</span>ync actualizarEstado(pedido: Pedido, nuevoEstado: EstadoPedido): Promise&lt;void&gt; {
+<span class="cstat-no" title="statement not covered" >    await database.write(<span class="fstat-no" title="function not covered" >as</span>ync () =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >      await pedido.update(<span class="fstat-no" title="function not covered" >(p</span>) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        p.estado = nuevoEstado;</span>
+      });
+    });
+  },
 &nbsp;
-  static associations = {
-    pedidos: { type: 'belongs_to', key: 'pedido_id' },
-  } as const;
-&nbsp;
-  @field('pedido_id') pedidoId!: string;
-  @text('descripcion_woo') descripcionWoo!: string;
-  @text('sku_woo') skuWoo?: string;
-  @field('cantidad_pedida') cantidadPedida!: number;
-  @field('precio_unitario_woo') precioUnitarioWoo!: number;
-&nbsp;
-  @relation('pedidos', 'pedido_id') pedido!: any;
-&nbsp;
-  @readonly @date('created_at') createdAt!: number;
-  @readonly @date('updated_at') updatedAt!: number;
-}
+  /**
+   * Busca un pedido por su ID de WatermelonDB.
+   */
+  async obtenerPorId(id: string): Promise&lt;Pedido&gt; {
+    return await database.get&lt;Pedido&gt;('pedidos').find(id);
+  }
+};
 &nbsp;</pre></td></tr></table></pre>
 
                 <div class='push'></div><!-- for sticky footer -->

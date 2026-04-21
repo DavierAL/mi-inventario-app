@@ -37,42 +37,30 @@ export const schema = appSchema({
       ]
     }),
     tableSchema({
-      name: 'pedidos',
+      name: 'envios',
       columns: [
         { name: 'cod_pedido', type: 'string', isIndexed: true },
         { name: 'cliente', type: 'string' },
-        { name: 'estado', type: 'string', isIndexed: true }, // Pendiente | Picking | En_Tienda | Entregado
+        { name: 'estado', type: 'string', isIndexed: true },
         { name: 'operador', type: 'string', isOptional: true },
-        { name: 'pod_local_uri', type: 'string', isOptional: true }, // URI foto local (pre-upload)
-        { name: 'url_foto', type: 'string', isOptional: true },      // URL Supabase Storage (post-upload)
+        { name: 'url_foto', type: 'string', isOptional: true },
+        { name: 'pod_local_uri', type: 'string', isOptional: true },
         { name: 'notas', type: 'string', isOptional: true },
-        
-        // --- Nuevos campos V6 (WooCommerce / Logística avanzada) ---
-        { name: 'woo_order_id', type: 'number', isIndexed: true, isOptional: true },
-        { name: 'canal', type: 'string', isOptional: true },
-        { name: 'cliente_telefono', type: 'string', isOptional: true },
         { name: 'direccion', type: 'string', isOptional: true },
         { name: 'distrito', type: 'string', isOptional: true },
-        { name: 'referencia', type: 'string', isOptional: true },
+        { name: 'telefono', type: 'string', isOptional: true },
         { name: 'gmaps_url', type: 'string', isOptional: true },
-        { name: 'fecha_entrega', type: 'string', isOptional: true },
-        { name: 'metodo_pago_display', type: 'string', isOptional: true },
-        { name: 'total_woo', type: 'number', isOptional: true },
-        { name: 'operador_logistico', type: 'string', isOptional: true },
-        { name: 'tracking_interno', type: 'string', isOptional: true },
-
-        { name: 'created_at', type: 'number' },
-        { name: 'updated_at', type: 'number' },
-      ]
-    }),
-    tableSchema({
-      name: 'pedido_items',
-      columns: [
-        { name: 'pedido_id', type: 'string', isIndexed: true },
-        { name: 'descripcion_woo', type: 'string' },
-        { name: 'sku_woo', type: 'string', isOptional: true },
-        { name: 'cantidad_pedida', type: 'number' },
-        { name: 'precio_unitario_woo', type: 'number' },
+        { name: 'referencia', type: 'string', isOptional: true },
+        { name: 'forma_pago', type: 'string', isOptional: true },
+        { name: 'a_pagar', type: 'number', isOptional: true },
+        { name: 'recaudado', type: 'number', isOptional: true },
+        { name: 'costo_envio', type: 'number', isOptional: true },
+        { name: 'operacion', type: 'string', isOptional: true },
+        { name: 'tamano', type: 'string', isOptional: true },
+        { name: 'peso', type: 'number', isOptional: true },
+        { name: 'bultos', type: 'number', isOptional: true },
+        { name: 'hora_desde', type: 'string', isOptional: true },
+        { name: 'hora_hasta', type: 'string', isOptional: true },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' },
       ]

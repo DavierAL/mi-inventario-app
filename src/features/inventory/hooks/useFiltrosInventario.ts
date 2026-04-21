@@ -38,7 +38,7 @@ export const useFiltrosInventario = (busqueda: string) => {
         // 2. Ordenamiento
         if (ordenamiento === 'MARCA') conditions.push(Q.sortBy('marca', Q.asc));
         else if (ordenamiento === 'STOCK') conditions.push(Q.sortBy('stock_master', Q.desc));
-        else if (ordenamiento === 'FV') conditions.push(Q.sortBy('fv_actual', Q.asc));
+        else if (ordenamiento === 'FV') conditions.push(Q.sortBy('fv_actual_ts', Q.asc));
 
         // Retornamos la Query pura (el filtro de fechas lo haremos en RxJS)
         return database.collections.get<Producto>('productos').query(...conditions);

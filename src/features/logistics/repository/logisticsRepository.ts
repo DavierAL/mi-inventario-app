@@ -1,23 +1,23 @@
 import { database } from '../../../core/database';
-import Pedido, { EstadoPedido } from '../../../core/database/models/Pedido';
+import Envio from '../../../core/database/models/Envio';
 
 export const LogisticsRepository = {
   /**
-   * Actualiza el estado de un pedido en la base de datos local.
+   * Actualiza el estado de un envío en la base de datos local.
    * El syncService se encargará de propagar el cambio a Supabase.
    */
-  async actualizarEstado(pedido: Pedido, nuevoEstado: EstadoPedido): Promise<void> {
+  async actualizarEstado(envio: Envio, nuevoEstado: string): Promise<void> {
     await database.write(async () => {
-      await pedido.update((p) => {
+      await envio.update((p) => {
         p.estado = nuevoEstado;
       });
     });
   },
 
   /**
-   * Busca un pedido por su ID de WatermelonDB.
+   * Busca un envío por su ID de WatermelonDB.
    */
-  async obtenerPorId(id: string): Promise<Pedido> {
-    return await database.get<Pedido>('pedidos').find(id);
+  async obtenerPorId(id: string): Promise<Envio> {
+    return await database.get<Envio>('envios').find(id);
   }
 };

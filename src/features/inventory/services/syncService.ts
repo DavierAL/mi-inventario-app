@@ -1,7 +1,7 @@
 import { synchronize } from '@nozbe/watermelondb/sync';
 import { Q } from '@nozbe/watermelondb';
 import { database } from '../../../core/database';
-import Pedido, { EstadoPedido } from '../../../core/database/models/Pedido';
+import Envio, { EstadoPedido } from '../../../core/database/models/Envio';
 import { supabase } from '../../../core/database/supabase';
 
 const PROXY_URL = process.env.EXPO_PUBLIC_CLOUD_FUNCTION_URL || '';
@@ -33,80 +33,80 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
       const lastPulledDate = options.forceFull ? new Date(0).toISOString() : new Date(lastPulledAt || 0).toISOString();
       console.log(`[Sync] PULL iniciando. LastPulled: ${lastPulledAt} (${lastPulledDate})`);
 
-      // --- PULL PRODUCTOS (Legacy Proxy) ---
-      const prodResponse = await fetch(PROXY_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          accion: 'leer_todo', 
-          lastPulledAt: options.forceFull ? 0 : (lastPulledAt || 0) 
-        })
-      });
+      // --- PULL PRODUCTOS (Supabase) ---
+      let queryProd = supabase.from('productos').select('*');
+      
+      // Si no es sincronización inicial, filtramos por fecha
+      if ((lastPulledAt || 0) > 0 && !options.forceFull) {
+        queryProd = queryProd.gte('updated_at', lastPulledDate);
+      }
+      
+      const { data: productosRemote, error: errProd } = await queryProd;
 
-      let productosUpdated = [];
-      if (prodResponse.ok) {
-        const { data } = await prodResponse.json();
-        productosUpdated = (data?.productos || []).map((row: any) => ({
-          id: row.id || row.cod_barras,
-          cod_barras: row.cod_barras,
-          sku: row.sku,
-          descripcion: row.descripcion,
-          stock_master: row.stock_master ?? row.stock ?? 0,
-          precio_web: row.precio_web ?? 0,
-          precio_tienda: row.precio_tienda ?? 0,
-          fv_actual_ts: row.fv_actual_ts,
-          fecha_edicion: row.fecha_edicion,
-          comentarios: row.comentarios,
-          marca: row.marca,
-          imagen: row.imagen,
-          created_at: row.created_at || Date.now(),
-          updated_at: row.updated_at || Date.now()
-        }));
+      if (errProd) {
+          console.error('[Sync] Error pulling productos:', errProd.message);
       }
 
-      // --- PULL PEDIDOS (Supabase) ---
-      const { data: pedidosRemote, error: errP } = await supabase
-        .from('pedidos')
-        .select('*')
-        .gte('updated_at', lastPulledDate);
+      const productosUpdated = (productosRemote || []).map((row: any) => ({
+        id: row.id,
+        cod_barras: row.cod_barras,
+        sku: row.sku,
+        descripcion: row.descripcion,
+        stock_master: row.stock_master ?? 0,
+        precio_web: row.precio_web ?? 0,
+        precio_tienda: row.precio_tienda ?? 0,
+        fv_actual_ts: row.fv_actual_ts,
+        fecha_edicion: row.fecha_edicion,
+        comentarios: row.comentarios,
+        marca: row.marca,
+        imagen: row.imagen,
+        created_at: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+        updated_at: row.updated_at ? new Date(row.updated_at).getTime() : Date.now(),
+      }));
+
+      // --- PULL ENVIOS (Supabase) ---
+      let queryEnv = supabase.from('envios').select('*');
+      if ((lastPulledAt || 0) > 0 && !options.forceFull) {
+        queryEnv = queryEnv.gte('updated_at', lastPulledDate);
+      }
+      const { data: enviosRemote, error: errP } = await queryEnv;
       
       if (errP) throw errP;
 
-      const pedidosUpdated = (pedidosRemote || []).map((row: any) => ({
+      const enviosUpdated = (enviosRemote || []).map((row: any) => ({
         id: row.id.toString(),
-        cod_pedido: row.woo_order_id?.toString() || row.tracking_interno || row.id.toString(),
-        cliente: `${row.cliente_nombre || ''} ${row.cliente_apellido || ''}`.trim() || 'Cliente Sin Nombre',
+        cod_pedido: row.cod_pedido,
+        cliente: row.cliente,
         estado: mapearEstadoEntrante(row.estado),
         operador: row.operador || null,
-        pod_local_uri: null,
         url_foto: row.url_foto || null,
         notas: row.notas || null,
-        
-        // Campos V6
-        woo_order_id: row.woo_order_id,
-        canal: row.canal,
-        cliente_telefono: row.cliente_telefono,
-        direccion: row.direccion,
-        distrito: row.distrito,
-        referencia: row.referencia,
-        gmaps_url: row.gmaps_url,
-        fecha_entrega: row.fecha_entrega,
-        metodo_pago_display: row.metodo_pago_display,
-        total_woo: row.total_woo,
-        operador_logistico: row.operador_logistico,
-        tracking_interno: row.tracking_interno,
+        direccion: row.direccion || null,
+        distrito: row.distrito || null,
+        telefono: row.telefono || null,
+        gmaps_url: row.gmaps_url || null,
+        referencia: row.referencia || null,
+        forma_pago: row.forma_pago || null,
+        a_pagar: Number(row.a_pagar) || 0,
+        recaudado: Number(row.recaudado) || 0,
+        costo_envio: Number(row.costo_envio) || 0,
+        operacion: row.operacion || null,
+        tamano: row.tamano || null,
+        peso: Number(row.peso) || 0,
+        bultos: Number(row.bultos) || 1,
+        hora_desde: row.hora_desde || null,
+        hora_hasta: row.hora_hasta || null,
 
-        created_at: new Date(row.created_at).getTime(),
-        updated_at: new Date(row.updated_at).getTime(),
+        created_at: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+        updated_at: row.updated_at ? new Date(row.updated_at).getTime() : Date.now(),
       }));
 
       // --- PULL PEDIDO ITEMS (Supabase) ---
-      // Para optimizar, podríamos solo pedir los items de los pedidos que cambiaron, 
-      // pero WatermelonDB sync maneja bien los updates si usamos updated_at.
-      const { data: itemsRemote, error: errI } = await supabase
-        .from('pedido_items')
-        .select('*')
-        .gte('updated_at', lastPulledDate);
+      let queryItems = supabase.from('pedido_items').select('*');
+      if ((lastPulledAt || 0) > 0 && !options.forceFull) {
+        queryItems = queryItems.gte('updated_at', lastPulledDate);
+      }
+      const { data: itemsRemote, error: errI } = await queryItems;
 
       if (errI) {
           console.warn('[Sync] No se pudieron obtener items de pedidos:', errI.message);
@@ -119,8 +119,8 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         sku_woo: row.sku_woo,
         cantidad_pedida: row.cantidad_pedida,
         precio_unitario_woo: row.precio_unitario_woo,
-        created_at: new Date(row.created_at).getTime(),
-        updated_at: new Date(row.updated_at).getTime(),
+        created_at: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+        updated_at: row.updated_at ? new Date(row.updated_at).getTime() : Date.now(),
       }));
 
       // Separación lógica para WatermelonDB (created vs updated)
@@ -130,8 +130,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         changes: {
           productos: { created: isInitialSync ? productosUpdated : [], updated: isInitialSync ? [] : productosUpdated, deleted: [] },
           movimientos: { created: [], updated: [], deleted: [] },
-          pedidos: { created: isInitialSync ? pedidosUpdated : [], updated: isInitialSync ? [] : pedidosUpdated, deleted: [] },
-          pedido_items: { created: isInitialSync ? itemsUpdated : [], updated: isInitialSync ? [] : itemsUpdated, deleted: [] },
+          envios: { created: isInitialSync ? enviosUpdated : [], updated: isInitialSync ? [] : enviosUpdated, deleted: [] },
         },
         timestamp: Date.now(),
       };
@@ -139,28 +138,36 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
 
     // 2. PUSH: Enviar cambios locales
     pushChanges: async ({ changes }: { changes: any }) => {
-      // Push Productos (Proxy)
+      // Push Productos (Supabase) - Batching
       if (changes.productos) {
         const allProdChanges = [...changes.productos.created, ...changes.productos.updated];
-        for (const record of allProdChanges) {
-          await fetch(PROXY_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              accion: 'webhook_modificacion',
-              datos: { codigoBarras: record.cod_barras, nuevoStock: record.stock_master }
-            })
-          });
+        const prodBatchSize = 100;
+        for (let i = 0; i < allProdChanges.length; i += prodBatchSize) {
+            const batch = allProdChanges.slice(i, i + prodBatchSize);
+            const updates = batch.map(record => ({
+                id: record.id,
+                cod_barras: record.cod_barras,
+                stock_master: record.stock_master,
+                fv_actual_ts: record.fv_actual_ts,
+                comentarios: record.comentarios,
+                fecha_edicion: record.fecha_edicion,
+                updated_at: new Date().toISOString()
+            }));
+
+            const { error } = await supabase
+                .from('productos')
+                .upsert(updates);
+            
+            if (error) console.error('[Sync] Error pushing producto batch:', error.message);
         }
       }
 
-      // Push Pedidos (Supabase) - Batching Rule 4.1
-      if (changes.pedidos) {
-        const allPedidoChanges = [...changes.pedidos.created, ...changes.pedidos.updated];
-        // Particionamiento en lotes de 100 para mayor seguridad (Límite regla: 500)
+      // Push Envios (Supabase) - Batching Rule 4.1
+      if (changes.envios) {
+        const allEnvioChanges = [...changes.envios.created, ...changes.envios.updated];
         const batchSize = 100;
-        for (let i = 0; i < allPedidoChanges.length; i += batchSize) {
-          const batch = allPedidoChanges.slice(i, i + batchSize);
+        for (let i = 0; i < allEnvioChanges.length; i += batchSize) {
+          const batch = allEnvioChanges.slice(i, i + batchSize);
           const updates = batch.map(record => ({
             id: record.id,
             estado: record.estado.toLowerCase(),
@@ -170,10 +177,10 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
           }));
 
           const { error } = await supabase
-            .from('pedidos')
+            .from('envios')
             .upsert(updates);
           
-          if (error) console.error('[Sync] Error pushing pedido batch:', error.message);
+          if (error) console.error('[Sync] Error pushing envio batch:', error.message);
         }
       }
     },

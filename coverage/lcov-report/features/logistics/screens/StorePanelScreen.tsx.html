@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">29.62% </span>
+                <span class="strong">28.98% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>40/135</span>
+                <span class='fraction'>40/138</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">6.97% </span>
+                <span class="strong">6.81% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>9/129</span>
+                <span class='fraction'>9/132</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">30.95% </span>
+                <span class="strong">30.23% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>39/126</span>
+                <span class='fraction'>39/129</span>
             </div>
         
             
@@ -920,7 +920,14 @@
 <a name='L855'></a><a href='#L855'>855</a>
 <a name='L856'></a><a href='#L856'>856</a>
 <a name='L857'></a><a href='#L857'>857</a>
-<a name='L858'></a><a href='#L858'>858</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L858'></a><a href='#L858'>858</a>
+<a name='L859'></a><a href='#L859'>859</a>
+<a name='L860'></a><a href='#L860'>860</a>
+<a name='L861'></a><a href='#L861'>861</a>
+<a name='L862'></a><a href='#L862'>862</a>
+<a name='L863'></a><a href='#L863'>863</a>
+<a name='L864'></a><a href='#L864'>864</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -990,6 +997,11 @@
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1799,6 +1811,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Q } from '@nozbe/watermelondb';
 import { database } from '../../../core/database';
 import Pedido, { EstadoPedido } from '../../../core/database/models/Pedido';
+import { LogisticsRepository } from '../repository/logisticsRepository';
 import PedidoItem from '../../../core/database/models/PedidoItem';
 import { QueueService } from '../../../core/services/QueueService';
 import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
@@ -1813,10 +1826,10 @@ type StorePanelRoute = RouteProp&lt;RootStackParamList, 'StorePanel'&gt;;
 &nbsp;
 // ─── Badge config por estado ──────────────────────────────────────────────────
 &nbsp;
-const ESTADO_BADGE: Record&lt;EstadoPedido, { bg: string; bgDark: string; text: string; label: string }&gt; = {
-    Pendiente:  { bg: '#fff4ed', bgDark: '#2d1a0a', text: '#dd5b00', label: 'Pendiente' },
-    En_Tienda:  { bg: '#f2f9ff', bgDark: '#0f2035', text: '#62aef0', label: 'En Tienda' },
-    Entregado:  { bg: '#f0fdf4', bgDark: '#0a1f12', text: '#22c55e', label: 'Entregado' },
+const ESTADO_BADGE: Record&lt;EstadoPedido, { bg: string; text: string; label: string }&gt; = {
+    Pendiente:  { bg: 'rgba(235, 87, 87, 0.1)', text: '#eb5757', label: 'Pendiente' }, // Notion Red
+    En_Tienda:  { bg: 'rgba(0, 117, 222, 0.1)', text: '#0075de', label: 'En Tienda' }, // Notion Blue
+    Entregado:  { bg: 'rgba(75, 160, 66, 0.15)', text: '#4ba042', label: 'Entregado' }, // Notion Green
 };
 &nbsp;
 // ─── Componente principal ─────────────────────────────────────────────────────
@@ -1846,7 +1859,12 @@ export const StorePanelScreen = () =&gt; {
 &nbsp;
     useEffect(() =&gt; {
         <span class="missing-if-branch" title="if path not taken" >I</span>if (pedido) {
-<span class="cstat-no" title="statement not covered" >            pedido.items.fetch().then(<span class="fstat-no" title="function not covered" >(r</span>es: any) =&gt; <span class="cstat-no" title="statement not covered" >setItems(res))</span>;</span>
+<span class="cstat-no" title="statement not covered" >            try {</span>
+<span class="cstat-no" title="statement not covered" >                pedido.items.fetch().then(<span class="fstat-no" title="function not covered" >(r</span>es: any) =&gt; <span class="cstat-no" title="statement not covered" >setItems(res || []))</span>;</span>
+            } catch (err) {
+<span class="cstat-no" title="statement not covered" >                console.error('[Store] Error fetching items:', err);</span>
+<span class="cstat-no" title="statement not covered" >                setItems([]);</span>
+            }
         } else {
             setItems([]);
         }
@@ -1854,7 +1872,7 @@ export const StorePanelScreen = () =&gt; {
 &nbsp;
     const cargarPedidoPorId = async (id: string) =&gt; {
         try {
-            const p = await database.get&lt;Pedido&gt;('pedidos').find(id);
+            const p = await LogisticsRepository.obtenerPorId(id);
 <span class="cstat-no" title="statement not covered" >            setPedido(p);</span>
         } catch {
             Toast.show({ type: 'error', text1: 'Pedido no encontrado en local' });
@@ -2140,11 +2158,11 @@ export const StorePanelScreen = () =&gt; {
                                         {pedido.canal === 'woocommerce' &amp;&amp; &lt;Text style={styles.badgeWoo}&gt;WooCommerce&lt;/Text&gt;}
                                     &lt;/View&gt;
                                 &lt;/View&gt;
-                                {badge &amp;&amp; (
-                                    &lt;View style={[styles.badge, { backgroundColor: isDark ? badge.bgDark : badge.bg }]}&gt;
-                                        &lt;Text style={[styles.badgeText, { color: badge.text }]}&gt;{badge.label}&lt;/Text&gt;
-                                    &lt;/View&gt;
-                                )}
+                                 {badge &amp;&amp; (
+                                     &lt;View style={[styles.badge, { backgroundColor: badge.bg }]}&gt;
+                                         &lt;Text style={[styles.badgeText, { color: badge.text }]}&gt;{badge.label}&lt;/Text&gt;
+                                     &lt;/View&gt;
+                                 )}
                             &lt;/View&gt;
 &nbsp;
                             &lt;View style={[styles.divider, { backgroundColor: colors.borde }]} /&gt;
@@ -2241,13 +2259,13 @@ export const StorePanelScreen = () =&gt; {
                                             {item.skuWoo ? &lt;Text style={[styles.itemSku, { color: colors.textoTerciario }]}&gt;SKU: {item.skuWoo}&lt;/Text&gt; : null}
                                         &lt;/View&gt;
                                         &lt;Text style={[styles.itemPrecio, { color: colors.textoSecundario }]}&gt;
-                                            S/ {item.precioUnitarioWoo?.toFixed(2)}
+                                            S/ {(Number(item.precioUnitarioWoo) || 0).toFixed(2)}
                                         &lt;/Text&gt;
                                     &lt;/View&gt;
                                 ))
                             )}
                             
-                            {pedido.metodoPagoDisplay || pedido.totalWoo ? (
+                            {pedido &amp;&amp; (pedido.metodoPagoDisplay || pedido.totalWoo) ? (
                                 &lt;View style={[styles.pagoResumen, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#f9fafb', borderTopWidth: 1, borderTopColor: colors.borde }]}&gt;
                                     &lt;View style={styles.pagoRow}&gt;
                                         &lt;Text style={[styles.pagoLabel, { color: colors.textoSecundario }]}&gt;Pago:&lt;/Text&gt;
@@ -2255,7 +2273,7 @@ export const StorePanelScreen = () =&gt; {
                                     &lt;/View&gt;
                                     &lt;View style={styles.pagoRow}&gt;
                                         &lt;Text style={[styles.totalLabel, { color: colors.textoPrincipal }]}&gt;TOTAL:&lt;/Text&gt;
-                                        &lt;Text style={[styles.totalValor, { color: colors.primario }]}&gt;S/ {pedido.totalWoo?.toFixed(2) || '0.00'}&lt;/Text&gt;
+                                        &lt;Text style={[styles.totalValor, { color: colors.primario }]}&gt;S/ {(Number(pedido.totalWoo) || 0).toFixed(2)}&lt;/Text&gt;
                                     &lt;/View&gt;
                                 &lt;/View&gt;
                             ) : null}
@@ -2584,7 +2602,7 @@ const styles = StyleSheet.create({
         height: 240,
         borderRadius: 16,
         borderWidth: 3,
-        borderColor: '#0075de',
+        borderColor: '#4ba042', // primario Notion
         backgroundColor: 'transparent',
     },
     escanerHint: {
@@ -2617,7 +2635,7 @@ const styles = StyleSheet.create({
         width: 72,
         height: 72,
         borderRadius: 36,
-        backgroundColor: '#fff',
+        backgroundColor: '#f6f5f4', // superficieAlta
         alignItems: 'center',
         justifyContent: 'center',
         ...SHADOWS.CARD,
@@ -2641,7 +2659,7 @@ const styles = StyleSheet.create({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-21T02:50:21.299Z
+                at 2026-04-21T03:18:04.215Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

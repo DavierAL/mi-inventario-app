@@ -1,6 +1,6 @@
 // ARCHIVO: src/features/logistics/screens/StorePanelScreen.tsx
 /**
- * StorePanelScreen — Panel de la tienda para recepcionar pedidos.
+ * StorePanelScreen — Panel de la tienda para recepcionar Envios.
  * Diseño: Notion Design System — dark-mode-first, warm charcoal surfaces, whisper borders.
  */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
@@ -19,9 +19,8 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Q } from '@nozbe/watermelondb';
 import { database } from '../../../core/database';
-import Pedido, { EstadoPedido } from '../../../core/database/models/Pedido';
+import Envio, { EstadoPedido } from '../../../core/database/models/Envio';
 import { LogisticsRepository } from '../repository/logisticsRepository';
-import PedidoItem from '../../../core/database/models/PedidoItem';
 import { QueueService } from '../../../core/services/QueueService';
 import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
 import { useTheme } from '../../../core/ui/ThemeContext';
@@ -36,9 +35,9 @@ type StorePanelRoute = RouteProp<RootStackParamList, 'StorePanel'>;
 // ─── Badge config por estado ──────────────────────────────────────────────────
 
 const ESTADO_BADGE: Record<EstadoPedido, { bg: string; text: string; label: string }> = {
-    Pendiente:  { bg: 'fondoPrimario', text: 'error', label: 'Pendiente' },
-    En_Tienda:  { bg: 'fondoPrimario', text: 'primario', label: 'En Tienda' },
-    Entregado:  { bg: 'fondoPrimario', text: 'exito', label: 'Entregado' },
+    Pendiente:  { bg: 'rgba(235, 87, 87, 0.1)', text: '#eb5757', label: 'Pendiente' }, // Notion Red
+    En_Tienda:  { bg: 'rgba(0, 117, 222, 0.1)', text: '#0075de', label: 'En Tienda' }, // Notion Blue
+    Entregado:  { bg: 'rgba(75, 160, 66, 0.15)', text: '#4ba042', label: 'Entregado' }, // Notion Green
 };
 
 // ─── Componente principal ─────────────────────────────────────────────────────
@@ -51,8 +50,7 @@ export const StorePanelScreen = () => {
     const { } = useLogisticsSync();
 
     const [permisoCamera, pedirPermiso] = useCameraPermissions();
-    const [pedido, setPedido] = useState<Pedido | null>(null);
-    const [items, setItems] = useState<PedidoItem[]>([]);
+    const [envio, setEnvio] = useState<Envio | null>(null);
     const [modoEscaner, setModoEscaner] = useState(false);
     const [modoFoto, setModoFoto] = useState(false);
     const [procesando, setProcesando] = useState(false);
@@ -66,26 +64,19 @@ export const StorePanelScreen = () => {
         if (pedidoId) cargarPedidoPorId(pedidoId);
     }, [route.params?.pedidoId]);
 
-    useEffect(() => {
-        if (pedido) {
-            pedido.items.fetch().then((res: any) => setItems(res));
-        } else {
-            setItems([]);
-        }
-    }, [pedido]);
 
     const cargarPedidoPorId = async (id: string) => {
         try {
             const p = await LogisticsRepository.obtenerPorId(id);
-            setPedido(p);
+            setEnvio(p);
         } catch {
-            Toast.show({ type: 'error', text1: 'Pedido no encontrado en local' });
+            Toast.show({ type: 'error', text1: 'envio no encontrado en local' });
         }
     };
 
     const handleAbrirGmaps = () => {
-        if (pedido?.gmapsUrl) {
-            Linking.openURL(pedido.gmapsUrl).catch(() => {
+        if (envio?.gmapsUrl) {
+            Linking.openURL(envio.gmapsUrl).catch(() => {
                 Toast.show({ type: 'error', text1: 'No se pudo abrir el enlace' });
             });
         }
@@ -94,18 +85,18 @@ export const StorePanelScreen = () => {
     const cargarPedidoPorCodigo = async (codPedido: string) => {
         try {
             const results = await database
-                .get<Pedido>('pedidos')
+                .get<Envio>('envios')
                 .query(Q.where('cod_pedido', codPedido))
                 .fetch();
             if (results.length > 0) {
-                setPedido(results[0]);
+                setEnvio(results[0]);
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                Toast.show({ type: 'success', text1: `Pedido ${codPedido} cargado` });
+                Toast.show({ type: 'success', text1: `Envío ${codPedido} cargado` });
             } else {
-                Toast.show({ type: 'error', text1: 'Pedido no encontrado', text2: codPedido });
+                Toast.show({ type: 'error', text1: 'Envío no encontrado', text2: codPedido });
             }
         } catch {
-            Toast.show({ type: 'error', text1: 'Error al buscar pedido' });
+            Toast.show({ type: 'error', text1: 'Error al buscar envío' });
         }
     };
 
@@ -169,7 +160,7 @@ export const StorePanelScreen = () => {
 
             console.log(`[POD Optimizer] Reducción: ${pesoOriginalMB}MB -> ${pesoOptimizadoKB}KB`);
 
-            const destino = `${FileSystem.documentDirectory}pod_${pedido?.id ?? 'tmp'}_${Date.now()}.jpg`;
+            const destino = `${FileSystem.documentDirectory}pod_${envio?.id ?? 'tmp'}_${Date.now()}.jpg`;
             await FileSystem.moveAsync({ from: manipResult.uri, to: destino });
 
             // Borrar el temporal original (el de la cámara)
@@ -190,7 +181,7 @@ export const StorePanelScreen = () => {
     };
 
     const handleConfirmarEntrega = async () => {
-        if (!pedido) return;
+        if (!envio) return;
         if (!fotoUri) {
             Alert.alert('Foto requerida', 'Toma una foto de evidencia antes de confirmar.');
             return;
@@ -198,15 +189,15 @@ export const StorePanelScreen = () => {
         try {
             setProcesando(true);
             await database.write(async () => {
-                await pedido.update((p) => {
+                await envio.update((p) => {
                     p.estado = 'Entregado';
                     p.podLocalUri = fotoUri;
                 });
             });
-            const storagePath = `pedidos/${pedido.codPedido}/pod_${Date.now()}.jpg`;
+            const storagePath = `pedidos/${envio.codPedido}/pod_${Date.now()}.jpg`;
             await QueueService.encolarFoto({
-                pedidoId: pedido.id,
-                codPedido: pedido.codPedido,
+                pedidoId: envio.id,
+                codPedido: envio.codPedido,
                 localUri: fotoUri,
                 storagePath,
             });
@@ -242,7 +233,7 @@ export const StorePanelScreen = () => {
                     />
                     <SafeAreaView style={styles.escanerOverlay}>
                         <View style={styles.escanerMarco} />
-                        <Text style={styles.escanerHint}>Apunta al QR del pedido</Text>
+                        <Text style={styles.escanerHint}>Apunta al QR del envio</Text>
                         <TouchableOpacity
                             style={styles.escanerCerrar}
                             onPress={() => setModoEscaner(false)}
@@ -296,7 +287,7 @@ export const StorePanelScreen = () => {
 
     // ─── Vista principal ──────────────────────────────────────────────────────
 
-    const badge = pedido ? (ESTADO_BADGE[pedido.estado] ?? ESTADO_BADGE.En_Tienda) : null;
+    const badge = envio ? (ESTADO_BADGE[envio.estado as EstadoPedido] ?? ESTADO_BADGE.En_Tienda) : null;
 
     return (
         <SafeAreaView style={[styles.contenedor, { backgroundColor: colors.fondo }]}>
@@ -329,13 +320,13 @@ export const StorePanelScreen = () => {
 
             <ScrollView contentContainerStyle={styles.scroll}>
 
-                {/* Sin pedido cargado */}
-                {!pedido && (
+                {/* Sin envio cargado */}
+                {!envio && (
                     <View style={styles.placeholderCard}>
                         <Ionicons name="cube-outline" size={56} color={colors.textoTerciario} />
-                        <Text style={[styles.placeholderTitulo, { color: colors.textoPrincipal }]}>Sin pedido cargado</Text>
+                        <Text style={[styles.placeholderTitulo, { color: colors.textoPrincipal }]}>Sin envio cargado</Text>
                         <Text style={[styles.placeholderSubtexto, { color: colors.textoSecundario }]}>
-                            Escanea el QR del pedido o selecciónalo desde el Panel de Picking.
+                            Escanea el QR del envio o selecciónalo desde el Panel de Picking.
                         </Text>
                         <TouchableOpacity
                             style={[styles.btnPrimario, styles.btnGrande, { marginTop: 24, alignSelf: 'center', backgroundColor: colors.primario }]}
@@ -347,8 +338,8 @@ export const StorePanelScreen = () => {
                     </View>
                 )}
 
-                {/* Datos del pedido */}
-                {pedido && (
+                {/* Datos del envio */}
+                {envio && (
                     <>
                         <View style={[styles.card, {
                             backgroundColor: colors.superficie,
@@ -356,17 +347,16 @@ export const StorePanelScreen = () => {
                         }]}>
                             <View style={styles.cardHeader}>
                                 <View style={{ flex: 1 }}>
-                                    <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Código de Pedido</Text>
+                                    <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Código de Envío</Text>
                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                        <Text style={[styles.cardValor, { color: colors.textoPrincipal }]}>{pedido.codPedido}</Text>
-                                        {pedido.canal === 'woocommerce' && <Text style={styles.badgeWoo}>WooCommerce</Text>}
+                                        <Text style={[styles.cardValor, { color: colors.textoPrincipal }]}>{envio.codPedido}</Text>
                                     </View>
                                 </View>
-                                {badge && (
-                                    <View style={[styles.badge, { backgroundColor: colors[badge.bg as keyof typeof colors] as string }]}>
-                                        <Text style={[styles.badgeText, { color: colors[badge.text as keyof typeof colors] as string }]}>{badge.label}</Text>
-                                    </View>
-                                )}
+                                 {badge && (
+                                     <View style={[styles.badge, { backgroundColor: badge.bg }]}>
+                                         <Text style={[styles.badgeText, { color: badge.text }]}>{badge.label}</Text>
+                                     </View>
+                                 )}
                             </View>
 
                             <View style={[styles.divider, { backgroundColor: colors.borde }]} />
@@ -375,28 +365,28 @@ export const StorePanelScreen = () => {
                                 <Ionicons name="person-outline" size={15} color={colors.textoTerciario} />
                                 <View style={{ marginLeft: 8, flex: 1 }}>
                                     <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Cliente</Text>
-                                    <Text style={[styles.cardValor, { color: colors.textoPrincipal }]}>{pedido.cliente}</Text>
-                                    {pedido.clienteTelefono ? (
-                                        <Text style={[styles.cardMeta, { color: colors.textoSecundario }]}>{pedido.clienteTelefono}</Text>
+                                    <Text style={[styles.cardValor, { color: colors.textoPrincipal }]}>{envio.cliente}</Text>
+                                    {envio.telefono ? (
+                                        <Text style={[styles.cardMeta, { color: colors.textoSecundario }]}>{envio.telefono}</Text>
                                     ) : null}
                                 </View>
                             </View>
 
                             {/* Entrega & Dirección V6 */}
-                            {(pedido.direccion || pedido.distrito) && (
+                            {(envio.direccion || envio.distrito) && (
                                 <View style={[styles.infoRow, { marginTop: 12 }]}>
                                     <Ionicons name="location-outline" size={15} color={colors.textoTerciario} />
                                     <View style={{ marginLeft: 8, flex: 1 }}>
                                         <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Dirección de Entrega</Text>
                                         <Text style={[styles.cardValor, { color: colors.textoPrincipal, fontSize: 14 }]}>
-                                            {pedido.direccion}{pedido.distrito ? `, ${pedido.distrito}` : ''}
+                                            {envio.direccion}{envio.distrito ? `, ${envio.distrito}` : ''}
                                         </Text>
-                                        {pedido.referencia ? (
+                                        {envio.referencia ? (
                                             <Text style={[styles.cardMeta, { color: colors.textoSecundario, marginTop: 2 }]}>
-                                                Ref: {pedido.referencia}
+                                                Ref: {envio.referencia}
                                             </Text>
                                         ) : null}
-                                        {pedido.gmapsUrl && (
+                                        {envio.gmapsUrl && (
                                             <TouchableOpacity 
                                                 style={[styles.btnLink, { marginTop: 8 }]} 
                                                 onPress={handleAbrirGmaps}
@@ -409,78 +399,37 @@ export const StorePanelScreen = () => {
                                 </View>
                             )}
 
-                            {pedido.operadorLogistico && (
+                            {envio.operador && (
                                 <View style={[styles.infoRow, { marginTop: 12 }]}>
                                     <Ionicons name="bus-outline" size={15} color={colors.textoTerciario} />
                                     <View style={{ marginLeft: 8 }}>
                                         <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Operador Logístico</Text>
                                         <Text style={[styles.cardValor, { color: colors.textoPrincipal, fontSize: 14 }]}>
-                                            {pedido.operadorLogistico.toUpperCase()}
+                                            {envio.operador.toUpperCase()}
                                         </Text>
                                     </View>
                                 </View>
                             )}
 
-                            {pedido.operador && (
+                            {envio.operador && (
                                 <View style={[styles.infoRow, { marginTop: 8 }]}>
                                     <Ionicons name="briefcase-outline" size={15} color={colors.textoTerciario} />
                                     <View style={{ marginLeft: 8 }}>
                                         <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Operador</Text>
-                                        <Text style={[styles.cardValor, { color: colors.textoPrincipal }]}>{pedido.operador}</Text>
+                                        <Text style={[styles.cardValor, { color: colors.textoPrincipal }]}>{envio.operador}</Text>
                                     </View>
                                 </View>
                             )}
 
-                            {pedido.notas && (
+                            {envio.notas && (
                                 <>
                                     <View style={[styles.divider, { backgroundColor: colors.borde }]} />
                                     <Text style={[styles.cardLabel, { color: colors.textoTerciario }]}>Notas</Text>
                                     <Text style={[styles.cardValor, { fontWeight: '400', color: colors.textoSecundario, marginTop: 4 }]}>
-                                        {pedido.notas}
+                                        {envio.notas}
                                     </Text>
                                 </>
                             )}
-                        </View>
-
-                        {/* LISTA DE PRODUCTOS V6 */}
-                        <Text style={[styles.seccionTitulo, { color: colors.textoPrincipal }]}>Productos del Pedido</Text>
-                        <View style={[styles.card, { backgroundColor: colors.superficie, borderColor: colors.borde, padding: 0 }]}>
-                            {items.length === 0 ? (
-                                <View style={{ padding: 16, alignItems: 'center' }}>
-                                    <Text style={{ color: colors.textoTerciario, fontSize: 13 }}>No hay items registrados</Text>
-                                </View>
-                            ) : (
-                                items.map((item, idx) => (
-                                    <View key={item.id} style={[
-                                        styles.itemRow, 
-                                        idx < items.length - 1 && { borderBottomWidth: 1, borderBottomColor: colors.borde }
-                                    ]}>
-                                        <View style={styles.itemCantidad}>
-                                            <Text style={styles.itemCantidadText}>{item.cantidadPedida}</Text>
-                                        </View>
-                                        <View style={{ flex: 1, marginLeft: 12 }}>
-                                            <Text style={[styles.itemNombre, { color: colors.textoPrincipal }]}>{item.descripcionWoo}</Text>
-                                            {item.skuWoo ? <Text style={[styles.itemSku, { color: colors.textoTerciario }]}>SKU: {item.skuWoo}</Text> : null}
-                                        </View>
-                                        <Text style={[styles.itemPrecio, { color: colors.textoSecundario }]}>
-                                            S/ {item.precioUnitarioWoo?.toFixed(2)}
-                                        </Text>
-                                    </View>
-                                ))
-                            )}
-                            
-                            {pedido.metodoPagoDisplay || pedido.totalWoo ? (
-                                <View style={[styles.pagoResumen, { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#f9fafb', borderTopWidth: 1, borderTopColor: colors.borde }]}>
-                                    <View style={styles.pagoRow}>
-                                        <Text style={[styles.pagoLabel, { color: colors.textoSecundario }]}>Pago:</Text>
-                                        <Text style={[styles.pagoValor, { color: colors.textoPrincipal }]}>{pedido.metodoPagoDisplay || '---'}</Text>
-                                    </View>
-                                    <View style={styles.pagoRow}>
-                                        <Text style={[styles.totalLabel, { color: colors.textoPrincipal }]}>TOTAL:</Text>
-                                        <Text style={[styles.totalValor, { color: colors.primario }]}>S/ {pedido.totalWoo?.toFixed(2) || '0.00'}</Text>
-                                    </View>
-                                </View>
-                            ) : null}
                         </View>
 
                         {/* Sección POD */}
@@ -523,7 +472,7 @@ export const StorePanelScreen = () => {
                         )}
 
                         {/* Botón confirmar entrega */}
-                        {pedido.estado !== 'Entregado' && (
+                        {envio.estado !== 'Entregado' && (
                             <TouchableOpacity
                                 style={[
                                     styles.btnPrimario,
@@ -544,7 +493,7 @@ export const StorePanelScreen = () => {
                             </TouchableOpacity>
                         )}
 
-                        {pedido.estado === 'Entregado' && (
+                        {envio.estado === 'Entregado' && (
                             <View style={[styles.card, {
                                 backgroundColor: colors.superficie,
                                 borderColor: colors.borde,
@@ -553,7 +502,7 @@ export const StorePanelScreen = () => {
                                 gap: 12,
                             }]}>
                                 <Ionicons name="checkmark-circle" size={28} color="#22c55e" />
-                                <Text style={[styles.cardValor, { color: '#22c55e' }]}>Pedido entregado con éxito</Text>
+                                <Text style={[styles.cardValor, { color: '#22c55e' }]}>envio entregado con éxito</Text>
                             </View>
                         )}
                     </>
@@ -806,7 +755,7 @@ const styles = StyleSheet.create({
         height: 240,
         borderRadius: 16,
         borderWidth: 3,
-        borderColor: '#0075de',
+        borderColor: '#4ba042', // primario Notion
         backgroundColor: 'transparent',
     },
     escanerHint: {
@@ -839,7 +788,7 @@ const styles = StyleSheet.create({
         width: 72,
         height: 72,
         borderRadius: 36,
-        backgroundColor: '#fff',
+        backgroundColor: '#f6f5f4', // superficieAlta
         alignItems: 'center',
         justifyContent: 'center',
         ...SHADOWS.CARD,

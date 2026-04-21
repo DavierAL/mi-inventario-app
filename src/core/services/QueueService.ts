@@ -207,13 +207,13 @@ export const QueueService = {
 
       const downloadURL = publicUrl;
 
-      // Paso C: actualizar tabla 'pedidos' en Supabase
+      // Paso C: actualizar tabla 'envios' en Supabase
       const { error: dbError } = await supabase
-        .from('pedidos')
+        .from('envios')
         .update({
           url_foto: downloadURL,
-          estado: 'Entregado',
-          updated_at: Date.now(),
+          estado: 'entregado',
+          updated_at: new Date().toISOString(),
         })
         .eq('id', job.pedidoId);
 

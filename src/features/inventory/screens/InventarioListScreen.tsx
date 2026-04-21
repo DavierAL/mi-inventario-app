@@ -17,6 +17,7 @@ import { EditProductoModal } from '../components/EditProductoModal';
 import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
 import { useTheme } from '../../../core/ui/ThemeContext';
 import { useInventarioStore } from '../store/useInventarioStore';
+import { benchmark } from '../../../core/utils/benchmark';
 import { RootStackParamList } from '../../../core/types/navigation';
 import { useFiltrosInventario, FiltroCaducidad, Ordenamiento } from '../hooks/useFiltrosInventario';
 import { MENSAJES } from '../../../core/constants/mensajes';
@@ -49,9 +50,14 @@ interface ListaBaseProps {
     listRef: any;
     refrescando: boolean;
     onRefresh: () => void;
+    repararBaseDeDatos: () => Promise<void>;
+    sincronizandoFondo: boolean;
 }
 
-const ListaBase = memo(({ productos, onPress, busqueda, onScroll, listRef, refrescando, onRefresh }: ListaBaseProps) => {
+const ListaBase = memo(({ 
+    productos, onPress, busqueda, onScroll, listRef, refrescando, onRefresh,
+    repararBaseDeDatos, sincronizandoFondo
+}: ListaBaseProps) => {
     const { colors } = useTheme();
     return (
         <FlashList
@@ -75,10 +81,21 @@ const ListaBase = memo(({ productos, onPress, busqueda, onScroll, listRef, refre
             }
             ListEmptyComponent={
                 <View style={styles.listaVacia}>
-                    <Text style={styles.listaVaciaIcono}>🔍</Text>
-                    <Text style={[styles.listaVaciaTexto, { color: colors.textoSecundario }]}>
-                        {MENSAJES.SIN_RESULTADOS(busqueda || '')}
+                    <Ionicons name="cube-outline" size={64} color={colors.textoTerciario} />
+                    <Text style={[styles.listaVaciaTexto, { color: colors.textoSecundario, marginTop: 16, textAlign: 'center' }]}>
+                        {busqueda ? MENSAJES.SIN_RESULTADOS(busqueda) : 'No hay productos en el inventario local.'}
                     </Text>
+                    {!busqueda && (
+                        <TouchableOpacity 
+                            style={[styles.botonReintentar, { backgroundColor: colors.primario, marginTop: 20 }]}
+                            onPress={repararBaseDeDatos}
+                            disabled={sincronizandoFondo}
+                        >
+                            <Text style={styles.textoBotonReintentar}>
+                                {sincronizandoFondo ? 'Sincronizando...' : 'Sincronizar Ahora'}
+                            </Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             }
         />
@@ -108,12 +125,10 @@ export const InventarioListScreen = () => {
     const { colors, isDark } = useTheme();
     const navigation = useNavigation<InventarioListNavProp>();
 
-    const {
-        cargando,
-        conectarInventario, cargarDatosSync, repararBaseDeDatos,
-        productoEditando, setProductoEditando, guardarEdicion,
-        error, modoOffline, lastSync,
-        sincronizandoFondo
+    const { 
+        cargando, error, pendientesSync, lastSync, sincronizandoFondo,
+        repararBaseDeDatos, conectarInventario, cargarDatosSync,
+        productoEditando, setProductoEditando, guardarEdicion, modoOffline
     } = useInventarioStore();
 
     const [busqueda, setBusqueda] = useState('');
@@ -286,17 +301,25 @@ export const InventarioListScreen = () => {
                 </View>
 
                 <View style={{ flex: 1, width: '100%' }}>
-                    {/* LISTA REACTIVA: Inyectamos la Query y el Filtro */}
-                    <ListaReactiva 
-                        query={queryProductos} 
-                        filtroRapido={filtroRapido} 
-                        onPress={setProductoEditando} 
-                        busqueda={busqueda}
-                        onScroll={handleScroll}
-                        listRef={listRef}
-                        refrescando={refrescando}
-                        onRefresh={handleRefresh}
-                    />
+                    {/* SKELETON LOADERS: Mientras carga o sincroniza por primera vez */}
+                    {cargando ? (
+                        <View style={{ flex: 1, paddingTop: 12 }}>
+                            {[1, 2, 3, 4, 5, 6].map(i => <SkeletonCard key={i} />)}
+                        </View>
+                    ) : (
+                        <ListaReactiva 
+                            query={queryProductos} 
+                            filtroRapido={filtroRapido} 
+                            onPress={setProductoEditando} 
+                            busqueda={busqueda}
+                            onScroll={handleScroll}
+                            listRef={listRef}
+                            refrescando={refrescando}
+                            onRefresh={handleRefresh}
+                            repararBaseDeDatos={repararBaseDeDatos}
+                            sincronizandoFondo={sincronizandoFondo}
+                        />
+                    )}
                 </View>
 
                 {mostrarBotonSubir && (

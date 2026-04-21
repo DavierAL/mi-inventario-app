@@ -19,7 +19,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import withObservables from '@nozbe/with-observables';
 import { Q } from '@nozbe/watermelondb';
 import { database } from '../../../core/database';
-import Pedido, { EstadoPedido } from '../../../core/database/models/Pedido';
+import Envio, { EstadoPedido } from '../../../core/database/models/Envio';
 import { LogisticsRepository } from '../repository/logisticsRepository';
 import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
 import { useTheme } from '../../../core/ui/ThemeContext';
@@ -33,23 +33,23 @@ type PickingNavProp = NativeStackNavigationProp<RootStackParamList, 'PickingList
 // ─── Colores por estado (Notion semantic palette) ────────────────────────────
 
 const ESTADO_BADGE: Record<EstadoPedido, { bg: string; text: string; label: string }> = {
-    Pendiente:  { bg: 'fondoPrimario', text: 'error', label: 'Pendiente' },
-    En_Tienda:  { bg: 'fondoPrimario', text: 'primario', label: 'En Tienda' },
-    Entregado:  { bg: 'fondoPrimario', text: 'exito', label: 'Entregado' },
+    Pendiente:  { bg: 'rgba(235, 87, 87, 0.1)', text: '#eb5757', label: 'Pendiente' }, // Notion Red
+    En_Tienda:  { bg: 'rgba(0, 117, 222, 0.1)', text: '#0075de', label: 'En Tienda' }, // Notion Blue
+    Entregado:  { bg: 'rgba(75, 160, 66, 0.15)', text: '#4ba042', label: 'Entregado' }, // Notion Green
 };
 
-// ─── Tarjeta de pedido ───────────────────────────────────────────────────────
+// ─── Tarjeta de envio ───────────────────────────────────────────────────────
 
 interface PedidoCardProps {
-    pedido: Pedido;
-    onDespachar: (pedido: Pedido) => void;
-    onVerPanel: (pedido: Pedido) => void;
+    envio: Envio;
+    onDespachar: (envio: Envio) => void;
+    onVerPanel: (envio: Envio) => void;
 }
 
-const PedidoCard = memo(({ pedido, onDespachar, onVerPanel }: PedidoCardProps) => {
+const PedidoCard = memo(({ envio, onDespachar, onVerPanel }: PedidoCardProps) => {
     const { colors, isDark } = useTheme();
-    const badge = ESTADO_BADGE[pedido.estado] ?? ESTADO_BADGE.Pendiente;
-    const puedeDespachar = pedido.estado === 'Pendiente';
+    const badge = ESTADO_BADGE[envio.estado as EstadoPedido] ?? ESTADO_BADGE.Pendiente;
+    const puedeDespachar = envio.estado === 'Pendiente';
 
     return (
         <View style={[styles.card, {
@@ -61,52 +61,41 @@ const PedidoCard = memo(({ pedido, onDespachar, onVerPanel }: PedidoCardProps) =
             <View style={styles.cardHeader}>
                 <View style={{ flex: 1 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text style={[styles.cardCodigo, { color: colors.textoPrincipal }]}>{pedido.codPedido}</Text>
-                        {pedido.canal === 'woocommerce' && (
-                            <View style={styles.canalBadge}>
-                                <Text style={styles.canalBadgeText}>WOO</Text>
-                            </View>
-                        )}
+                        <Text style={[styles.cardCodigo, { color: colors.textoPrincipal }]}>{envio.codPedido}</Text>
                     </View>
-                    <Text style={[styles.cardCliente, { color: colors.textoSecundario }]} numberOfLines={1}>{pedido.cliente}</Text>
+                    <Text style={[styles.cardCliente, { color: colors.textoSecundario }]} numberOfLines={1}>{envio.cliente}</Text>
                 </View>
-                <View style={[styles.badge, { backgroundColor: colors[badge.bg as keyof typeof colors] as string }]}>
-                    <Text style={[styles.badgeText, { color: colors[badge.text as keyof typeof colors] as string }]}>{badge.label}</Text>
+                <View style={[styles.badge, { backgroundColor: badge.bg }]}>
+                    <Text style={[styles.badgeText, { color: badge.text }]}>{badge.label}</Text>
                 </View>
             </View>
 
             {/* Info Logística V6 */}
             <View style={styles.logisticaRow}>
-                {pedido.distrito ? (
+                {envio.distrito ? (
                     <View style={styles.metaItem}>
                         <Ionicons name="location-outline" size={12} color={colors.textoTerciario} />
-                        <Text style={[styles.cardMeta, { color: colors.textoTerciario, marginLeft: 4 }]}>{pedido.distrito}</Text>
-                    </View>
-                ) : null}
-                {pedido.fechaEntrega ? (
-                    <View style={styles.metaItem}>
-                        <Ionicons name="calendar-outline" size={12} color={colors.textoTerciario} />
-                        <Text style={[styles.cardMeta, { color: colors.textoTerciario, marginLeft: 4 }]}>{pedido.fechaEntrega}</Text>
+                        <Text style={[styles.cardMeta, { color: colors.textoTerciario, marginLeft: 4 }]}>{envio.distrito}</Text>
                     </View>
                 ) : null}
             </View>
 
-            {pedido.operadorLogistico && (
-                <View style={[styles.opLogisticoBadge, { backgroundColor: pedido.operadorLogistico === 'salva' ? '#e0f2fe' : '#fef3c7' }]}>
-                    <Text style={[styles.opLogisticoText, { color: pedido.operadorLogistico === 'salva' ? '#0369a1' : '#b45309' }]}>
-                        {pedido.operadorLogistico.toUpperCase()}
+            {envio.operador && (
+                <View style={[styles.opLogisticoBadge, { backgroundColor: colors.fondoPrimario }]}>
+                    <Text style={[styles.opLogisticoText, { color: colors.primario }]}>
+                        {envio.operador.toUpperCase()}
                     </Text>
                 </View>
             )}
 
             {/* Info secundaria */}
-            {pedido.operador ? (
+            {envio.operador ? (
                 <Text style={[styles.cardMeta, { color: colors.textoTerciario, marginTop: 4 }]}>
-                    <Ionicons name="person-outline" size={12} color={colors.textoTerciario} /> {pedido.operador}
+                    <Ionicons name="person-outline" size={12} color={colors.textoTerciario} /> {envio.operador}
                 </Text>
             ) : null}
-            {pedido.notas ? (
-                <Text style={[styles.cardNotas, { color: colors.textoSecundario }]} numberOfLines={2}>{pedido.notas}</Text>
+            {envio.notas ? (
+                <Text style={[styles.cardNotas, { color: colors.textoSecundario }]} numberOfLines={2}>{envio.notas}</Text>
             ) : null}
 
             {/* Acciones */}
@@ -116,7 +105,7 @@ const PedidoCard = memo(({ pedido, onDespachar, onVerPanel }: PedidoCardProps) =
                         style={[styles.btnPrimario, { backgroundColor: colors.primario }]}
                         onPress={() => {
                             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                            onDespachar(pedido);
+                            onDespachar(envio);
                         }}
                         activeOpacity={0.85}
                     >
@@ -126,7 +115,7 @@ const PedidoCard = memo(({ pedido, onDespachar, onVerPanel }: PedidoCardProps) =
                 )}
                 <TouchableOpacity
                     style={[styles.btnSecundario, { backgroundColor: colors.fondoPrimario }]}
-                    onPress={() => onVerPanel(pedido)}
+                    onPress={() => onVerPanel(envio)}
                     activeOpacity={0.85}
                 >
                     <Ionicons name="qr-code-outline" size={16} color={colors.primario} style={{ marginRight: 4 }} />
@@ -140,10 +129,10 @@ const PedidoCard = memo(({ pedido, onDespachar, onVerPanel }: PedidoCardProps) =
 // ─── Lista reactiva ──────────────────────────────────────────────────────────
 
 interface ListaBaseProps {
-    pedidos: Pedido[];
+    pedidos: Envio[];
     isFiltrado: boolean;
-    onDespachar: (p: Pedido) => void;
-    onVerPanel: (p: Pedido) => void;
+    onDespachar: (p: Envio) => void;
+    onVerPanel: (p: Envio) => void;
 }
 
 const ListaBase = memo(({ pedidos, isFiltrado, onDespachar, onVerPanel }: ListaBaseProps) => {
@@ -154,7 +143,7 @@ const ListaBase = memo(({ pedidos, isFiltrado, onDespachar, onVerPanel }: ListaB
             keyExtractor={(item: any) => item.id}
             estimatedItemSize={160}
             renderItem={({ item }: any) => (
-                <PedidoCard pedido={item} onDespachar={onDespachar} onVerPanel={onVerPanel} />
+                <PedidoCard envio={item} onDespachar={onDespachar} onVerPanel={onVerPanel} />
             )}
             contentContainerStyle={styles.lista}
             ListEmptyComponent={
@@ -201,7 +190,7 @@ export const PickingList = withObservables(['busqueda', 'filtroEstado', 'ordenDe
 
     return {
         pedidos: database
-            .get<Pedido>('pedidos')
+            .get<Envio>('envios')
             .query(...condiciones)
             .observeWithColumns(['estado'])
     };
@@ -218,17 +207,17 @@ export const PickingScreen = () => {
     const [filtroEstado, setFiltroEstado] = useState<EstadoPedido | null>(null);
     const [ordenDesc, setOrdenDesc] = useState(true);
 
-    const handleDespachar = async (pedido: Pedido) => {
+    const handleDespachar = async (envio: Envio) => {
         try {
-            await LogisticsRepository.actualizarEstado(pedido, 'En_Tienda');
+            await LogisticsRepository.actualizarEstado(envio, 'En_Tienda');
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         } catch (err) {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         }
     };
 
-    const handleVerPanel = (pedido: Pedido) => {
-        navigation.navigate('StorePanel', { pedidoId: pedido.id });
+    const handleVerPanel = (envio: Envio) => {
+        navigation.navigate('StorePanel', { pedidoId: envio.id });
     };
 
     const handleToggleFiltro = (estado: EstadoPedido) => {
@@ -324,8 +313,8 @@ export const PickingScreen = () => {
                         <TouchableOpacity 
                             key={estado} 
                             style={[styles.badgeBtn, {
-                                backgroundColor: colors[cfg.bg as keyof typeof colors] as string,
-                                borderColor: isSelected ? (colors[cfg.text as keyof typeof colors] as string) : 'transparent',
+                                backgroundColor: cfg.bg,
+                                borderColor: isSelected ? cfg.text : 'transparent',
                                 borderWidth: 1,
                                 opacity: isDimmed ? 0.4 : 1,
                             }]}
@@ -472,14 +461,14 @@ const styles = StyleSheet.create({
         letterSpacing: -0.1,
     },
     canalBadge: {
-        backgroundColor: '#0075de',
+        backgroundColor: 'rgba(75, 160, 66, 0.15)', // Light version of primario
         paddingHorizontal: 6,
         paddingVertical: 2,
         borderRadius: 4,
         marginLeft: 8,
     },
     canalBadgeText: {
-        color: '#fff',
+        color: '#4ba042',
         fontSize: 10,
         fontWeight: '800',
     },
