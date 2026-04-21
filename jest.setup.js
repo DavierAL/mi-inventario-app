@@ -280,14 +280,30 @@ jest.mock('@react-native-community/netinfo', () => ({
 }));
 
 // Mock Reanimated
-require('react-native-reanimated/mock');
+jest.mock('react-native-reanimated', () => {
+    const reanimatedMock = require('react-native-reanimated/mock');
+    return {
+        ...reanimatedMock,
+        // Añadir cualquier export faltante en el mock oficial si es necesario
+    };
+});
 
-// Mock Worklets
+// Mock Worklets (Requerido por Reanimated v4)
 jest.mock('react-native-worklets', () => ({
     Worklets: {
         createRunOnJS: jest.fn(fn => fn),
         createRunOnUI: jest.fn(fn => fn),
         createSharedValue: jest.fn(val => ({ value: val })),
+    },
+    createSerializable: jest.fn(val => val),
+    isWorklet: jest.fn(() => false),
+    isWorkletFunction: jest.fn(() => false),
+    WorkletRuntime: jest.fn(),
+    serializableMappingCache: new Map(),
+    scheduleOnUI: jest.fn(fn => fn),
+    RuntimeKind: {
+        JS: 0,
+        UI: 1,
     },
 }));
 

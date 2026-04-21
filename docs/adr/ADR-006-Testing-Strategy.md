@@ -12,7 +12,7 @@ La aplicación ha crecido en complejidad arquitectónica (Sync, Queue, Animation
    - **Unit Tests (70%)**: Lógica de servicios (`Sync`, `Queue`, `Utils`).
    - **Component Tests (20%)**: Verificación de renderizado y eventos de UI (`Button`, `Shimmer`).
    - **Integration Tests (10%)**: Flujos completos de datos.
-3. **Mantenimiento de Versiones**: Debido a incompatibilidades de Reanimated 4 con Jest 30 en el entorno actual, se mantiene **Reanimated 3.16.0** como versión estable para asegurar un ciclo de tests confiable.
+3. **Mantenimiento de Versiones**: Debido a incompatibilidades de la arquitectura Fabric en React Native 0.81 con versiones antiguas, se migró a **Reanimated 4.3.0** (v4), asegurando compatibilidad con el entorno de build y manteniendo la estabilidad en Jest mediante mocks avanzados de `worklets`.
 4. **Coverage Enforcement**: Se mantiene un threshold estricto del 90% en `jest.config.js` para asegurar que el código nuevo siempre esté probado.
 
 ## Consecuencias

@@ -1,27 +1,40 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useScanner } from '../useScanner';
+import { ScannerRepository } from '../../repository/scannerRepository';
+
+// Mock ScannerRepository
+jest.mock('../../repository/scannerRepository', () => ({
+    ScannerRepository: {
+        buscarProducto: jest.fn(),
+    }
+}));
 
 describe('useScanner Hook', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
     it('maneja el escaneo de un codigo de barras', async () => {
-        const onScanMock = jest.fn();
-        const { result } = renderHook(() => useScanner({ onScan: onScanMock }));
+        (ScannerRepository.buscarProducto as jest.Mock).mockResolvedValue({ id: '1', nombre: 'Test' });
+        const { result } = renderHook(() => useScanner());
         
         await act(async () => {
-            result.current.handleBarCodeScanned({ data: '12345', type: 'ean13' } as any);
+            await result.current.manejarCodigoEscaneado({ data: '12345' });
         });
         
-        expect(onScanMock).toHaveBeenCalledWith('12345');
+        expect(ScannerRepository.buscarProducto).toHaveBeenCalledWith('12345');
     });
 
     it('previene escaneos duplicados rapidos', async () => {
-        const onScanMock = jest.fn();
-        const { result } = renderHook(() => useScanner({ onScan: onScanMock }));
+        (ScannerRepository.buscarProducto as jest.Mock).mockResolvedValue({ id: '1', nombre: 'Test' });
+        const { result } = renderHook(() => useScanner());
         
         await act(async () => {
-            result.current.handleBarCodeScanned({ data: '12345' } as any);
-            result.current.handleBarCodeScanned({ data: '12345' } as any);
+            // No usamos await aquí para simular llamadas rápidas
+            result.current.manejarCodigoEscaneado({ data: '12345' });
+            result.current.manejarCodigoEscaneado({ data: '12345' });
         });
         
-        expect(onScanMock).toHaveBeenCalledTimes(1);
+        expect(ScannerRepository.buscarProducto).toHaveBeenCalledTimes(1);
     });
 });

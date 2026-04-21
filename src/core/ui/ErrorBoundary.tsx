@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     alignItems: 'center',
-    borderRadius: TOKENS.borderRadius.lg,
+    borderRadius: TOKENS.radius.lg,
   },
   title: {
     marginTop: TOKENS.spacing.lg,

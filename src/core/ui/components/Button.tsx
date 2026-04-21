@@ -20,6 +20,7 @@ interface ButtonProps {
     loading?: boolean;
     disabled?: boolean;
     icon?: React.ReactNode;
+    style?: ViewStyle;
     testID?: string;
 }
 

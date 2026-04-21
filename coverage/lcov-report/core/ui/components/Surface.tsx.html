@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>9/9</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">87.5% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>7/8</span>
+                <span class='fraction'>0/8</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>0/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>9/9</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -135,7 +135,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -144,34 +144,34 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9x</span>
-<span class="cline-any cline-yes">9x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -192,43 +192,43 @@ interface SurfaceProps extends ViewProps {
     testID?: string;
 }
 &nbsp;
-export const Surface: React.FC&lt;SurfaceProps&gt; = ({ 
-    variant = 'flat', 
-    padding = 'md', 
-    radius = 'md',
+export const Surface: React.FC&lt;SurfaceProps&gt; = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >({ </span></span>
+    variant = <span class="branch-0 cbranch-no" title="branch not covered" >'flat', </span>
+    padding = <span class="branch-0 cbranch-no" title="branch not covered" >'md', </span>
+    radius = <span class="branch-0 cbranch-no" title="branch not covered" >'md',</span>
     children, 
     style,
     testID,
     ...props 
 }) =&gt; {
-    const { colors, isDark } = useTheme();
+    const { colors, isDark } = <span class="cstat-no" title="statement not covered" >useTheme();</span>
 &nbsp;
-    const getBaseStyle = (): ViewStyle =&gt; {
-        const base: ViewStyle = {
+    const getBaseStyle = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span>: ViewStyle =&gt; {</span>
+        const base: ViewStyle = <span class="cstat-no" title="statement not covered" >{</span>
             backgroundColor: colors.superficie,
             borderRadius: TOKENS.radius[radius],
             padding: TOKENS.spacing[padding],
         };
 &nbsp;
-        switch (variant) {
+<span class="cstat-no" title="statement not covered" >        switch (variant) {</span>
             case 'elevated':
-                return { 
+<span class="cstat-no" title="statement not covered" >                return { </span>
                     ...base, 
-                    ...(isDark ? <span class="branch-0 cbranch-no" title="branch not covered" >{ backgroundColor: colors.superficieAlta } </span>: TOKENS.shadows.light)
+                    ...(isDark ? { backgroundColor: colors.superficieAlta } : TOKENS.shadows.light)
                 };
             case 'outline':
-                return { 
+<span class="cstat-no" title="statement not covered" >                return { </span>
                     ...base, 
                     borderWidth: 1, 
                     borderColor: colors.borde,
                     backgroundColor: 'transparent'
                 };
             default:
-                return base;
+<span class="cstat-no" title="statement not covered" >                return base;</span>
         }
     };
 &nbsp;
-    return (
+<span class="cstat-no" title="statement not covered" >    return (</span>
         &lt;View testID={testID} style={[getBaseStyle(), style]} {...props}&gt;
             {children}
         &lt;/View&gt;
@@ -241,7 +241,7 @@ export const Surface: React.FC&lt;SurfaceProps&gt; = ({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-21T15:24:09.110Z
+                at 2026-04-21T15:50:29.962Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
