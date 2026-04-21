@@ -1,9 +1,7 @@
 // ARCHIVO: src/core/ui/components/Button.tsx
 import React from 'react';
 import { 
-    TouchableOpacity, 
     Text, 
-    StyleSheet, 
     ActivityIndicator, 
     ViewStyle, 
     TextStyle,
@@ -12,6 +10,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../ThemeContext';
 import { TOKENS } from '../tokens';
+import { AnimatedPressable } from './AnimatedPressable';
 
 interface ButtonProps {
     label: string;
@@ -34,11 +33,10 @@ export const Button: React.FC<ButtonProps> = ({
     icon,
     style
 }) => {
-    const { colors, isDark } = useTheme();
+    const { colors } = useTheme();
 
     const handlePress = () => {
         if (loading || disabled) return;
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onPress();
     };
 
@@ -87,11 +85,12 @@ export const Button: React.FC<ButtonProps> = ({
     };
 
     return (
-        <TouchableOpacity
+        <AnimatedPressable
             onPress={handlePress}
-            activeOpacity={0.7}
             disabled={disabled || loading}
             style={[getBtnStyle(), disabled && { opacity: 0.5 }, style]}
+            scaleTo={0.97}
+            haptic={variant === 'primary' ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light}
         >
             {loading ? (
                 <ActivityIndicator size="small" color={variant === 'primary' ? '#FFF' : colors.primario} />
@@ -101,6 +100,6 @@ export const Button: React.FC<ButtonProps> = ({
                     <Text style={getTextStyle()}>{label}</Text>
                 </View>
             )}
-        </TouchableOpacity>
+        </AnimatedPressable>
     );
 };

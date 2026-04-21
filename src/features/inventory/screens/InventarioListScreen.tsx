@@ -99,19 +99,8 @@ const ListaBase = memo(({
     );
 });
 
-const ListaReactiva = withObservables(['query', 'filtroRapido'], ({ query, filtroRapido }: { query: Query<Producto>, filtroRapido: FiltroCaducidad }) => ({
-    productos: query.observe().pipe(
-        map(productos => {
-            if (filtroRapido === 'TODOS') return productos;
-            return productos.filter(p => {
-                const dias = calcularDiasRestantes(p.fvActualTs);
-                if (filtroRapido === 'VENCIDOS') return dias < 0;
-                if (filtroRapido === '30_DIAS') return dias >= 0 && dias <= 30;
-                if (filtroRapido === '90_DIAS') return dias > 30 && dias <= 90;
-                return true;
-            });
-        })
-    )
+const ListaReactiva = withObservables(['query'], ({ query }: { query: Query<Producto> }) => ({
+    productos: query.observe()
 }))(ListaBase);
 
 // ─── Pantalla Principal ───────────────────────────────────────────────────
@@ -287,7 +276,6 @@ export const InventarioListScreen = () => {
                     ) : (
                         <ListaReactiva 
                             query={queryProductos} 
-                            filtroRapido={filtroRapido} 
                             onPress={setProductoEditando} 
                             busqueda={busqueda}
                             onScroll={handleScroll}

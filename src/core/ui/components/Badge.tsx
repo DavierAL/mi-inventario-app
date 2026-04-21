@@ -1,6 +1,7 @@
 // ARCHIVO: src/core/ui/components/Badge.tsx
 import React from 'react';
-import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { Text, StyleSheet, ViewStyle } from 'react-native';
+import Animated, { ZoomIn } from 'react-native-reanimated';
 import { useTheme } from '../ThemeContext';
 import { TOKENS } from '../tokens';
 
@@ -15,7 +16,7 @@ export const Badge: React.FC<BadgeProps> = ({
     variant = 'default', 
     style 
 }) => {
-    const { colors, isDark } = useTheme();
+    const { colors } = useTheme();
 
     const getColors = () => {
         switch (variant) {
@@ -35,11 +36,14 @@ export const Badge: React.FC<BadgeProps> = ({
     const { bg, text } = getColors();
 
     return (
-        <View style={[styles.badge, { backgroundColor: bg }, style]}>
+        <Animated.View 
+            entering={ZoomIn.duration(300)}
+            style={[styles.badge, { backgroundColor: bg }, style]}
+        >
             <Text style={[styles.text, { color: text }]}>
                 {label}
             </Text>
-        </View>
+        </Animated.View>
     );
 };
 

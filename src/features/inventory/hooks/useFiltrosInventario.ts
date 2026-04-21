@@ -35,14 +35,26 @@ export const useFiltrosInventario = (busqueda: string) => {
             );
         }
 
-        // 2. Ordenamiento
+        // 2. Filtro Rápido (Caducidad) - AHORA EN SQL
+        const ahora = Date.now();
+        if (filtroRapido === 'VENCIDOS') {
+            conditions.push(Q.where('fv_actual_ts', Q.lt(ahora)));
+        } else if (filtroRapido === '30_DIAS') {
+            const limite = ahora + (30 * 24 * 60 * 60 * 1000);
+            conditions.push(Q.where('fv_actual_ts', Q.between(ahora, limite)));
+        } else if (filtroRapido === '90_DIAS') {
+            const limite30 = ahora + (30 * 24 * 60 * 60 * 1000);
+            const limite90 = ahora + (90 * 24 * 60 * 60 * 1000);
+            conditions.push(Q.where('fv_actual_ts', Q.between(limite30, limite90)));
+        }
+
+        // 3. Ordenamiento
         if (ordenamiento === 'MARCA') conditions.push(Q.sortBy('marca', Q.asc));
         else if (ordenamiento === 'STOCK') conditions.push(Q.sortBy('stock_master', Q.desc));
         else if (ordenamiento === 'FV') conditions.push(Q.sortBy('fv_actual_ts', Q.asc));
 
-        // Retornamos la Query pura (el filtro de fechas lo haremos en RxJS)
         return database.collections.get<Producto>('productos').query(...conditions);
-    }, [busquedaDebounced, ordenamiento]); // Quita filtroRapido de estas dependencias
+    }, [busquedaDebounced, ordenamiento, filtroRapido]); 
 
     return {
         queryProductos, // Retorna un objeto Query de WatermelonDB
