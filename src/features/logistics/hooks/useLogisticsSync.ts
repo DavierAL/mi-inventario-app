@@ -42,10 +42,10 @@ export function useLogisticsSync() {
     iniciarSync();
   }, []);
 
-  const reSincronizar = async () => {
+  const reSincronizar = async (options: { forceFull?: boolean } = {}) => {
     try {
       setState(prev => ({ ...prev, cargando: true, error: null }));
-      await syncConSupabase();
+      await syncConSupabase(options);
       setState(prev => ({
         ...prev,
         cargando: false,

@@ -16,6 +16,9 @@ function mapearEstadoEntrante(estadoOriginal: string): EstadoPedido {
   if (norm.includes('listo para envio') || norm === 'en tienda' || norm === 'en_tienda') return 'En_Tienda';
   if (norm.includes('entregado')) return 'Entregado';
   
+  // Si viene del trigger de Supabase como 'en_tienda', asegurar mapeo
+  if (norm === 'en_tienda') return 'En_Tienda';
+  
   return 'Pendiente';
 }
 

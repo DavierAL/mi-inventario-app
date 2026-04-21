@@ -5,7 +5,7 @@
  * Diseño: Notion Design System (dark-mode-first, warm neutrals, whisper borders, Notion Blue).
  */
 import React, { memo, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, StatusBar, FlatList, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, StatusBar, FlatList, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -247,7 +247,21 @@ export const PickingScreen = () => {
                     <Text variant="h2" weight="bold">Logística</Text>
                     <Text variant="small" color={colors.textoSecundario}>Panel de Picking</Text>
                 </View>
-                <TouchableOpacity onPress={reSincronizar} style={styles.syncBtn} disabled={cargando}>
+                <TouchableOpacity 
+                    onPress={() => reSincronizar()} 
+                    onLongPress={() => {
+                        Alert.alert(
+                            "Reparar Logística",
+                            "¿Deseas forzar una resincronización total de pedidos?",
+                            [
+                                { text: "Cancelar", style: "cancel" },
+                                { text: "Sincronizar Todo", onPress: () => reSincronizar({ forceFull: true }) }
+                            ]
+                        );
+                    }}
+                    style={styles.syncBtn} 
+                    disabled={cargando}
+                >
                     {cargando ? (
                         <ActivityIndicator size="small" color={colors.primario} />
                     ) : (
