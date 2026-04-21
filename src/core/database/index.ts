@@ -8,6 +8,7 @@ import Envio from './models/Envio';
 import OutboxJob from './models/OutboxJob';
 import Log from './models/Log';
 import SyncHistory from './models/SyncHistory';
+import Usuario from './models/Usuario';
 
 const migrations = schemaMigrations({
   migrations: [
@@ -48,6 +49,22 @@ const migrations = schemaMigrations({
         }),
       ],
     },
+    {
+      toVersion: 9,
+      steps: [
+        createTable({
+          name: 'usuarios',
+          columns: [
+            { name: 'nombre', type: 'string' },
+            { name: 'email', type: 'string', isIndexed: true },
+            { name: 'rol', type: 'string' },
+            { name: 'activo', type: 'boolean' },
+            { name: 'created_at', type: 'number' },
+            { name: 'updated_at', type: 'number' },
+          ],
+        }),
+      ],
+    },
   ],
 });
 
@@ -62,5 +79,5 @@ const adapter = new SQLiteAdapter({
 
 export const database = new Database({
   adapter,
-  modelClasses: [Producto, Movimiento, Envio, OutboxJob, Log, SyncHistory],
+  modelClasses: [Producto, Movimiento, Envio, OutboxJob, Log, SyncHistory, Usuario],
 });

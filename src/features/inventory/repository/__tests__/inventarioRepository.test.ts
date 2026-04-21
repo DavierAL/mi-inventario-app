@@ -1,5 +1,5 @@
-import { inventarioRepository } from '../inventarioRepository';
-import { database } from '../../../core/database';
+import { InventarioRepository } from '../inventarioRepository';
+import { database } from '../../../../core/database';
 import { Q } from '@nozbe/watermelondb';
 
 describe('InventarioRepository', () => {
@@ -15,15 +15,20 @@ describe('InventarioRepository', () => {
         (database.get as jest.Mock).mockReturnValue(mockTable);
     });
 
-    it('busca productos por descripcion o barcode', async () => {
-        await inventarioRepository.buscar('test');
+    it('debe buscar por codigo de barras', async () => {
+        await InventarioRepository.buscarPorCodigoBarras('12345');
         expect(mockTable.query).toHaveBeenCalled();
     });
 
-    it('obtiene productos con stock bajo', async () => {
-        await inventarioRepository.getProductosBajoStock(5);
-        expect(mockTable.query).toHaveBeenCalledWith(
-            expect.arrayContaining([expect.anything()])
-        );
+    it('debe registrar un movimiento de historial', async () => {
+        await InventarioRepository.registrarMovimiento({
+            productoId: 'p1',
+            sku: 'SKU1',
+            descripcion: 'Test',
+            marca: 'Marca',
+            accion: 'EDICION_COMPLETA',
+            cambios: {}
+        });
+        expect(database.write).toHaveBeenCalled();
     });
 });

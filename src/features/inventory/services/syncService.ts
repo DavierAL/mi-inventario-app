@@ -16,10 +16,18 @@ function mapearEstadoEntrante(estadoOriginal: string): 'Pendiente' | 'En_Tienda'
   return 'Pendiente';
 }
 
+let isSyncing = false;
+
 /**
  * Sincronización Local-First con Resolución de Conflictos y Auditoría.
  */
 export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
+  if (isSyncing) {
+    Logger.warn('[Sync] Sincronización ya en curso. Abortando nueva solicitud.');
+    return;
+  }
+
+  isSyncing = true;
   const startTime = Date.now();
   const netInfo = await NetInfo.fetch();
   
@@ -63,7 +71,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         }
 
         const productosUpdated = productosRemote.map(row => ({
-          id: row.id,
+          id: row.id?.toString() || '',
           cod_barras: row.cod_barras,
           sku: row.sku,
           descripcion: row.descripcion,
@@ -75,20 +83,36 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
           comentarios: row.comentarios,
           marca: row.marca,
           imagen: row.imagen,
-          created_at: new Date(row.created_at).getTime(),
-          updated_at: new Date(row.updated_at).getTime(),
+          created_at: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+          updated_at: row.updated_at ? new Date(row.updated_at).getTime() : Date.now(),
         }));
 
         // --- PULL ENVIOS ---
-        let queryEnv = supabase.from('envios').select('*');
-        if (lastPulledAt && !options.forceFull) {
-          queryEnv = queryEnv.gte('updated_at', lastPulledDate);
+        let enviosRemote: any[] = [];
+        let hasMoreEnv = true;
+        let pageEnv = 0;
+        
+        while (hasMoreEnv) {
+          let queryEnv = supabase.from('envios').select('*').range(pageEnv * pageSize, (pageEnv + 1) * pageSize - 1);
+          if (lastPulledAt && !options.forceFull) {
+            queryEnv = queryEnv.gte('updated_at', lastPulledDate);
+          }
+          const { data, error } = await queryEnv;
+          if (error) {
+            Logger.error('[Sync] Error al descargar envíos', error);
+            throw error;
+          }
+          if (data && data.length > 0) {
+            enviosRemote = [...enviosRemote, ...data];
+            hasMoreEnv = data.length === pageSize;
+            pageEnv++;
+          } else {
+            hasMoreEnv = false;
+          }
         }
-        const { data: enviosRemote, error: errEnv } = await queryEnv;
-        if (errEnv) throw errEnv;
 
-        const enviosUpdated = (enviosRemote || []).map(row => ({
-          id: row.id.toString(),
+        const enviosUpdated = enviosRemote.map(row => ({
+          id: row.id?.toString() || '',
           cod_pedido: row.cod_pedido,
           cliente: row.cliente,
           estado: mapearEstadoEntrante(row.estado),
@@ -100,8 +124,8 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
           telefono: row.telefono || null,
           gmaps_url: row.gmaps_url || null,
           referencia: row.referencia || null,
-          created_at: new Date(row.created_at).getTime(),
-          updated_at: new Date(row.updated_at).getTime(),
+          created_at: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+          updated_at: row.updated_at ? new Date(row.updated_at).getTime() : Date.now(),
         }));
 
         pulledCount = productosUpdated.length + enviosUpdated.length;
@@ -131,10 +155,17 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
           if (all.length > 0) {
             const updates = all.map(record => ({
               id: record.id,
+              cod_barras: record.cod_barras,
+              sku: record.sku,
+              descripcion: record.descripcion,
+              marca: record.marca,
               stock_master: record.stock_master,
+              precio_web: record.precio_web,
+              precio_tienda: record.precio_tienda,
               fv_actual_ts: record.fv_actual_ts,
               comentarios: record.comentarios,
               fecha_edicion: record.fecha_edicion,
+              imagen: record.imagen,
               updated_at: new Date().toISOString()
             }));
             const { error } = await supabase.from('productos').upsert(updates);
@@ -149,8 +180,17 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
           if (all.length > 0) {
             const updates = all.map(record => ({
               id: record.id,
+              cod_pedido: record.cod_pedido,
+              cliente: record.cliente,
               estado: record.estado.toLowerCase(),
+              operador: record.operador,
               url_foto: record.url_foto,
+              notas: record.notas,
+              direccion: record.direccion,
+              distrito: record.distrito,
+              telefono: record.telefono,
+              gmaps_url: record.gmaps_url,
+              referencia: record.referencia,
               updated_at: new Date().toISOString()
             }));
             const { error } = await supabase.from('envios').upsert(updates);
@@ -189,6 +229,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
 
   } catch (error) {
     const err = error as Error;
+    console.error('[Sync] Error fatal durante la sincronización:', err);
     ErrorService.handle(err, { component: 'syncService', operation: 'syncConSupabase' });
     
     // Registrar fallo
@@ -205,5 +246,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
     } catch (dbErr) {
       console.error('[Sync] No se pudo registrar el fallo en DB', dbErr);
     }
+  } finally {
+    isSyncing = false;
   }
 }

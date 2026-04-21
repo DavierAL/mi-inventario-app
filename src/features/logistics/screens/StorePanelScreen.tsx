@@ -36,7 +36,7 @@ type StorePanelRoute = RouteProp<RootStackParamList, 'StorePanel'>;
 // ─── Badge config por estado ──────────────────────────────────────────────────
 
 const ESTADO_BADGE: Record<EstadoPedido, { bg: string; text: string; label: string }> = {
-    Pendiente:  { bg: 'rgba(235, 87, 87, 0.1)', text: '#eb5757', label: 'Pendiente' }, // Notion Red
+    Pendiente:  { bg: 'rgba(255, 171, 0, 0.15)', text: '#ffab00', label: 'Pendiente' }, // Notion Yellow/Warning
     En_Tienda:  { bg: 'rgba(0, 117, 222, 0.1)', text: '#0075de', label: 'En Tienda' }, // Notion Blue
     Entregado:  { bg: 'rgba(75, 160, 66, 0.15)', text: '#4ba042', label: 'Entregado' }, // Notion Green
 };
@@ -62,7 +62,10 @@ export const StorePanelScreen = () => {
 
     useEffect(() => {
         const pedidoId = route.params?.pedidoId;
-        if (pedidoId) cargarPedidoPorId(pedidoId);
+        if (pedidoId) {
+            setFotoUri(null); // Reset photo for new order
+            cargarPedidoPorId(pedidoId);
+        }
     }, [route.params?.pedidoId]);
 
 
@@ -90,6 +93,7 @@ export const StorePanelScreen = () => {
                 .query(Q.where('cod_pedido', codPedido))
                 .fetch();
             if (results.length > 0) {
+                setFotoUri(null); // Reset photo for new order
                 setEnvio(results[0]);
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                 Toast.show({ type: 'success', text1: `Envío ${codPedido} cargado` });
@@ -184,7 +188,11 @@ export const StorePanelScreen = () => {
     const handleConfirmarEntrega = async () => {
         if (!envio) return;
         if (!fotoUri) {
-            Alert.alert('Foto requerida', 'Toma una foto de evidencia antes de confirmar.');
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            Alert.alert(
+                '⚠️ Evidencia Requerida', 
+                'Es obligatorio tomar una fotografía del paquete o del cliente recibiendo el pedido antes de confirmar la entrega.'
+            );
             return;
         }
 
@@ -318,7 +326,7 @@ export const StorePanelScreen = () => {
                 </View>
                 <Badge 
                     label={item.estado.replace('_', ' ')} 
-                    variant={item.estado === 'Entregado' ? 'success' : 'info'} 
+                    variant={item.estado === 'Entregado' ? 'success' : 'primary'} 
                 />
             </View>
 

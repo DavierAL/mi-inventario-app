@@ -51,10 +51,10 @@ const PedidoCard = memo(({ envio, onDespachar, onVerPanel }: PedidoCardProps) =>
     // Mapeo semántico para el Badge del Design System
     const getBadgeVariant = (estado: string): any => {
         switch (estado) {
-            case 'Pendiente': return 'error';
-            case 'En_Tienda': return 'info';
-            case 'Entregado': return 'success';
-            default: return 'default';
+            case 'Pendiente': return 'warning'; // Amarillo/Naranja para pendientes
+            case 'En_Tienda': return 'primary'; // Azul para Tienda (Notion Blue)
+            case 'Entregado': return 'success'; // Verde para Entregado
+            default: return 'neutral';
         }
     };
 
@@ -207,13 +207,15 @@ export const PickingScreen = () => {
     const { cargando, error, reSincronizar } = useLogisticsSync();
 
     const [busqueda, setBusqueda] = useState('');
-    const [filtroEstado, setFiltroEstado] = useState<EstadoPedido | null>(null);
+    const [filtroEstado, setFiltroEstado] = useState<EstadoPedido | null>('En_Tienda');
     const [ordenDesc, setOrdenDesc] = useState(true);
 
     const handleDespachar = async (envio: Envio) => {
         try {
             await LogisticsRepository.actualizarEstado(envio, 'En_Tienda');
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            // Intentar sync inmediato
+            reSincronizar().catch(() => {});
         } catch (err) {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         }
@@ -312,6 +314,23 @@ export const PickingScreen = () => {
                             color={filtroEstado === 'En_Tienda' ? '#FFF' : colors.primario}
                         >
                             En Tienda
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        onPress={() => handleToggleFiltro('Entregado')}
+                        style={[
+                            styles.filtroChip,
+                            { backgroundColor: colors.fondoPrimario, marginLeft: TOKENS.spacing.sm },
+                            filtroEstado === 'Entregado' && { backgroundColor: colors.primario }
+                        ]}
+                    >
+                        <Text 
+                            variant="small" 
+                            weight="medium"
+                            color={filtroEstado === 'Entregado' ? '#FFF' : colors.primario}
+                        >
+                            Entregados
                         </Text>
                     </TouchableOpacity>
 

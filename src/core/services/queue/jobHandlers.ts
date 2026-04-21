@@ -12,6 +12,7 @@ export const jobHandlers = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
       },
       body: JSON.stringify(payload),
     });
@@ -70,17 +71,30 @@ export const jobHandlers = {
 
     await FileSystem.deleteAsync(job.localUri, { idempotent: true });
 
-    // Notify Sheets (Fire and forget as per original logic)
-    fetch(getApiUrl(), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        tipo: 'logistica_entrega',
-        codigo_pedido: job.codPedido,
-        url_foto: publicUrl,
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
+    // Notify Sheets (Google Sheets Integration)
+    try {
+      const response = await fetch(getApiUrl(), {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          tipo: 'logistica_entrega',
+          codigo_pedido: job.codPedido,
+          url_foto: publicUrl,
+          timestamp: Date.now(),
+        }),
+      });
+      if (!response.ok) {
+        console.warn(`[Queue] Google Sheets notification failed with status: ${response.status}`);
+      } else {
+        console.log(`[Queue] Google Sheets notification sent for ${job.codPedido}`);
+      }
+    } catch (e) {
+      console.error('[Queue] Error sending Google Sheets notification:', e);
+      // We don't throw here to not fail the photo job if the photo was already uploaded successfully
+    }
 
     return true;
   }

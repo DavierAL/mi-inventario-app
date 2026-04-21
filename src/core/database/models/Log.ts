@@ -8,5 +8,5 @@ export default class Log extends Model {
   @field('level') level!: string;
   @field('message') message!: string;
   @field('context') context!: string;
-  @readonly @date('timestamp') timestamp!: number;
+  @field('timestamp') timestamp!: number;
 }

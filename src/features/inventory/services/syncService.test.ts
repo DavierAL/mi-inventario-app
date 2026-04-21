@@ -60,10 +60,23 @@ describe('SyncService - Unit Tests & Performance', () => {
   test('Manejo de errores de Supabase', async () => {
       (supabase.from as jest.Mock).mockReturnValue({
         select: jest.fn().mockReturnThis(),
-        gt: jest.fn().mockResolvedValue({ data: null, error: { message: 'API Error' } }),
+        gt: jest.fn().mockReturnThis(),
+        range: jest.fn().mockResolvedValue({ data: null, error: { message: 'API Error' } }),
       });
 
       // No debería lanzar excepción, sino manejar el error internamente (Logger)
       await expect(syncConSupabase()).resolves.not.toThrow();
+  });
+
+  test('Mapeo de roles en minúscula durante el pull', async () => {
+    // Simular respuesta con roles variados para verificar que se acepten/normalicen si fuera necesario
+    // Aunque el modelo los recibe tal cual, aquí verificamos que la integración no falle
+    const mockUser = { id: 'u1', rol: 'admin', nombre: 'Admin' };
+    (supabase.from as jest.Mock).mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      range: jest.fn().mockResolvedValue({ data: [mockUser], error: null }),
+    });
+
+    await expect(syncConSupabase()).resolves.not.toThrow();
   });
 });

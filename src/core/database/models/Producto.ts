@@ -16,6 +16,6 @@ export default class Producto extends Model {
   @text('marca') marca!: string;
   @text('imagen') imagen?: string;
 
-  @readonly @date('created_at') createdAt!: number;
-  @readonly @date('updated_at') updatedAt!: number;
+  @field('created_at') createdAt!: number;
+  @field('updated_at') updatedAt!: number;
 }

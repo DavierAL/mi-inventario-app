@@ -31,6 +31,6 @@ export default class Envio extends Model {
 
   @children('pedido_items') items!: any;
 
-  @readonly @date('created_at') createdAt!: number;
-  @readonly @date('updated_at') updatedAt!: number;
+  @field('created_at') createdAt!: number;
+  @field('updated_at') updatedAt!: number;
 }

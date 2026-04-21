@@ -11,6 +11,6 @@ export default class OutboxJob extends Model {
   @field('next_retry_at') nextRetryAt?: number;
   @field('last_error') lastError?: string;
 
-  @readonly @date('created_at') createdAt!: number;
-  @readonly @date('updated_at') updatedAt!: number;
+  @field('created_at') createdAt!: number;
+  @field('updated_at') updatedAt!: number;
 }

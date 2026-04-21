@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">12.5% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>2/16</span>
+                <span class='fraction'>8/16</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">60% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>3/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">13.33% </span>
+                <span class="strong">53.33% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>2/15</span>
+                <span class='fraction'>8/15</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -108,26 +108,26 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -152,23 +152,23 @@ export class QueueRetryStrategy {
   private readonly maxAttempts = 10;
   private readonly baseDelayMs = 1000; // 1s
 &nbsp;
-<span class="fstat-no" title="function not covered" >  sh</span>ouldRetry(job: OutboxJob): boolean {
-<span class="cstat-no" title="statement not covered" >    return job.attempts &lt; this.maxAttempts;</span>
+  shouldRetry(job: OutboxJob): boolean {
+    return job.attempts &lt; this.maxAttempts;
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  ca</span>lculateNextRetryDelay(attempts: number): number {
+  calculateNextRetryDelay(attempts: number): number {
     // Exponential backoff: 1s, 2s, 4s, 8s...
-    const backoff = <span class="cstat-no" title="statement not covered" >this.baseDelayMs * Math.pow(2, attempts);</span>
+    const backoff = this.baseDelayMs * Math.pow(2, attempts);
     
     // Add jitter: ±20%
-    const jitter = <span class="cstat-no" title="statement not covered" >backoff * 0.2 * (Math.random() * 2 - 1);</span>
+    const jitter = backoff * 0.2 * (Math.random() * 2 - 1);
     
-<span class="cstat-no" title="statement not covered" >    return backoff + jitter;</span>
+    return backoff + jitter;
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  ge</span>tNextRetryTime(job: OutboxJob): Date {
-    const delay = <span class="cstat-no" title="statement not covered" >this.calculateNextRetryDelay(job.attempts);</span>
-<span class="cstat-no" title="statement not covered" >    return new Date(Date.now() + delay);</span>
+  getNextRetryTime(job: OutboxJob): Date {
+    const delay = this.calculateNextRetryDelay(job.attempts);
+    return new Date(Date.now() + delay);
   }
 &nbsp;
 <span class="fstat-no" title="function not covered" >  as</span>ync executeWithRetry&lt;T&gt;(fn: () =&gt; Promise&lt;T&gt;, attempts = <span class="branch-0 cbranch-no" title="branch not covered" >0)</span>: Promise&lt;T&gt; {
@@ -193,7 +193,7 @@ export class QueueRetryStrategy {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-21T17:06:03.799Z
+                at 2026-04-21T20:11:21.984Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

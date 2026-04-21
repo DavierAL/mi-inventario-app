@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/0</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/1</span>
+                <span class='fraction'>0/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/3</span>
+                <span class='fraction'>0/9</span>
             </div>
         
             
@@ -97,7 +97,35 @@
 <a name='L32'></a><a href='#L32'>32</a>
 <a name='L33'></a><a href='#L33'>33</a>
 <a name='L34'></a><a href='#L34'>34</a>
-<a name='L35'></a><a href='#L35'>35</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -112,6 +140,26 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -132,7 +180,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// ARCHIVO: src/navigation/AppNavigator.tsx
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { InventarioListScreen } from '../../features/inventory';
@@ -140,27 +188,51 @@ import { ScannerScreen } from '../../features/scanner';
 import { AnalyticsScreen } from '../../features/analytics';
 import { HistorialScreen } from '../../features/historial';
 import { PickingScreen, StorePanelScreen } from '../../features/logistics';
+import { LoginScreen } from '../../features/auth/screens/LoginScreen';
 import { RootStackParamList } from '../types/navigation';
+import { useAuthStore } from '../store/useAuthStore';
+import { ActivityIndicator, View } from 'react-native';
+import { useTheme } from '../ui/ThemeContext';
 &nbsp;
 const Stack = <span class="cstat-no" title="statement not covered" >createNativeStackNavigator&lt;RootStackParamList&gt;();</span>
 &nbsp;
 export const AppNavigator = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+    const { isAuthenticated, isLoading, restoreSession } = <span class="cstat-no" title="statement not covered" >useAuthStore();</span>
+    const { colors } = <span class="cstat-no" title="statement not covered" >useTheme();</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        restoreSession();</span>
+    }, []);
+&nbsp;
+<span class="cstat-no" title="statement not covered" >    if (isLoading) {</span>
+<span class="cstat-no" title="statement not covered" >        return (</span>
+            &lt;View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.fondo }}&gt;
+                &lt;ActivityIndicator size="large" color={colors.primario} /&gt;
+            &lt;/View&gt;
+        );
+    }
+&nbsp;
 <span class="cstat-no" title="statement not covered" >    return (</span>
         &lt;NavigationContainer&gt;
             &lt;Stack.Navigator
                 screenOptions={{ headerShown: false }}
-                initialRouteName="InventarioList"
             &gt;
-                &lt;Stack.Screen name="InventarioList" component={InventarioListScreen} /&gt;
-                &lt;Stack.Screen name="Scanner" component={ScannerScreen} /&gt;
-                &lt;Stack.Screen name="Analytics" component={AnalyticsScreen} /&gt;
-                &lt;Stack.Screen
-                    name="Historial"
-                    component={HistorialScreen}
-                    options={{ headerShown: false }}
-                /&gt;
-                &lt;Stack.Screen name="PickingList" component={PickingScreen} /&gt;
-                &lt;Stack.Screen name="StorePanel" component={StorePanelScreen} /&gt;
+                {!isAuthenticated ? (
+                    &lt;Stack.Screen name="Login" component={LoginScreen} /&gt;
+                ) : (
+                    &lt;&gt;
+                        &lt;Stack.Screen name="InventarioList" component={InventarioListScreen} /&gt;
+                        &lt;Stack.Screen name="Scanner" component={ScannerScreen} /&gt;
+                        &lt;Stack.Screen name="Analytics" component={AnalyticsScreen} /&gt;
+                        &lt;Stack.Screen
+                            name="Historial"
+                            component={HistorialScreen}
+                            options={{ headerShown: false }}
+                        /&gt;
+                        &lt;Stack.Screen name="PickingList" component={PickingScreen} /&gt;
+                        &lt;Stack.Screen name="StorePanel" component={StorePanelScreen} /&gt;
+                    &lt;/&gt;
+                )}
             &lt;/Stack.Navigator&gt;
         &lt;/NavigationContainer&gt;
     );
@@ -172,7 +244,7 @@ export const AppNavigator = <span class="cstat-no" title="statement not covered"
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-21T17:06:03.799Z
+                at 2026-04-21T20:11:21.984Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

@@ -210,6 +210,11 @@ jest.mock('@supabase/supabase-js', () => ({
         from: jest.fn().mockReturnThis(),
         upload: jest.fn().mockResolvedValue({ data: {}, error: null }),
         getPublicUrl: jest.fn().mockReturnValue({ data: { publicUrl: 'http://photo.url' } }),
+    },
+    auth: {
+      signInWithPassword: jest.fn().mockResolvedValue({ data: { user: { id: 'test-uuid' } }, error: null }),
+      signOut: jest.fn().mockResolvedValue({ error: null }),
+      getSession: jest.fn().mockResolvedValue({ data: { session: null }, error: null }),
     }
   }),
 }));

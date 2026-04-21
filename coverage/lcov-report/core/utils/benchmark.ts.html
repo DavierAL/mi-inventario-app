@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>10/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>2/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>10/10</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line high'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -123,20 +123,18 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-yes">17x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">17x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -145,15 +143,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">/**
  * Benchmark Utility
@@ -165,41 +165,41 @@ export interface BenchmarkResult {
   label: string;
 }
 &nbsp;
-export async function <span class="fstat-no" title="function not covered" >benchmark&lt;</span>T&gt;(
+export async function benchmark&lt;T&gt;(
   label: string,
   fn: () =&gt; T | Promise&lt;T&gt;
 ): Promise&lt;{ result: T; metrics: BenchmarkResult }&gt; {
-  const start = <span class="cstat-no" title="statement not covered" >performance.now();</span>
-  const result = <span class="cstat-no" title="statement not covered" >await fn();</span>
-  const end = <span class="cstat-no" title="statement not covered" >performance.now();</span>
+  const start = performance.now();
+  const result = await fn();
+  const end = performance.now();
   
-  const metrics: BenchmarkResult = <span class="cstat-no" title="statement not covered" >{</span>
+  const metrics: BenchmarkResult = {
     durationMs: parseFloat((end - start).toFixed(2)),
     label,
   };
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  console.log(`[BENCHMARK] ${label}: ${metrics.durationMs}ms`);</span>
+  console.log(`[BENCHMARK] ${label}: ${metrics.durationMs}ms`);
   
-<span class="cstat-no" title="statement not covered" >  return { result, metrics };</span>
+  return { result, metrics };
 }
 &nbsp;
 /**
  * Asserts that a function executes within a specific time limit.
  */
-export async function <span class="fstat-no" title="function not covered" >assertPerformance&lt;</span>T&gt;(
+export async function assertPerformance&lt;T&gt;(
   label: string,
   thresholdMs: number,
   fn: () =&gt; T | Promise&lt;T&gt;
 ): Promise&lt;T&gt; {
-  const { result, metrics } = <span class="cstat-no" title="statement not covered" >await benchmark(label, fn);</span>
+  const { result, metrics } = await benchmark(label, fn);
   
-<span class="cstat-no" title="statement not covered" >  if (metrics.durationMs &gt; thresholdMs) {</span>
-<span class="cstat-no" title="statement not covered" >    throw new Error(</span>
+  if (metrics.durationMs &gt; thresholdMs) {
+    throw new Error(
       `PERFORMANCE FAILURE: ${label} took ${metrics.durationMs}ms (threshold: ${thresholdMs}ms)`
     );
   }
   
-<span class="cstat-no" title="statement not covered" >  return result;</span>
+  return result;
 }
 &nbsp;</pre></td></tr></table></pre>
 
@@ -208,7 +208,7 @@ export async function <span class="fstat-no" title="function not covered" >asser
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-21T17:06:03.799Z
+                at 2026-04-21T20:11:21.984Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

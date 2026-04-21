@@ -1,16 +1,23 @@
-import { syncConSupabase } from '../syncService';
-import { database } from '../../../../core/database';
-import { supabase } from '../../../../core/database/supabase';
 import NetInfo from '@react-native-community/netinfo';
-import { synchronize } from '@nozbe/watermelondb/sync';
 
 // Mocks
 jest.mock('@react-native-community/netinfo');
 jest.mock('@nozbe/watermelondb/sync');
 
 describe('SyncService', () => {
+    let syncConSupabase: any;
+    let database: any;
+    let synchronize: any;
+
     beforeEach(() => {
+        jest.resetModules();
         jest.clearAllMocks();
+        
+        // Re-importar para tener un estado fresco (isSyncing = false)
+        syncConSupabase = require('../syncService').syncConSupabase;
+        database = require('../../../../core/database').database;
+        synchronize = require('@nozbe/watermelondb/sync').synchronize;
+        
         (NetInfo.fetch as jest.Mock).mockResolvedValue({ isConnected: true });
     });
 
@@ -24,7 +31,6 @@ describe('SyncService', () => {
         (synchronize as jest.Mock).mockResolvedValue(undefined);
         await syncConSupabase();
         expect(synchronize).toHaveBeenCalledWith(expect.objectContaining({
-            database,
             pullChanges: expect.any(Function),
             pushChanges: expect.any(Function),
         }));
@@ -33,8 +39,11 @@ describe('SyncService', () => {
     it('registra el exito en el historial', async () => {
         (synchronize as jest.Mock).mockResolvedValue(undefined);
         const mockCreate = jest.fn();
-        (database.get as jest.Mock).mockReturnValue({ create: mockCreate });
-        (database.write as jest.Mock).mockImplementation(fn => fn());
+        (database.get as jest.Mock).mockImplementation((table: string) => {
+            if (table === 'sync_history') return { create: mockCreate };
+            return { create: jest.fn() }; // Para 'logs'
+        });
+        (database.write as jest.Mock).mockImplementation((fn: any) => fn());
 
         await syncConSupabase();
         

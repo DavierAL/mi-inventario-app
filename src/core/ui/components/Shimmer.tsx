@@ -54,8 +54,8 @@ export const Shimmer: React.FC<ShimmerProps> = ({
     // SOLUCIÓN AL ERROR DE TS: Definir el estilo base como ViewStyle explícito
     // Esto evita que TS se confunda con los tipos complejos de Reanimated
     const baseStyle: ViewStyle = { 
-        width, 
-        height, 
+        width: width as any, 
+        height: height as any, 
         borderRadius, 
         overflow: 'hidden' 
     };

@@ -1,5 +1,5 @@
 import { logisticsRepository } from '../logisticsRepository';
-import { database } from '../../../core/database';
+import { database } from '../../../../core/database';
 
 describe('LogisticsRepository', () => {
     let mockTable: any;
