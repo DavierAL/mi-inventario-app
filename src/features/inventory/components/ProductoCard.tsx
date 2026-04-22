@@ -59,28 +59,37 @@ const ProductoCardComponent: React.FC<Props> = ({ item, onPress }) => {
                         <Text variant="tiny" color={colors.textoTerciario} style={{ fontFamily: 'monospace' }}>
                             {item.codBarras}
                         </Text>
-                        {item.fvActualTs && (
-                            <Badge 
-                                label={`FV: ${formatearFecha(item.fvActualTs)}`}
-                                variant="error"
-                                style={{ marginLeft: 8 }}
-                            />
-                        )}
+                        {typeof item.fvActualTs === 'number' && (() => {
+                            const fv = item.fvActualTs as number;
+                            const nowTs = Date.now();
+                            const diffDays = (fv - nowTs) / (1000 * 60 * 60 * 24);
+                            if (diffDays < 0) return (
+                                <Badge label="VENCIDO" variant="error" style={{ marginLeft: 8 }} />
+                            );
+                            if (diffDays < 90) return (
+                                <Badge label={`Vence en ${Math.ceil(diffDays)}d`} variant="warning" style={{ marginLeft: 8 }} />
+                            );
+                            return (
+                                <Text variant="tiny" color={colors.textoTerciario} style={{ marginLeft: 8 }}>
+                                    FV: {formatearFecha(item.fvActualTs)}
+                                </Text>
+                            );
+                        })()}
                     </View>
                 </View>
 
                 {/* Panel lateral: Stock */}
-                <View style={[styles.infoPrecios, { borderLeftColor: colors.borde }]}>
-                    <Text variant="tiny" weight="bold" color={colors.textoSecundario}>STOCK</Text>
+                <Surface variant="flat" style={[styles.infoStock, { backgroundColor: colors.inputFondo }]}>
+                    <Text variant="tiny" weight="bold" color={colors.textoTerciario}>STOCK</Text>
                     <Text 
-                        variant="h1" 
+                        variant="h2" 
                         weight="bold" 
                         color={item.stockMaster > 0 ? colors.exito : colors.error}
                     >
                         {item.stockMaster}
                     </Text>
-                    <Text variant="tiny" color={colors.textoTerciario}>UNIDADES</Text>
-                </View>
+                    <Text variant="tiny" weight="bold" color={colors.textoTerciario}>UNID</Text>
+                </Surface>
             </TouchableOpacity>
         </Surface>
     );
@@ -100,21 +109,20 @@ export const ProductoCard = memo(ProductoCardComponent, (prevProps, nextProps) =
 
 const styles = StyleSheet.create({
     tarjetaProducto: {
-        marginHorizontal: 15,
-        marginBottom: 12,
-        padding: 14,
-        borderRadius: 12,
+        marginHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        ...SHADOWS.CARD,
     },
     contenedorImagen: {
-        width: 80,
-        height: 80,
-        marginRight: 10,
+        width: 70,
+        height: 70,
+        marginRight: 12,
         borderRadius: 8,
         overflow: 'hidden',
         borderWidth: 1,
+        backgroundColor: '#ffffff', // Aislamos imagen con fondo blanco para elegancia
     },
     imagenProducto: {
         width: '100%',
@@ -162,12 +170,13 @@ const styles = StyleSheet.create({
         marginTop: 4,
         fontWeight: '600',
     },
-    infoPrecios: {
+    infoStock: {
         justifyContent: 'center',
-        alignItems: 'flex-end',
-        paddingLeft: 10,
-        borderLeftWidth: 1,
-        minWidth: 85,
+        alignItems: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 10,
+        borderRadius: 8,
+        minWidth: 60,
     },
     filaPrecio: {
         alignItems: 'flex-end',

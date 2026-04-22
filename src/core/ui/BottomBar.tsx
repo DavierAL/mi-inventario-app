@@ -67,19 +67,21 @@ export const BottomBar: React.FC<Props> = ({ modoActivo, onTabPress }) => {
                     </Text>
                 </TouchableOpacity>
 
-                {/* TAB: ESCÁNER (Botón Central) */}
-                <View style={styles.tabCentralContenedor}>
-                    <TouchableOpacity
-                        style={[styles.botonEscaner, {
-                            backgroundColor: colors.primario,
-                            shadowColor: colors.primario,
-                        }]}
-                        onPress={() => handlePress('escaner')}
-                        activeOpacity={0.8}
-                    >
-                        <Ionicons name="barcode-outline" size={28} color={colors.absolutoBlanco} />
-                    </TouchableOpacity>
-                </View>
+                {/* TAB: ESCÁNER */}
+                <TouchableOpacity
+                    style={styles.tab}
+                    onPress={() => handlePress('escaner')}
+                    activeOpacity={0.7}
+                >
+                    <Ionicons
+                        name={modoActivo === 'escaner' ? 'barcode' : 'barcode-outline'}
+                        size={22}
+                        color={iconColor('escaner')}
+                    />
+                    <Text style={[styles.texto, { color: iconColor('escaner') }]}>
+                        Escáner
+                    </Text>
+                </TouchableOpacity>
 
                 {/* TAB: HISTORIAL */}
                 <TouchableOpacity
@@ -122,20 +124,13 @@ export const BottomBar: React.FC<Props> = ({ modoActivo, onTabPress }) => {
 const styles = StyleSheet.create({
     safeArea: {
         borderTopWidth: 1,
-        // Whisper shadow — Notion multi-layer stack
-        shadowColor: '#000000',
-        shadowOffset: { width: 0, height: -1 },
-        shadowOpacity: 0.04,
-        shadowRadius: 8,
-        elevation: 6,
     },
     contenedor: {
         flexDirection: 'row',
-        height: 52,
+        height: 60,
         justifyContent: 'space-around',
         alignItems: 'center',
-        paddingHorizontal: 8,
-        paddingBottom: Platform.OS === 'android' ? 8 : 0,
+        paddingHorizontal: 4,
     },
     tab: {
         flex: 1,
@@ -148,22 +143,5 @@ const styles = StyleSheet.create({
         fontSize: 10,
         fontWeight: '600',
         letterSpacing: 0.125,
-    },
-    tabCentralContenedor: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    botonEscaner: {
-        width: 56,
-        height: 56,
-        borderRadius: 16,          // 12px standard card radius feel
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: Platform.OS === 'ios' ? 12 : 8,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 8,
-        elevation: 8,
     },
 });

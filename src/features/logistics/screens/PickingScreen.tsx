@@ -44,35 +44,37 @@ const PedidoCard = memo(({ envio, onDespachar, onVerPanel }: PedidoCardProps) =>
     const { colors } = useTheme();
     const puedeDespachar = envio.estado === 'Pendiente';
 
-    // Mapeo semántico para el Badge del Design System
     const getBadgeVariant = (estado: string): 'warning' | 'primary' | 'success' | 'neutral' => {
         switch (estado) {
-            case 'Pendiente': return 'warning'; // Amarillo/Naranja para pendientes
-            case 'En_Tienda': return 'primary'; // Azul para Tienda (Notion Blue)
-            case 'Entregado': return 'success'; // Verde para Entregado
+            case 'Pendiente': return 'warning';
+            case 'En_Tienda': return 'primary';
+            case 'Entregado': return 'success';
             default: return 'neutral';
         }
     };
 
     return (
-        <Surface variant="elevated" style={styles.card} padding="lg">
-            {/* Cabecera de la tarjeta */}
+        <TouchableOpacity 
+            onPress={() => onVerPanel(envio)} 
+            style={[styles.card, { borderBottomColor: colors.borde }]}
+        >
             <View style={styles.cardHeader}>
                 <View style={styles.flex1}>
-                    <View style={styles.cardIdContainer}>
-                        <Text variant="h3" weight="bold">{envio.codPedido}</Text>
-                    </View>
-                    <Text variant="body" color={colors.textoSecundario} numberOfLines={1}>
+                    <Text variant="tiny" weight="bold" color={colors.textoTerciario}>PEDIDO</Text>
+                    <Text variant="h2" weight="bold">{envio.codPedido}</Text>
+                    <Text variant="body" color={colors.textoSecundario} numberOfLines={1} style={{ marginTop: 2 }}>
                         {envio.cliente}
                     </Text>
                 </View>
-                <Badge 
-                    label={envio.estado.replace('_', ' ')} 
-                    variant={getBadgeVariant(envio.estado)} 
-                />
+                <View style={{ alignItems: 'flex-end' }}>
+                    <Badge 
+                        label={envio.estado.replace('_', ' ')} 
+                        variant={getBadgeVariant(envio.estado)} 
+                    />
+                    <Ionicons name="chevron-forward" size={18} color={colors.textoTerciario} style={{ marginTop: 8 }} />
+                </View>
             </View>
 
-            {/* Info Logística */}
             <View style={styles.logisticaRow}>
                 {envio.distrito && (
                     <View style={styles.metaItem}>
@@ -82,46 +84,26 @@ const PedidoCard = memo(({ envio, onDespachar, onVerPanel }: PedidoCardProps) =>
                         </Text>
                     </View>
                 )}
-                {envio.operador && (
+                {envio.bultos !== undefined && envio.bultos > 0 && (
                     <View style={[styles.metaItem, { marginLeft: TOKENS.spacing.md }]}>
-                        <Ionicons name="bicycle-outline" size={12} color={colors.textoTerciario} />
+                        <Ionicons name="cube-outline" size={12} color={colors.textoTerciario} />
                         <Text variant="small" color={colors.textoTerciario} style={styles.marginLeft4}>
-                                {envio.operador}
+                                {envio.bultos} bulto(s)
                         </Text>
                     </View>
                 )}
             </View>
 
-            {envio.notas ? (
-                <View style={styles.notasContainer}>
-                    <Text variant="small" color={colors.textoSecundario} numberOfLines={2}>
-                        {envio.notas}
-                    </Text>
-                </View>
-            ) : null}
-
-            {/* Acciones del Design System */}
-            <View style={styles.cardActions}>
-                {puedeDespachar && (
-                    <Button 
-                        label="Despachar"
-                        variant="primary"
-                        size="sm"
-                        style={styles.despacharBtn}
-                        icon={<Ionicons name="arrow-forward" size={16} color={colors.superficie} />}
-                        onPress={() => onDespachar(envio)}
-                    />
-                )}
+            {puedeDespachar && (
                 <Button 
-                    label="Ver Panel"
-                    variant="secondary"
+                    label="Despachar a Logística"
+                    variant="primary"
                     size="sm"
-                    style={{ flex: puedeDespachar ? 1 : 2 }}
-                    icon={<Ionicons name="qr-code-outline" size={16} color={colors.primario} />}
-                    onPress={() => onVerPanel(envio)}
+                    style={styles.despacharBtnMain}
+                    onPress={() => onDespachar(envio)}
                 />
-            </View>
-        </Surface>
+            )}
+        </TouchableOpacity>
     );
 });
 
@@ -327,7 +309,7 @@ export const PickingScreen = () => {
                     >
                         <Text 
                             variant="small" 
-                            weight="medium"
+                            weight="bold"
                             color={filtroEstado === 'Entregado' ? colors.superficie : colors.primario}
                         >
                             Entregados
@@ -481,10 +463,11 @@ const styles = StyleSheet.create({
         paddingBottom: 32,
     },
     card: {
-        borderRadius: 12,
-        borderWidth: 1,
-        padding: 16,
-        ...SHADOWS.CARD,
+        paddingVertical: 16,
+        borderBottomWidth: 1,
+    },
+    despacharBtnMain: {
+        marginTop: 12,
     },
     cardHeader: {
         flexDirection: 'row',

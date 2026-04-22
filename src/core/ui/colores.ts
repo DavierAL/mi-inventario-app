@@ -40,9 +40,9 @@ export const ThemeColors = {
     },
     dark: {
         // Backgrounds — warm charcoal, NOT cold blue-gray
-        fondo: '#1a1917',              // Warm Charcoal — main background
-        superficie: '#232220',         // Warm Dark Surface — cards
-        superficieAlta: '#2d2b29',    // Warm Dark High — elevated containers
+        fondo: '#2f3437',              // Notion Dark Background
+        superficie: '#2f3437',         // Flat surfaces (no background by default)
+        superficieAlta: '#373c3f',    // Elevated (e.g. modals)
         // Text
         textoPrincipal: 'rgba(255,255,255,0.92)',  // Near-White — primary text
         textoSecundario: '#a39e98',                  // Warm Gray 300 — secondary text

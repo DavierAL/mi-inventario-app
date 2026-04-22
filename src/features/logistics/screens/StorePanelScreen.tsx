@@ -363,7 +363,15 @@ export const StorePanelScreen = () => {
                     <Text variant="tiny" weight="bold" color={colors.textoTerciario}>CLIENTE</Text>
                     <Text variant="body" weight="medium">{item.cliente}</Text>
                     {item.telefono && (
-                        <Text variant="small" color={colors.textoSecundario}>{item.telefono}</Text>
+                        <TouchableOpacity 
+                            onPress={() => Linking.openURL(`tel:${item.telefono}`)}
+                            style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}
+                        >
+                            <Ionicons name="call-outline" size={12} color={colors.primario} />
+                            <Text variant="small" weight="bold" color={colors.primario} style={{ marginLeft: 4 }}>
+                                {item.telefono}
+                            </Text>
+                        </TouchableOpacity>
                     )}
                 </View>
             </View>
@@ -402,6 +410,19 @@ export const StorePanelScreen = () => {
                     <View style={styles.marginLeft12}>
                         <Text variant="tiny" weight="bold" color={colors.textoTerciario}>OPERADOR</Text>
                         <Text variant="body" weight="medium">{item.operador.toUpperCase()}</Text>
+                    </View>
+                </View>
+            )}
+
+            {(item.aPagar !== undefined || item.formaPago) && (
+                <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
+                    <Ionicons name="cash-outline" size={16} color={colors.textoTerciario} />
+                    <View style={styles.marginLeft12}>
+                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>PAGO Y COBRO</Text>
+                        <Text variant="body" weight="bold">
+                            {item.aPagar && item.aPagar > 0 ? `S/ ${item.aPagar.toFixed(2)}` : 'S/ 0.00'}
+                            <Text variant="small" color={colors.textoSecundario}> ({item.formaPago || 'Sin especificar'})</Text>
+                        </Text>
                     </View>
                 </View>
             )}
@@ -453,7 +474,7 @@ export const StorePanelScreen = () => {
                     <Button 
                         label="Tomar Fotografía"
                         variant="secondary"
-                        style={styles.marginTopLg}
+                        style={[styles.marginTopLg, { borderStyle: 'dashed' }]}
                         icon={<Ionicons name="camera" size={18} color={colors.primario} />}
                         onPress={handleAbrirCamara}
                     />

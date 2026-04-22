@@ -34,17 +34,11 @@ export const SkeletonCard = () => {
 
 const styles = StyleSheet.create({
     tarjetaProducto: {
-        marginHorizontal: 15,
-        marginBottom: 12,
-        padding: 14,
-        borderRadius: 12,
+        marginHorizontal: 16,
+        paddingVertical: 12,
+        borderBottomWidth: 1,
         flexDirection: 'row',
         alignItems: 'center',
-        elevation: 1,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 2,
     },
     infoPrincipal: {
         flex: 1,
@@ -55,7 +49,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'flex-end',
         paddingLeft: 10,
-        borderLeftWidth: 1,
         minWidth: 85,
     },
 });
