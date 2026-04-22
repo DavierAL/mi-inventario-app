@@ -63,8 +63,7 @@ export const jobHandlers = {
       .from('envios')
       .update({
         pod_url: publicUrl,
-        url_foto: publicUrl,
-        estado: 'entregado',
+        estado: 'Entregado',
         updated_at: new Date().toISOString(),
       })
       .eq('id', job.pedidoId);

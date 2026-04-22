@@ -5,17 +5,14 @@ import { Logger } from '../../../core/services/LoggerService';
 import { ErrorService } from '../../../core/services/ErrorService';
 import NetInfo from '@react-native-community/netinfo';
 import SyncHistory from '../../../core/database/models/SyncHistory';
+import Envio from '../../../core/database/models/Envio';
 import { Model } from '@nozbe/watermelondb';
 
 /**
  * Mapea los estados de Supabase/WooCommerce a los estados internos de la App.
  */
 function mapearEstadoEntrante(estadoOriginal: string): 'Pendiente' | 'En_Tienda' | 'Entregado' {
-  const norm = (estadoOriginal || '').toLowerCase().replace(/_/g, ' ').trim();
-  if (norm.includes('impresion etiqueta') || norm === 'pendiente' || norm.includes('revisar pago')) return 'Pendiente';
-  if (norm.includes('listo para envio') || norm === 'en tienda' || norm === 'en_tienda') return 'En_Tienda';
-  if (norm.includes('entregado')) return 'Entregado';
-  return 'Pendiente';
+  return Envio.fromExternalStatus(estadoOriginal);
 }
 
 interface ProductoRemote {
@@ -148,7 +145,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         
         while (hasMoreEnv) {
           let queryEnv = supabase.from('envios')
-            .select('id, cod_pedido, cliente, direccion, telefono, estado, operador, url_foto, notas, distrito, gmaps_url, referencia, bultos, created_at, updated_at')
+            .select('id, cod_pedido, cliente, direccion, telefono, estado, operador, url_foto, pod_url, notas, distrito, gmaps_url, referencia, bultos, created_at, updated_at')
             .range(pageEnv * pageSize, (pageEnv + 1) * pageSize - 1);
           if (lastPulledAt && !options.forceFull) {
             queryEnv = queryEnv.gte('updated_at', lastPulledDate);
@@ -175,7 +172,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
           estado: mapearEstadoEntrante(row.estado),
           operador: row.operador || null,
           url_foto: row.url_foto || null,
-          pod_url: row.url_foto || null,
+          pod_url: row.pod_url || null,
           notas: row.notas || null,
           direccion: row.direccion || null,
           distrito: row.distrito || null,
@@ -258,14 +255,15 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
                 id: r.id,
                 cod_pedido: codPedido,
                 cliente: r.cliente,
-                estado: (r.estado as string || 'pendiente').toLowerCase(),
+                estado: Envio.toExternalStatus(r.estado),
                 operador: r.operador || null,
-                url_foto: r.url_foto || r.urlFoto || null,
+                url_foto: r.urlFoto || null,
+                pod_url: r.podUrl || null,
                 notas: r.notas || null,
                 direccion: r.direccion || null,
                 distrito: r.distrito || null,
                 telefono: r.telefono || null,
-                gmaps_url: r.gmaps_url || r.gmapsUrl || null,
+                gmaps_url: r.gmapsUrl || null,
                 referencia: r.referencia || null,
                 updated_at: new Date().toISOString()
               };

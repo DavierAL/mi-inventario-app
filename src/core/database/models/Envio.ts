@@ -37,4 +37,26 @@ export default class Envio extends Model {
 
   @field('created_at') createdAt!: number;
   @field('updated_at') updatedAt!: number;
+
+  /**
+   * Mapea un estado interno de la app al estado externo de Supabase/Google Sheets.
+   */
+  static toExternalStatus(interno: string): string {
+    const status = interno.trim();
+    if (status === 'Pendiente') return 'Impresión Etiqueta';
+    if (status === 'En_Tienda') return 'Listo para envío';
+    if (status === 'Entregado') return 'Entregado';
+    return status;
+  }
+
+  /**
+   * Mapea un estado externo de Supabase/Google Sheets al estado interno de la app.
+   */
+  static fromExternalStatus(externo: string): EstadoPedido {
+    const norm = (externo || '').toLowerCase().replace(/_/g, ' ').trim();
+    if (norm.includes('impresion etiqueta') || norm === 'pendiente' || norm.includes('revisar pago')) return 'Pendiente';
+    if (norm.includes('listo para envio') || norm === 'en tienda' || norm === 'en_tienda') return 'En_Tienda';
+    if (norm.includes('entregado')) return 'Entregado';
+    return 'Pendiente';
+  }
 }

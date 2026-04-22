@@ -73,7 +73,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // 2. Mapeo al formato exacto que espera el script de Google Sheets (doPost)
-    const photoUrl = record.url_foto || record.pod_url || "";
+    const photoUrl = record.pod_url || record.url_foto || "";
     console.log(`[sync-logistica-sheets] Relay -> Pedido: ${record.cod_pedido}, Estado: ${record.estado}, Foto: ${photoUrl}`);
 
     const payloadForSheets = {

@@ -8,6 +8,7 @@ import { supabase } from '../../../core/database/supabase';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Logger } from '../../../core/services/LoggerService';
 import { decode } from 'base64-arraybuffer';
+import Envio from '../../../core/database/models/Envio';
 
 export const EnviosService = {
 
@@ -71,14 +72,14 @@ export const EnviosService = {
         nuevoEstado: params.nuevoEstado,
       });
 
-      const updateData: Record<string, string> = {
-        estado: params.nuevoEstado.charAt(0).toUpperCase() + params.nuevoEstado.slice(1).toLowerCase(),
+      const updateData: Record<string, string | null> = {
+        estado: Envio.toExternalStatus(params.nuevoEstado),
         updated_at: new Date().toISOString(),
       };
 
       if (params.podUrl) {
         updateData.pod_url = params.podUrl;
-        updateData.url_foto = params.podUrl; // Redundancia para compatibilidad con Edge Functions/Sheets
+        // Se elimina la redundancia de sobrescribir url_foto para preservar la imagen del producto
       }
 
       const { error } = await supabase
