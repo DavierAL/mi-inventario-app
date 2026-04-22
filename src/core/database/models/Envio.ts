@@ -12,7 +12,11 @@ export default class Envio extends Model {
   @text('operador') operador?: string;
   @text('url_foto') urlFoto?: string;
   @text('pod_local_uri') podLocalUri?: string;
+  @field('supabase_id') supabaseId!: string;
+  @field('pod_url') podUrl?: string | null;
+
   @text('notas') notas?: string;
+
   @text('direccion') direccion?: string;
   @text('distrito') distrito?: string;
   @text('telefono') telefono?: string;

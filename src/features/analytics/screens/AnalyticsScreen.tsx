@@ -24,6 +24,7 @@ interface Props {
 
 const AnalyticsScreenRaw: React.FC<Props> = ({ productos }) => {
     const { colors, isDark } = useTheme();
+    const analyticsData = useAnalytics(productos ?? []);
 
     if (!productos) {
         return (
@@ -36,7 +37,8 @@ const AnalyticsScreenRaw: React.FC<Props> = ({ productos }) => {
         );
     }
 
-    const { saludPorcentaje, capitalPerdido, datosDona, marcasRiesgo, recomendaciones, totalInventario } = useAnalytics(productos);
+    const { saludPorcentaje, capitalPerdido, datosDona, marcasRiesgo, recomendaciones, totalInventario } = analyticsData;
+
 
     // Ajustar colores de la dona para modo oscuro
     const datosDonaTematizados = datosDona.map(d => ({

@@ -65,8 +65,21 @@ const migrations = schemaMigrations({
         }),
       ],
     },
+    {
+      toVersion: 10,
+      steps: [
+        addColumns({
+          table: 'envios',
+          columns: [
+            { name: 'supabase_id', type: 'string', isOptional: true },
+            { name: 'pod_url', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
   ],
 });
+
 
 const adapter = new SQLiteAdapter({
   schema,

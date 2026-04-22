@@ -113,11 +113,13 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
 
         const enviosUpdated = enviosRemote.map(row => ({
           id: row.id?.toString() || '',
+          supabase_id: row.id?.toString() || '',
           cod_pedido: row.cod_pedido,
           cliente: row.cliente,
           estado: mapearEstadoEntrante(row.estado),
           operador: row.operador || null,
           url_foto: row.url_foto || null,
+          pod_url: row.pod_url || null,
           notas: row.notas || null,
           direccion: row.direccion || null,
           distrito: row.distrito || null,
@@ -185,6 +187,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
               estado: record.estado.toLowerCase(),
               operador: record.operador,
               url_foto: record.url_foto,
+              pod_url: record.pod_url,
               notas: record.notas,
               direccion: record.direccion,
               distrito: record.distrito,

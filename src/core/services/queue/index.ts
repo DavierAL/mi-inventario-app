@@ -17,8 +17,10 @@ const persistentQueue = new PersistentQueue();
 export const QueueActions = {
   enqueueWebhook: (payload: any) => persistentQueue.enqueue('webhook', payload),
   enqueueFoto: (payload: any) => persistentQueue.enqueue('foto', payload),
+  enqueueEstadoEnvio: (payload: any) => persistentQueue.enqueue('ESTADO_ENVIO', payload),
   getStats: () => persistentQueue.getStats(),
 };
+
 
 export const initializeQueueProcessor = () => {
   queueProcessor.start();

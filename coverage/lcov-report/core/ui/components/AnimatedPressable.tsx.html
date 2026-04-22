@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">82.35% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>14/17</span>
+                <span class='fraction'>0/17</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">75% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/4</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>12/15</span>
+                <span class='fraction'>0/15</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -143,39 +143,39 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">7x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">25x</span>
-<span class="cline-any cline-yes">25x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">25x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">25x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">25x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -205,39 +205,39 @@ interface AnimatedPressableProps extends PressableProps {
     haptic?: Haptics.ImpactFeedbackStyle;
 }
 &nbsp;
-const AnimatedPressableBase = Animated.createAnimatedComponent(Pressable);
+const AnimatedPressableBase = <span class="cstat-no" title="statement not covered" >Animated.createAnimatedComponent(Pressable);</span>
 &nbsp;
-export const AnimatedPressable: React.FC&lt;AnimatedPressableProps&gt; = ({
+export const AnimatedPressable: React.FC&lt;AnimatedPressableProps&gt; = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >({</span></span>
     children,
     style,
-    scaleTo = 0.96,
-    haptic = Haptics.ImpactFeedbackStyle.Light,
+    scaleTo = <span class="branch-0 cbranch-no" title="branch not covered" >0.96,</span>
+    haptic = <span class="branch-0 cbranch-no" title="branch not covered" >Haptics.ImpactFeedbackStyle.Light,</span>
     onPressIn,
     onPressOut,
     ...props
 }) =&gt; {
-    const scale = useSharedValue(1);
-    const opacity = useSharedValue(1);
+    const scale = <span class="cstat-no" title="statement not covered" >useSharedValue(1);</span>
+    const opacity = <span class="cstat-no" title="statement not covered" >useSharedValue(1);</span>
 &nbsp;
-    const animatedStyle = useAnimatedStyle(() =&gt; ({
+    const animatedStyle = <span class="cstat-no" title="statement not covered" >useAnimatedStyle(<span class="fstat-no" title="function not covered" >()</span> =&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
         transform: [{ scale: scale.value }],
         opacity: opacity.value,
     }));
 &nbsp;
-    const handlePressIn = (e: any) =&gt; {
-        if (haptic) Haptics.impactAsync(haptic);
-        scale.value = withSpring(scaleTo, { damping: 10, stiffness: 200 });
-        opacity.value = withTiming(0.85, { duration: 100 });
-        onPressIn?.(e);
+    const handlePressIn = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(e</span>: any) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        if (haptic) <span class="cstat-no" title="statement not covered" >Haptics.impactAsync(haptic);</span></span>
+<span class="cstat-no" title="statement not covered" >        scale.value = withSpring(scaleTo, { damping: 10, stiffness: 200 });</span>
+<span class="cstat-no" title="statement not covered" >        opacity.value = withTiming(0.85, { duration: 100 });</span>
+<span class="cstat-no" title="statement not covered" >        onPressIn?.(e);</span>
     };
 &nbsp;
-    const handlePressOut = <span class="fstat-no" title="function not covered" >(e</span>: any) =&gt; {
+    const handlePressOut = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(e</span>: any) =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        scale.value = withSpring(1, { damping: 10, stiffness: 200 });</span>
 <span class="cstat-no" title="statement not covered" >        opacity.value = withTiming(1, { duration: 150 });</span>
 <span class="cstat-no" title="statement not covered" >        onPressOut?.(e);</span>
     };
 &nbsp;
-    return (
+<span class="cstat-no" title="statement not covered" >    return (</span>
         &lt;AnimatedPressableBase
             {...props}
             testID={props.testID}
@@ -256,7 +256,7 @@ export const AnimatedPressable: React.FC&lt;AnimatedPressableProps&gt; = ({
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-21T20:11:21.984Z
+                at 2026-04-22T00:12:22.269Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

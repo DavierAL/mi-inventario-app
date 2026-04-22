@@ -11,31 +11,13 @@ supabase db push
 
 ### 4. Deployar las Edge Functions
 ```bash
-supabase functions deploy webhook-woocommerce
-supabase functions deploy cron-verificar-pagos
-supabase functions deploy cron-completar-pedidos
 supabase functions deploy api-versiones
+supabase functions deploy sync-logistica-sheets
 ```
 
-### 5. Configurar secrets de las Edge Functions
-```bash
-supabase secrets set WOO_CONSUMER_KEY=your_consumer_key_here
-supabase secrets set WOO_CONSUMER_SECRET=your_consumer_secret_here
-supabase secrets set WOO_WEBHOOK_SECRET=your_webhook_secret_hmac
-supabase secrets set WOO_STORE_URL=https://your-store.com/wp-json/wc/v3
-```
+### 5. Configurar el sistema de Envíos
+El sistema utiliza sincronización directa con Supabase y notificaciones a Google Sheets a través de Edge Functions.
 
-### 6. Configurar el webhook en WooCommerce
-En WooCommerce → Ajustes → Avanzado → Webhooks:
-- Nombre: Mascotify Backend
-- Estado: Activo
-- Tema: Pedido creado
-- URL de entrega: `https://YOUR_PROJECT.supabase.co/functions/v1/webhook-woocommerce`
-- Versión API: WC/v3
-
-### 7. Activar pg_cron para los triggers programados
-En el Dashboard de Supabase → Database → Extensions → habilitar `pg_cron`
-Luego ejecutar el migration 15 manualmente desde el SQL editor.
 
 ## Variables de entorno para la app
 

@@ -2,7 +2,8 @@
 import { supabase } from '../../database/supabase';
 import { decode } from 'base64-arraybuffer';
 import * as FileSystem from 'expo-file-system/legacy';
-import { WebhookPayload, FotoUploadJob } from './types';
+import { WebhookPayload, FotoUploadJob, EstadoEnvioJob } from './types';
+import { EnviosService } from '../../../features/logistics/services/enviosService';
 
 const getApiUrl = () => process.env.EXPO_PUBLIC_CLOUD_FUNCTION_URL || '';
 
@@ -44,7 +45,7 @@ export const jobHandlers = {
     const arrayBuffer = decode(base64);
 
     const { error: uploadError } = await supabase.storage
-      .from('pedidos')
+      .from('evidencias')
       .upload(job.storagePath, arrayBuffer, {
         contentType: 'image/jpeg',
         upsert: true
@@ -55,13 +56,13 @@ export const jobHandlers = {
     }
 
     const { data: { publicUrl } } = supabase.storage
-      .from('pedidos')
+      .from('evidencias')
       .getPublicUrl(job.storagePath);
 
     const { error: dbError } = await supabase
       .from('envios')
       .update({
-        url_foto: publicUrl,
+        pod_url: publicUrl,
         estado: 'entregado',
         updated_at: new Date().toISOString(),
       })
@@ -71,31 +72,44 @@ export const jobHandlers = {
 
     await FileSystem.deleteAsync(job.localUri, { idempotent: true });
 
-    // Notify Sheets (Google Sheets Integration)
+    // Notify Sheets
     try {
-      const response = await fetch(getApiUrl(), {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
-          tipo: 'logistica_entrega',
-          codigo_pedido: job.codPedido,
-          url_foto: publicUrl,
-          timestamp: Date.now(),
-        }),
-      });
-      if (!response.ok) {
-        console.warn(`[Queue] Google Sheets notification failed with status: ${response.status}`);
-      } else {
-        console.log(`[Queue] Google Sheets notification sent for ${job.codPedido}`);
-      }
+      await EnviosService.notificarSheets(job.pedidoId);
     } catch (e) {
       console.error('[Queue] Error sending Google Sheets notification:', e);
-      // We don't throw here to not fail the photo job if the photo was already uploaded successfully
     }
 
     return true;
+  },
+
+  ESTADO_ENVIO: async (payload: EstadoEnvioJob): Promise<boolean> => {
+    const { supabaseRowId, nuevoEstado, podLocalUri, codPedido } = payload;
+    let podUrl: string | undefined;
+    
+    // Si hay foto, subirla primero
+    if (podLocalUri) {
+      // Usamos import dinámico como sugiere el usuario
+      const { EnviosService } = await import('../../../features/logistics/services/enviosService');
+      const uploadedUrl = await EnviosService.subirFotoPOD(podLocalUri, codPedido);
+      podUrl = uploadedUrl ?? undefined;
+    }
+    
+    // Actualizar estado en Supabase
+    const { EnviosService } = await import('../../../features/logistics/services/enviosService');
+    const result = await EnviosService.actualizarEstado({
+      supabaseRowId,
+      nuevoEstado,
+      podUrl,
+    });
+    
+    if (!result.exito) {
+      throw new Error(`Supabase update failed: ${result.error}`);
+    }
+    
+    // Notificar Sheets (sin bloquear si falla)
+    EnviosService.notificarSheets(supabaseRowId).catch(() => {});
+    return true;
   }
+
 };
+

@@ -29,6 +29,8 @@ import { TOKENS } from '../../../core/ui/tokens';
 import { Logger } from '../../../core/services/LoggerService';
 import { ErrorService } from '../../../core/services/ErrorService';
 import { validateData, EnvioSchema } from '../../../core/validation/schemas';
+import { EnviosService } from '../services/enviosService';
+
 
 type StorePanelNavProp = NativeStackNavigationProp<RootStackParamList, 'StorePanel'>;
 type StorePanelRoute = RouteProp<RootStackParamList, 'StorePanel'>;
@@ -187,28 +189,25 @@ export const StorePanelScreen = () => {
 
     const handleConfirmarEntrega = async () => {
         if (!envio) return;
+        
         if (!fotoUri) {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
             Alert.alert(
-                '⚠️ Evidencia Requerida', 
+                '⚠️ Evidencia Requerida',
                 'Es obligatorio tomar una fotografía del paquete o del cliente recibiendo el pedido antes de confirmar la entrega.'
             );
             return;
         }
 
-        Logger.info('[StorePanel] Iniciando confirmación de entrega', { 
-            pedidoId: envio.id, 
-            codPedido: envio.codPedido 
+        Logger.info('[StorePanel] Iniciando confirmación de entrega', {
+            pedidoId: envio.id,
+            codPedido: envio.codPedido,
         });
 
         try {
             setProcesando(true);
-            
-            // Validar estado actual antes de proceder
-            if (envio.estado === 'Entregado') {
-                throw new Error('Este pedido ya ha sido entregado.');
-            }
 
+            // PASO 1: Actualizar WatermelonDB local (optimistic update para UI)
             await database.write(async () => {
                 await envio.update((p) => {
                     p.estado = 'Entregado';
@@ -216,34 +215,67 @@ export const StorePanelScreen = () => {
                 });
             });
 
-            const storagePath = `pedidos/${envio.codPedido}/pod_${Date.now()}.jpg`;
-            await QueueActions.enqueueFoto({
-                pedidoId: envio.id,
-                codPedido: envio.codPedido,
-                localUri: fotoUri,
-                storagePath,
-            });
-            
-            Logger.info('[StorePanel] Entrega confirmada localmente y encolada', { 
-                pedidoId: envio.id 
+            // PASO 2: Subir foto a Supabase Storage
+            Toast.show({ type: 'info', text1: 'Subiendo evidencia...' });
+            const podUrl = await EnviosService.subirFotoPOD(fotoUri, envio.codPedido);
+
+            // PASO 3: ⚠️ CRÍTICO — Actualizar tabla `envios` en Supabase
+            // (ESTE ERA EL PASO FALTANTE QUE CAUSABA QUE LOS CAMBIOS NO LLEGUEN)
+            const supabaseId = envio.supabaseId ?? envio.id;
+            const resultado = await EnviosService.actualizarEstado({
+                supabaseRowId: supabaseId,
+                nuevoEstado: 'Entregado',
+                podUrl: podUrl ?? undefined,
             });
 
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            Toast.show({
-                type: 'success',
-                text1: 'Entrega confirmada',
-                text2: isOnline ? 'Subiendo evidencia...' : 'Se sincronizará cuando haya red',
-            });
+            if (resultado.exito) {
+                // PASO 4: Notificar Google Sheets (no-bloqueante)
+                EnviosService.notificarSheets(supabaseId).catch(() => {});
+
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                Toast.show({
+                    type: 'success',
+                    text1: '✅ Entrega confirmada',
+                    text2: 'Evidencia guardada en el sistema',
+                });
+                
+                Logger.info('[StorePanel] Entrega confirmada exitosamente', {
+                    pedidoId: envio.id,
+                });
+            } else {
+                // Fallback: sin conexión o error en Supabase
+                // Encolar el trabajo para retry automático cuando hay red
+                Toast.show({
+                    type: 'warning',
+                    text1: 'Sin conexión a Internet',
+                    text2: 'Guardado localmente. Se sincronizará cuando haya red.',
+                });
+
+                Logger.warn('[StorePanel] Encolando ESTADO_ENVIO para retry offline', {
+                    pedidoId: envio.id,
+                });
+
+                await QueueActions.enqueueEstadoEnvio({
+                    supabaseRowId: supabaseId,
+                    nuevoEstado: 'Entregado',
+                    podLocalUri: fotoUri,
+                    codPedido: envio.codPedido,
+                });
+            }
+
             navigation.goBack();
+
         } catch (error) {
-            ErrorService.handle(error, { 
-                operation: 'confirmarEntrega', 
-                pedidoId: envio.id 
+            ErrorService.handle(error, {
+                operation: 'confirmarEntrega',
+                pedidoId: envio.id,
             });
         } finally {
             setProcesando(false);
         }
     };
+
+
 
     // ─── Modal escáner QR ─────────────────────────────────────────────────────
 

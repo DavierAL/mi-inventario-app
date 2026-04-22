@@ -2,7 +2,7 @@
 
 export type JobStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'RETRYING';
 
-export type JobType = 'webhook' | 'foto';
+export type JobType = 'webhook' | 'foto' | 'ESTADO_ENVIO';
 
 export interface WebhookPayload {
   codigoBarras: string;
@@ -20,7 +20,14 @@ export interface FotoUploadJob {
   urlFoto?: string;
 }
 
-export type QueueJobPayload = WebhookPayload | FotoUploadJob;
+export interface EstadoEnvioJob {
+  supabaseRowId: string;
+  nuevoEstado: string;
+  podLocalUri?: string;
+  codPedido: string;
+}
+
+export type QueueJobPayload = WebhookPayload | FotoUploadJob | EstadoEnvioJob;
 
 export interface QueueStats {
   pending: number;

@@ -45,8 +45,9 @@ export const Badge: React.FC<BadgeProps> = ({
             style={[styles.badge, { backgroundColor: bg }, style]}
         >
             <Text style={[styles.text, { color: text }]}>
-                {label}
+                {label.toUpperCase()}
             </Text>
+
         </Animated.View>
     );
 };

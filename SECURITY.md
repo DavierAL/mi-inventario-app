@@ -8,7 +8,6 @@ All sensitive credentials (API keys, secrets) must be stored in environment vari
 
 ## Credential Rotation Schedule
 To minimize the impact of potential leaks, credentials should be rotated:
-- **WooCommerce Keys**: Every 90 days.
 - **Supabase Anon Key**: Every 180 days (if possible without breaking clients).
 - **Service Role Keys**: Immediately if suspected of exposure.
 
