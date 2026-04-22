@@ -17,6 +17,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Q } from '@nozbe/watermelondb';
 import { database } from '../../../core/database';
 import Envio, { EstadoPedido } from '../../../core/database/models/Envio';
+import { LogisticaHistorialRepository } from '../repository/logisticaHistorialRepository';
 import { LogisticsRepository } from '../repository/logisticsRepository';
 import { QueueActions } from '../../../core/services/queue';
 import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
@@ -201,11 +202,20 @@ export const StorePanelScreen = () => {
             setProcesando(true);
 
             // PASO 1: Actualizar WatermelonDB local (optimistic update para UI)
+            const estadoAnterior = envio.estado;
             await database.write(async () => {
                 await envio.update((p) => {
                     p.estado = 'Entregado';
                     p.podLocalUri = fotoUri;
                 });
+            });
+
+            // Registrar en historial local
+            await LogisticaHistorialRepository.registrarCambio({
+                envioId: envio.id,
+                codPedido: envio.codPedido,
+                estadoAnterior,
+                estadoNuevo: 'Entregado',
             });
 
             // PASO 2: Subir foto a Supabase Storage
@@ -588,7 +598,7 @@ export const StorePanelScreen = () => {
                 modoActivo="logistica"
                 onTabPress={(tab: TabActivo) => {
                     if (tab === 'lista') navigation.navigate('InventarioList');
-                    if (tab === 'historial') navigation.navigate('Historial');
+                    if (tab === 'historial') navigation.navigate('LogisticsHistory');
                     if (tab === 'escaner') navigation.navigate('Scanner');
                     if (tab === 'logistica') navigation.navigate('PickingList');
                 }}

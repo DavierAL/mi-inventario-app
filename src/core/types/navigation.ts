@@ -7,4 +7,5 @@ export type RootStackParamList = {
   Historial: undefined;
   PickingList: undefined;
   StorePanel: { pedidoId?: string } | undefined;
+  LogisticsHistory: undefined;
 };

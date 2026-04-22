@@ -328,7 +328,7 @@ export const PickingScreen = () => {
                 modoActivo="logistica"
                 onTabPress={(tab: TabActivo) => {
                     if (tab === 'lista') navigation.navigate('InventarioList');
-                    if (tab === 'historial') navigation.navigate('Historial');
+                    if (tab === 'historial') navigation.navigate('LogisticsHistory');
                     if (tab === 'escaner') navigation.navigate('Scanner');
                     if (tab === 'analytics') navigation.navigate('Analytics');
                 }}

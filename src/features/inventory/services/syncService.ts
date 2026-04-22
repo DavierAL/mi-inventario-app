@@ -54,6 +54,7 @@ interface EnvioRemote {
   distrito?: string;
   gmaps_url?: string;
   referencia?: string;
+  pod_url?: string;
 }
 
 interface SyncChanges {

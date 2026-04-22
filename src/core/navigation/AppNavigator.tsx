@@ -6,7 +6,7 @@ import { InventarioListScreen } from '../../features/inventory';
 import { ScannerScreen } from '../../features/scanner';
 import { AnalyticsScreen } from '../../features/analytics';
 import { HistorialScreen } from '../../features/historial';
-import { PickingScreen, StorePanelScreen } from '../../features/logistics';
+import { PickingScreen, StorePanelScreen, LogisticsHistoryScreen } from '../../features/logistics';
 import { LoginScreen } from '../../features/auth/screens/LoginScreen';
 import { RootStackParamList } from '../types/navigation';
 import { useAuthStore } from '../store/useAuthStore';
@@ -50,6 +50,7 @@ export const AppNavigator = () => {
                         />
                         <Stack.Screen name="PickingList" component={PickingScreen} />
                         <Stack.Screen name="StorePanel" component={StorePanelScreen} />
+                        <Stack.Screen name="LogisticsHistory" component={LogisticsHistoryScreen} />
                     </>
                 )}
             </Stack.Navigator>

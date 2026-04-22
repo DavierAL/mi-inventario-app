@@ -1,7 +1,7 @@
 import { appSchema, tableSchema } from '@nozbe/watermelondb';
 
 export const schema = appSchema({
-  version: 11,
+  version: 12,
   tables: [
 
     tableSchema({
@@ -100,6 +100,17 @@ export const schema = appSchema({
         { name: 'message', type: 'string' },
         { name: 'context', type: 'string' },
         { name: 'timestamp', type: 'number' },
+      ]
+    }),
+    tableSchema({
+      name: 'logistica_historial',
+      columns: [
+        { name: 'envio_id', type: 'string', isIndexed: true },
+        { name: 'cod_pedido', type: 'string', isIndexed: true },
+        { name: 'estado_anterior', type: 'string' },
+        { name: 'estado_nuevo', type: 'string' },
+        { name: 'timestamp', type: 'number', isIndexed: true },
+        { name: 'operador', type: 'string', isOptional: true },
       ]
     }),
     tableSchema({

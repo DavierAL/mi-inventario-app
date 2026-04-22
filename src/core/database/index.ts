@@ -9,6 +9,7 @@ import OutboxJob from './models/OutboxJob';
 import Log from './models/Log';
 import SyncHistory from './models/SyncHistory';
 import Usuario from './models/Usuario';
+import LogisticaHistorial from './models/LogisticaHistorial';
 
 const migrations = schemaMigrations({
   migrations: [
@@ -92,6 +93,22 @@ const migrations = schemaMigrations({
         }),
       ],
     },
+    {
+      toVersion: 12,
+      steps: [
+        createTable({
+          name: 'logistica_historial',
+          columns: [
+            { name: 'envio_id', type: 'string', isIndexed: true },
+            { name: 'cod_pedido', type: 'string', isIndexed: true },
+            { name: 'estado_anterior', type: 'string' },
+            { name: 'estado_nuevo', type: 'string' },
+            { name: 'timestamp', type: 'number', isIndexed: true },
+            { name: 'operador', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
   ],
 });
 
@@ -107,5 +124,5 @@ const adapter = new SQLiteAdapter({
 
 export const database = new Database({
   adapter,
-  modelClasses: [Producto, Movimiento, Envio, OutboxJob, Log, SyncHistory, Usuario],
+  modelClasses: [Producto, Movimiento, Envio, OutboxJob, Log, SyncHistory, Usuario, LogisticaHistorial],
 });
