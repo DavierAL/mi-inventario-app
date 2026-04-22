@@ -2,12 +2,12 @@
 // Notion Design System — whisper border top, warm surface bg, Notion Blue active icons.
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from './ThemeContext';
 
-export type TabActivo = 'lista' | 'escaner' | 'historial' | 'logistica' | 'ajustes';
+export type TabActivo = 'lista' | 'escaner' | 'historial' | 'logistica' | 'analytics';
 
 interface Props {
     modoActivo: TabActivo;
@@ -16,6 +16,7 @@ interface Props {
 
 export const BottomBar: React.FC<Props> = ({ modoActivo, onTabPress }) => {
     const { colors, isDark, toggleTheme } = useTheme();
+    const insets = useSafeAreaInsets();
 
     const handlePress = (tab: TabActivo) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -26,15 +27,15 @@ export const BottomBar: React.FC<Props> = ({ modoActivo, onTabPress }) => {
         modoActivo === tab ? colors.primario : colors.bottomBarIcono;
 
     return (
-        <SafeAreaView
-            edges={['bottom']}
-            style={[styles.safeArea, {
-                backgroundColor: colors.bottomBarFondo,
+        <View style={[
+            styles.safeArea, 
+            { 
+                backgroundColor: colors.superficie, 
                 borderTopColor: colors.borde,
-            }]}
-        >
-            <View style={[styles.contenedor, { backgroundColor: colors.bottomBarFondo }]}>
-
+                paddingBottom: insets.bottom || 4 // Eliminamos el espacio extra 'raro' y usamos insets o un valor mínimo natural
+            }
+        ]}>
+            <View style={styles.contenedor}>
                 {/* TAB: ALMACÉN */}
                 <TouchableOpacity
                     style={styles.tab}
@@ -75,10 +76,10 @@ export const BottomBar: React.FC<Props> = ({ modoActivo, onTabPress }) => {
                 >
                     <Ionicons
                         name={modoActivo === 'escaner' ? 'barcode' : 'barcode-outline'}
-                        size={22}
-                        color={iconColor('escaner')}
+                        size={40} // Más grande como se solicitó
+                        color={colors.exito} // Más verde (usando color éxito)
                     />
-                    <Text style={[styles.texto, { color: iconColor('escaner') }]}>
+                    <Text style={[styles.texto, { color: colors.exito, fontWeight: '900', marginTop: -2 }]}>
                         Escáner
                     </Text>
                 </TouchableOpacity>
@@ -99,25 +100,24 @@ export const BottomBar: React.FC<Props> = ({ modoActivo, onTabPress }) => {
                     </Text>
                 </TouchableOpacity>
 
-                {/* TAB: TEMA */}
+                {/* TAB: ANALYTICS */}
                 <TouchableOpacity
                     style={styles.tab}
-                    onPress={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        toggleTheme();
-                    }}
+                    onPress={() => handlePress('analytics')}
                     activeOpacity={0.7}
                 >
                     <Ionicons
-                        name={isDark ? 'sunny-outline' : 'moon-outline'}
+                        name={modoActivo === 'analytics' ? 'stats-chart' : 'stats-chart-outline'}
                         size={22}
-                        color={colors.bottomBarIcono}
+                        color={iconColor('analytics')}
                     />
-                    <Text style={[styles.texto, { color: colors.bottomBarIcono }]}>Tema</Text>
+                    <Text style={[styles.texto, { color: iconColor('analytics') }]}>
+                        Análisis
+                    </Text>
                 </TouchableOpacity>
 
             </View>
-        </SafeAreaView>
+        </View>
     );
 };
 
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     },
     contenedor: {
         flexDirection: 'row',
-        height: 60,
+        height: 64,
         justifyContent: 'space-around',
         alignItems: 'center',
         paddingHorizontal: 4,

@@ -58,7 +58,7 @@ export const ThemeColors = {
         exito: '#22c55e',               // Green (lighter for dark bg)
         // Inputs
         inputFondo: '#232220',
-        inputDeshabilitado: '#2d2b29',
+        inputDeshabilitado: '#373c3f',
         placeholder: '#615d59',
         // BottomBar
         bottomBarFondo: '#1a1917',

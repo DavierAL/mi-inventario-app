@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCameraPermissions } from 'expo-camera';
 import { FlashList } from '@shopify/flash-list';
+import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -106,7 +107,7 @@ const ListaReactiva = withObservables(['query'], ({ query }: { query: Query<Prod
 // ─── Pantalla Principal ───────────────────────────────────────────────────
 
 export const InventarioListScreen = () => {
-    const { colors, isDark } = useTheme();
+    const { colors, isDark, toggleTheme } = useTheme();
     const navigation = useNavigation<InventarioListNavProp>();
 
     const { 
@@ -192,11 +193,18 @@ export const InventarioListScreen = () => {
                 borderBottomColor: colors.borde,
             }]}>
                 <View style={styles.headerTop}>
-                    <View>
-                        <Text variant="h1" weight="bold">Mi Inventario</Text>
-                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>
-                            {lastSync ? `SYNC: ${lastSync}` : 'SIN SINCRONIZAR'}
-                        </Text>
+                    <View style={styles.headerBranding}>
+                        <Image 
+                            source={require('../../../../assets/logo-mascotify.svg')}
+                            style={styles.logoTiny}
+                            contentFit="contain"
+                        />
+                        <View>
+                            <Text variant="h1" weight="bold">Mascotify</Text>
+                            <Text variant="tiny" weight="bold" color={colors.textoTerciario}>
+                                {lastSync ? `SYNC: ${lastSync}` : 'SIN SINCRONIZAR'}
+                            </Text>
+                        </View>
                     </View>
                     
                     <View style={styles.filaSync}>
@@ -218,6 +226,12 @@ export const InventarioListScreen = () => {
                             ) : (
                                 <Ionicons name="sync" size={20} color={colors.primario} />
                             )}
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            style={[styles.btnCircle, { backgroundColor: colors.fondoPrimario, marginLeft: 8 }]}
+                            onPress={toggleTheme}
+                        >
+                            <Ionicons name={isDark ? 'sunny' : 'moon'} size={20} color={colors.primario} />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -311,6 +325,7 @@ export const InventarioListScreen = () => {
                     if (tab === 'escaner') handleBotonEscaner();
                     if (tab === 'historial') navigation.navigate('Historial');
                     if (tab === 'logistica') navigation.navigate('PickingList');
+                    if (tab === 'analytics') navigation.navigate('Analytics');
                 }}
             />
         </SafeAreaView>
@@ -323,6 +338,8 @@ const styles = StyleSheet.create({
     marginRight8: { marginRight: 8 },
     syncBtnFull: { marginTop: TOKENS.spacing.xl, width: '100%' },
     filaSync: { flexDirection: 'row', alignItems: 'center' },
+    headerBranding: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    logoTiny: { width: 32, height: 32 },
     searchContainer: { marginTop: TOKENS.spacing.md },
     filtrosScroll: { paddingHorizontal: 20, gap: 8 },
     cargandoContenedor: { flex: 1, padding: 20 },

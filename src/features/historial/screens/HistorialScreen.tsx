@@ -12,6 +12,7 @@ import { useHistorial } from '../hooks/useHistorial';
 import { useTheme } from '../../../core/ui/ThemeContext';
 import { EntradaHistorial, TipoAccionHistorial } from '../../../core/types/inventario';
 import { formatearTiempoRelativo, formatearHora } from '../../../core/utils/fecha';
+import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
 import { Text, Surface, Badge } from '../../../core/ui/components';
 import { TOKENS } from '../../../core/ui/tokens';
 
@@ -119,8 +120,8 @@ const EntradaCard = React.memo(({ entrada, esUltima }: EntradaCardProps) => {
 });
 
 const HistorialScreen: React.FC = () => {
-    const { colors } = useTheme();
-    const navigation = useNavigation();
+    const { colors, isDark, toggleTheme } = useTheme();
+    const navigation = useNavigation<any>();
     const { entradas, cargando, error } = useHistorial();
 
     const renderItem = useCallback(({ item, index }: { item: EntradaHistorial; index: number }) => (
@@ -139,7 +140,12 @@ const HistorialScreen: React.FC = () => {
                         {entradas.length} MOVIMIENTOS LOCALES
                     </Text>
                 </View>
-                <View style={{ width: 40 }} />
+                <TouchableOpacity 
+                    style={{ padding: 8, backgroundColor: colors.fondoPrimario, borderRadius: 20 }}
+                    onPress={toggleTheme}
+                >
+                    <Ionicons name={isDark ? 'sunny' : 'moon'} size={20} color={colors.primario} />
+                </TouchableOpacity>
             </View>
 
             {cargando && <HistorialSkeleton />}
@@ -178,6 +184,15 @@ const HistorialScreen: React.FC = () => {
                     }
                 />
             )}
+            <BottomBar
+                modoActivo="historial"
+                onTabPress={(tab: TabActivo) => {
+                    if (tab === 'lista') navigation.navigate('InventarioList');
+                    if (tab === 'logistica') navigation.navigate('PickingList');
+                    if (tab === 'escaner') navigation.navigate('Scanner');
+                    if (tab === 'analytics') navigation.navigate('Analytics');
+                }}
+            />
         </SafeAreaView>
     );
 };

@@ -211,26 +211,36 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         if (changes.productos) {
           const all = [...changes.productos.created, ...changes.productos.updated];
           if (all.length > 0) {
-            const updates = all.map((r: any) => {
-              return {
-                id: r.id,
-                cod_barras: r.codBarras,
-                sku: r.sku,
-                descripcion: r.descripcion,
-                marca: r.marca,
-                stock_master: r.stockMaster,
-                precio_web: r.precioWeb,
-                precio_tienda: r.precioTienda,
-                fv_actual_ts: r.fvActualTs ? new Date(r.fvActualTs).getTime() : null,
-                comentarios: r.comentarios,
-                fecha_edicion: r.fechaEdicion,
-                imagen: r.imagen,
-                updated_at: new Date().toISOString()
-              };
-            });
-            const { error } = await supabase.from('productos').upsert(updates);
-            if (error) throw error;
-            pushedCount += updates.length;
+            const updates = all
+              .map((r: any) => {
+                const cod = r.codBarras || r.codigo_barras || '';
+                if (!cod) {
+                  Logger.warn(`[Sync] Saltando producto sin código de barras: ${r.sku || r.id}`);
+                  return null;
+                }
+                return {
+                  id: r.id,
+                  cod_barras: cod,
+                  sku: r.sku || '',
+                  descripcion: r.descripcion || '',
+                  marca: r.marca || 'Genérico',
+                  stock_master: r.stockMaster || 0,
+                  precio_web: r.precioWeb || 0,
+                  precio_tienda: r.precioTienda || 0,
+                  fv_actual_ts: r.fvActualTs ? new Date(r.fvActualTs).getTime() : null,
+                  comentarios: r.comentarios || null,
+                  fecha_edicion: r.fechaEdicion || null,
+                  imagen: r.imagen || null,
+                  updated_at: new Date().toISOString()
+                };
+              })
+              .filter(u => u !== null);
+
+            if (updates.length > 0) {
+              const { error } = await supabase.from('productos').upsert(updates);
+              if (error) throw error;
+              pushedCount += updates.length;
+            }
           }
         }
 

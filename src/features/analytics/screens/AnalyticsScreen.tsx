@@ -8,6 +8,8 @@ import { useTheme } from '../../../core/ui/ThemeContext';
 import { formatearPrecio } from '../../../core/utils/formato';
 import { MENSAJES } from '../../../core/constants/mensajes';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
 
 import withObservables from '@nozbe/with-observables';
 import { database } from '../../../core/database';
@@ -25,7 +27,8 @@ interface Props {
 }
 
 const AnalyticsScreenRaw: React.FC<Props> = ({ productos }) => {
-    const { colors, isDark } = useTheme();
+    const { colors, isDark, toggleTheme } = useTheme();
+    const navigation = useNavigation<any>();
     const analyticsData = useAnalytics(productos ?? []);
 
     if (!productos) {
@@ -163,6 +166,16 @@ const AnalyticsScreenRaw: React.FC<Props> = ({ productos }) => {
                 <Ionicons name="share-outline" size={22} color={colors.absolutoBlanco} />
                 <Text style={[styles.textoBotonCompartir, { color: colors.absolutoBlanco }]}>{MENSAJES.EXPORTAR_PDF}</Text>
             </TouchableOpacity>
+            
+            <BottomBar
+                modoActivo="analytics"
+                onTabPress={(tab: TabActivo) => {
+                    if (tab === 'lista') navigation.navigate('InventarioList');
+                    if (tab === 'logistica') navigation.navigate('PickingList');
+                    if (tab === 'escaner') navigation.navigate('Scanner');
+                    if (tab === 'historial') navigation.navigate('Historial');
+                }}
+            />
         </SafeAreaView>
     );
 };

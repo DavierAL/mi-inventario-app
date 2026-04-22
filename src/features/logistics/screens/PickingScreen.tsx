@@ -8,6 +8,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import withObservables from '@nozbe/with-observables';
+import { Image } from 'expo-image';
 import { Q } from '@nozbe/watermelondb';
 import { Clause } from '@nozbe/watermelondb/QueryDescription';
 import { database } from '../../../core/database';
@@ -181,7 +182,7 @@ export const PickingList = withObservables(['busqueda', 'filtroEstado', 'ordenDe
 // ─── Pantalla principal ──────────────────────────────────────────────────────
 
 export const PickingScreen = () => {
-    const { colors, isDark } = useTheme();
+    const { colors, isDark, toggleTheme } = useTheme();
     const navigation = useNavigation<PickingNavProp>();
     const { cargando, error, reSincronizar } = useLogisticsSync();
 
@@ -224,9 +225,16 @@ export const PickingScreen = () => {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <Ionicons name="arrow-back" size={22} color={colors.textoPrincipal} />
                 </TouchableOpacity>
-                <View style={{ flex: 1 }}>
-                    <Text variant="h2" weight="bold">Logística</Text>
-                    <Text variant="small" color={colors.textoSecundario}>Panel de Picking</Text>
+                <View style={styles.headerBranding}>
+                    <Image 
+                        source={require('../../../../assets/logo-mascotify.svg')}
+                        style={styles.logoTiny}
+                        contentFit="contain"
+                    />
+                    <View>
+                        <Text variant="h2" weight="bold">Mascotify</Text>
+                        <Text variant="small" color={colors.textoSecundario}>Panel de Picking</Text>
+                    </View>
                 </View>
                 <TouchableOpacity 
                     onPress={() => reSincronizar()} 
@@ -248,6 +256,12 @@ export const PickingScreen = () => {
                     ) : (
                         <Ionicons name="sync" size={22} color={colors.primario} />
                     )}
+                </TouchableOpacity>
+                <TouchableOpacity 
+                    style={[styles.btnCircle, { backgroundColor: colors.fondoPrimario, marginLeft: 8 }]}
+                    onPress={toggleTheme}
+                >
+                    <Ionicons name={isDark ? 'sunny' : 'moon'} size={22} color={colors.primario} />
                 </TouchableOpacity>
             </Surface>
 
@@ -356,6 +370,7 @@ export const PickingScreen = () => {
                     if (tab === 'lista') navigation.navigate('InventarioList');
                     if (tab === 'historial') navigation.navigate('Historial');
                     if (tab === 'escaner') navigation.navigate('Scanner');
+                    if (tab === 'analytics') navigation.navigate('Analytics');
                 }}
             />
         </SafeAreaView>
@@ -367,6 +382,8 @@ export const PickingScreen = () => {
 const styles = StyleSheet.create({
     contenedor: { flex: 1 },
     flex1: { flex: 1 },
+    headerBranding: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
+    logoTiny: { width: 32, height: 32 },
     marginLeft4: { marginLeft: 4 },
     cardIdContainer: { 
         flexDirection: 'row', 

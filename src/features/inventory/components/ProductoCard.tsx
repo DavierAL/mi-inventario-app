@@ -59,22 +59,24 @@ const ProductoCardComponent: React.FC<Props> = ({ item, onPress }) => {
                         <Text variant="tiny" color={colors.textoTerciario} style={{ fontFamily: 'monospace' }}>
                             {item.codBarras}
                         </Text>
-                        {typeof item.fvActualTs === 'number' && (() => {
+                        {typeof item.fvActualTs === 'number' ? (() => {
                             const fv = item.fvActualTs as number;
                             const nowTs = Date.now();
                             const diffDays = (fv - nowTs) / (1000 * 60 * 60 * 24);
+                            const dateStr = new Date(fv).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: '2-digit' });
+                            
                             if (diffDays < 0) return (
-                                <Badge label="VENCIDO" variant="error" style={{ marginLeft: 8 }} />
+                                <Badge label={`VENCIDO (${dateStr})`} variant="error" style={{ marginLeft: 8 }} />
                             );
                             if (diffDays < 90) return (
-                                <Badge label={`Vence en ${Math.ceil(diffDays)}d`} variant="warning" style={{ marginLeft: 8 }} />
+                                <Badge label={`${Math.floor(diffDays)}d (${dateStr})`} variant="warning" style={{ marginLeft: 8 }} />
                             );
                             return (
-                                <Text variant="tiny" color={colors.textoTerciario} style={{ marginLeft: 8 }}>
-                                    FV: {formatearFecha(item.fvActualTs)}
-                                </Text>
+                                <Badge label={dateStr} variant="neutral" style={{ marginLeft: 8 }} />
                             );
-                        })()}
+                        })() : (
+                            <Badge label="SIN FV" variant="neutral" style={{ marginLeft: 8, opacity: 0.5 }} />
+                        )}
                     </View>
                 </View>
 

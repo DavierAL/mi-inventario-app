@@ -55,7 +55,10 @@ export const Button: React.FC<ButtonProps> = ({
 
         switch (variant) {
             case 'primary':
-                return { ...base, backgroundColor: colors.primario };
+                return { 
+                    ...base, 
+                    backgroundColor: disabled ? colors.borde : colors.primario 
+                };
             case 'secondary':
                 return { ...base, backgroundColor: colors.fondoPrimario, borderWidth: 1, borderColor: colors.borde };
             case 'danger':
@@ -75,7 +78,10 @@ export const Button: React.FC<ButtonProps> = ({
 
         switch (variant) {
             case 'primary':
-                return { ...base, color: colors.absolutoBlanco };
+                return { 
+                    ...base, 
+                    color: disabled ? colors.textoTerciario : colors.absolutoBlanco 
+                };
             case 'secondary':
                 return { ...base, color: colors.primario };
             case 'danger':
@@ -92,7 +98,7 @@ export const Button: React.FC<ButtonProps> = ({
             testID={testID}
             onPress={handlePress}
             disabled={disabled || loading}
-            style={[getBtnStyle(), disabled && { opacity: 0.5 }, style]}
+            style={[getBtnStyle(), style]}
             scaleTo={0.97}
             haptic={variant === 'primary' ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light}
         >

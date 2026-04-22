@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "mi-inventario-app",
+    "name": "Mascotify",
     "slug": "mi-inventario-app",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo-mascotify.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/logo-mascotify.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -18,7 +18,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logo-mascotify.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,

@@ -553,7 +553,13 @@ export const StorePanelScreen = () => {
                             disabled={!fotoUri || envio.estado === 'Entregado'}
                             style={styles.confirmBtn}
                             onPress={handleConfirmarEntrega}
-                            icon={!procesando && <Ionicons name="checkmark-circle-outline" size={20} color={colors.superficie} />}
+                            icon={!procesando && (
+                                <Ionicons 
+                                    name="checkmark-circle-outline" 
+                                    size={20} 
+                                    color={!fotoUri || envio.estado === 'Entregado' ? colors.textoTerciario : colors.absolutoBlanco} 
+                                />
+                            )}
                         />
 
                         {envio.estado === 'Entregado' && (
