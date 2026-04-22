@@ -49,13 +49,10 @@ interface EnvioRemote {
   direccion?: string;
   telefono?: string;
   estado: string;
-  lat?: number;
-  lng?: number;
-  pod_url?: string;
+  url_foto?: string;
   created_at: string;
   updated_at: string;
   operador?: string;
-  url_foto?: string;
   notas?: string;
   distrito?: string;
   gmaps_url?: string;
@@ -151,7 +148,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         
         while (hasMoreEnv) {
           let queryEnv = supabase.from('envios')
-            .select('id, cod_pedido, cliente, direccion, telefono, estado, lat, lng, pod_url, created_at, updated_at')
+            .select('id, cod_pedido, cliente, direccion, telefono, estado, url_foto, created_at, updated_at')
             .range(pageEnv * pageSize, (pageEnv + 1) * pageSize - 1);
           if (lastPulledAt && !options.forceFull) {
             queryEnv = queryEnv.gte('updated_at', lastPulledDate);
@@ -178,7 +175,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
           estado: mapearEstadoEntrante(row.estado),
           operador: row.operador || null,
           url_foto: row.url_foto || null,
-          pod_url: row.pod_url || null,
+          pod_url: row.url_foto || null,
           notas: row.notas || null,
           direccion: row.direccion || null,
           distrito: row.distrito || null,
@@ -249,7 +246,6 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
                 estado: (r.estado as string).toLowerCase(),
                 operador: r.operador,
                 url_foto: r.urlFoto,
-                pod_url: r.podUrl,
                 notas: r.notas,
                 direccion: r.direccion,
                 distrito: r.distrito,
