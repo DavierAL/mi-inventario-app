@@ -3,7 +3,7 @@ import { EntradaHistorial } from '../../../core/types/inventario';
 import { database } from '../../../core/database';
 import { Q } from '@nozbe/watermelondb';
 import { formatearFecha } from '../../../core/utils/fecha';
-import { Movimiento } from '../../../core/database/models/Movimiento';
+import Movimiento from '../../../core/database/models/Movimiento';
 
 interface HistorialState {
     entradas: EntradaHistorial[];

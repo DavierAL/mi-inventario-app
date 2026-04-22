@@ -7,7 +7,7 @@ export interface ErrorContext {
   operation?: string;
   userId?: string;
   showToast?: boolean;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export class ErrorService {

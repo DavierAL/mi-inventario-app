@@ -1,12 +1,14 @@
 // src/core/services/LoggerService.ts
 import { database } from '../database';
 
+import Log from '../database/models/Log';
+
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 interface LogEntry {
   level: LogLevel;
   message: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   error?: string;
   timestamp: number;
 }
@@ -21,21 +23,21 @@ export class Logger {
     return Logger.instance;
   }
 
-  static debug(message: string, context?: Record<string, any>) {
+  static debug(message: string, context?: Record<string, unknown>) {
     if (__DEV__) {
       Logger.getInstance().log('debug', message, context);
     }
   }
 
-  static info(message: string, context?: Record<string, any>) {
+  static info(message: string, context?: Record<string, unknown>) {
     Logger.getInstance().log('info', message, context);
   }
 
-  static warn(message: string, context?: Record<string, any>) {
+  static warn(message: string, context?: Record<string, unknown>) {
     Logger.getInstance().log('warn', message, context);
   }
 
-  static error(message: string, error?: Error, context?: Record<string, any>) {
+  static error(message: string, error?: Error, context?: Record<string, unknown>) {
     Logger.getInstance().log('error', message, {
       ...context,
       errorMessage: error?.message,
@@ -46,7 +48,7 @@ export class Logger {
   private async log(
     level: LogLevel,
     message: string,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ) {
     const timestamp = Date.now();
     
@@ -62,7 +64,8 @@ export class Logger {
     // 2. Database Persistence (Optional, enabled if table exists)
     try {
       await database.write(async () => {
-        await (database.get('logs') as any).create((log: any) => {
+        const logsCollection = database.get<Log>('logs');
+        await logsCollection.create((log) => {
           log.level = level;
           log.message = message;
           log.context = JSON.stringify(context || {});

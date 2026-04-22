@@ -77,7 +77,7 @@ export const BottomBar: React.FC<Props> = ({ modoActivo, onTabPress }) => {
                         onPress={() => handlePress('escaner')}
                         activeOpacity={0.8}
                     >
-                        <Ionicons name="barcode-outline" size={28} color="#fff" />
+                        <Ionicons name="barcode-outline" size={28} color={colors.absolutoBlanco} />
                     </TouchableOpacity>
                 </View>
 
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     safeArea: {
         borderTopWidth: 1,
         // Whisper shadow — Notion multi-layer stack
-        shadowColor: '#000',
+        shadowColor: '#000000',
         shadowOffset: { width: 0, height: -1 },
         shadowOpacity: 0.04,
         shadowRadius: 8,

@@ -10,6 +10,7 @@ import { useTheme } from '../../../core/ui/ThemeContext';
 
 import { Text, Surface, Badge } from '../../../core/ui/components';
 import { TOKENS } from '../../../core/ui/tokens';
+import { SHADOWS } from '../../../core/ui/shadows';
 
 interface Props {
     item: Producto;
@@ -105,11 +106,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         flexDirection: 'row',
         alignItems: 'center',
-        elevation: 3,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        ...SHADOWS.CARD,
     },
     contenedorImagen: {
         width: 80,

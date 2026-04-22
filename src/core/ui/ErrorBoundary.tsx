@@ -1,10 +1,11 @@
 // src/core/ui/ErrorBoundary.tsx
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode, useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Button, Surface } from './components';
 import { ErrorService } from '../services/ErrorService';
 import { TOKENS } from './tokens';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from './ThemeContext';
 
 interface Props {
   children: ReactNode;
@@ -30,7 +31,7 @@ export class ErrorBoundary extends Component<Props, State> {
     ErrorService.handle(error, {
       component: 'ErrorBoundary',
       stack: errorInfo.componentStack,
-      showToast: false, // Don't show toast if we are showing full error screen
+      showToast: false,
     });
   }
 
@@ -45,31 +46,10 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <View style={styles.container}>
-          <Surface variant="elevated" padding="xxl" style={styles.card}>
-            <Ionicons name="alert-circle" size={64} color="#eb5757" />
-            <Text variant="h2" weight="bold" style={styles.title}>
-              Algo salió mal
-            </Text>
-            <Text variant="body" align="center" color="#666" style={styles.message}>
-              La aplicación ha encontrado un error inesperado. Hemos registrado el problema y estamos trabajando en ello.
-            </Text>
-            {__DEV__ && this.state.error && (
-              <Surface variant="flat" padding="md" style={styles.debugInfo}>
-                <Text variant="tiny" style={styles.debugText}>
-                  {this.state.error.message}
-                </Text>
-              </Surface>
-            )}
-            <Button
-              label="Reintentar"
-              variant="primary"
-              onPress={this.handleReset}
-              style={styles.button}
-              icon={<Ionicons name="refresh" size={20} color="#fff" />}
-            />
-          </Surface>
-        </View>
+        <ErrorScreen 
+          error={this.state.error} 
+          onReset={this.handleReset} 
+        />
       );
     }
 
@@ -77,12 +57,43 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 }
 
+const ErrorScreen = ({ error, onReset }: { error: Error | null, onReset: () => void }) => {
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.fondo }]}>
+      <Surface variant="elevated" padding="xxl" style={styles.card}>
+        <Ionicons name="alert-circle" size={64} color={colors.error} />
+        <Text variant="h2" weight="bold" style={[styles.title, { color: colors.textoPrincipal }]}>
+          Algo salió mal
+        </Text>
+        <Text variant="body" align="center" color={colors.textoSecundario} style={styles.message}>
+          La aplicación ha encontrado un error inesperado. Hemos registrado el problema y estamos trabajando en ello.
+        </Text>
+        {__DEV__ && error && (
+          <Surface variant="flat" padding="md" style={[styles.debugInfo, { backgroundColor: colors.fondoPrimario }]}>
+            <Text variant="tiny" style={[styles.debugText, { color: colors.error }]}>
+              {error.message}
+            </Text>
+          </Surface>
+        )}
+        <Button
+          label="Reintentar"
+          variant="primary"
+          onPress={onReset}
+          style={styles.button}
+          icon={<Ionicons name="refresh" size={20} color={colors.absolutoBlanco} />}
+        />
+      </Surface>
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f6f5f4',
     padding: TOKENS.spacing.xl,
   },
   card: {
@@ -92,19 +103,16 @@ const styles = StyleSheet.create({
   },
   title: {
     marginTop: TOKENS.spacing.lg,
-    color: '#1a1a1a',
   },
   message: {
     marginTop: TOKENS.spacing.md,
     marginBottom: TOKENS.spacing.xl,
   },
   debugInfo: {
-    backgroundColor: '#fee2e2',
     width: '100%',
     marginBottom: TOKENS.spacing.xl,
   },
   debugText: {
-    color: '#991b1b',
     fontFamily: 'monospace',
   },
   button: {

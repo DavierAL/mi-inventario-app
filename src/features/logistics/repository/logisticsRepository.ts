@@ -14,7 +14,7 @@ export const LogisticsRepository = {
     });
     // Trigger sync to Supabase immediately
     const { syncConSupabase } = require('../../inventory/services/syncService');
-    syncConSupabase().catch((err: any) => console.error('[Logistics] Sync failed:', err));
+    syncConSupabase().catch((err: Error) => console.error('[Logistics] Sync failed:', err.message));
   },
 
   /**

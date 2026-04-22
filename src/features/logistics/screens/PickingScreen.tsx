@@ -1,20 +1,15 @@
 // ARCHIVO: src/features/logistics/screens/PickingScreen.tsx
-/**
- * PickingScreen — Panel de pedidos pendientes para el operador de almacén.
- *
- * Diseño: Notion Design System (dark-mode-first, warm neutrals, whisper borders, Notion Blue).
- */
 import React, { memo, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, StatusBar, FlatList, ActivityIndicator, Alert } from 'react-native';
+import { View, StyleSheet, StatusBar, Alert, ActivityIndicator, Platform, KeyboardAvoidingView, TouchableOpacity as RNTouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { FlashList } from '@shopify/flash-list';
-const FlashListAny = FlashList as any;
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import withObservables from '@nozbe/with-observables';
 import { Q } from '@nozbe/watermelondb';
+import { Clause } from '@nozbe/watermelondb/QueryDescription';
 import { database } from '../../../core/database';
 import Envio, { EstadoPedido } from '../../../core/database/models/Envio';
 import { LogisticsRepository } from '../repository/logisticsRepository';
@@ -30,7 +25,8 @@ import {
     Surface, 
     Button, 
     Badge, 
-    Input 
+    Input,
+    AnimatedPressable as TouchableOpacity
 } from '../../../core/ui/components';
 import { TOKENS } from '../../../core/ui/tokens';
 
@@ -49,7 +45,7 @@ const PedidoCard = memo(({ envio, onDespachar, onVerPanel }: PedidoCardProps) =>
     const puedeDespachar = envio.estado === 'Pendiente';
 
     // Mapeo semántico para el Badge del Design System
-    const getBadgeVariant = (estado: string): any => {
+    const getBadgeVariant = (estado: string): 'warning' | 'primary' | 'success' | 'neutral' => {
         switch (estado) {
             case 'Pendiente': return 'warning'; // Amarillo/Naranja para pendientes
             case 'En_Tienda': return 'primary'; // Azul para Tienda (Notion Blue)
@@ -62,8 +58,8 @@ const PedidoCard = memo(({ envio, onDespachar, onVerPanel }: PedidoCardProps) =>
         <Surface variant="elevated" style={styles.card} padding="lg">
             {/* Cabecera de la tarjeta */}
             <View style={styles.cardHeader}>
-                <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
+                <View style={styles.flex1}>
+                    <View style={styles.cardIdContainer}>
                         <Text variant="h3" weight="bold">{envio.codPedido}</Text>
                     </View>
                     <Text variant="body" color={colors.textoSecundario} numberOfLines={1}>
@@ -81,16 +77,16 @@ const PedidoCard = memo(({ envio, onDespachar, onVerPanel }: PedidoCardProps) =>
                 {envio.distrito && (
                     <View style={styles.metaItem}>
                         <Ionicons name="location-outline" size={12} color={colors.textoTerciario} />
-                        <Text variant="small" color={colors.textoTerciario} style={{ marginLeft: 4 }}>
-                            {envio.distrito}
+                        <Text variant="small" color={colors.textoTerciario} style={styles.marginLeft4}>
+                                {envio.distrito}
                         </Text>
                     </View>
                 )}
                 {envio.operador && (
                     <View style={[styles.metaItem, { marginLeft: TOKENS.spacing.md }]}>
                         <Ionicons name="bicycle-outline" size={12} color={colors.textoTerciario} />
-                        <Text variant="small" color={colors.textoTerciario} style={{ marginLeft: 4 }}>
-                            {envio.operador}
+                        <Text variant="small" color={colors.textoTerciario} style={styles.marginLeft4}>
+                                {envio.operador}
                         </Text>
                     </View>
                 )}
@@ -111,8 +107,8 @@ const PedidoCard = memo(({ envio, onDespachar, onVerPanel }: PedidoCardProps) =>
                         label="Despachar"
                         variant="primary"
                         size="sm"
-                        style={{ flex: 1, marginRight: TOKENS.spacing.sm }}
-                        icon={<Ionicons name="arrow-forward" size={16} color="#FFF" />}
+                        style={styles.despacharBtn}
+                        icon={<Ionicons name="arrow-forward" size={16} color={colors.superficie} />}
                         onPress={() => onDespachar(envio)}
                     />
                 )}
@@ -141,21 +137,22 @@ interface ListaBaseProps {
 const ListaBase = memo(({ pedidos, isFiltrado, onDespachar, onVerPanel }: ListaBaseProps) => {
     const { colors } = useTheme();
     return (
-        <FlashListAny
+        <FlashList
             data={pedidos}
-            keyExtractor={(item: any) => item.id}
+            keyExtractor={(item) => item.id}
+            // @ts-ignore
             estimatedItemSize={160}
-            renderItem={({ item }: any) => (
+            renderItem={({ item }) => (
                 <PedidoCard envio={item} onDespachar={onDespachar} onVerPanel={onVerPanel} />
             )}
             contentContainerStyle={styles.lista}
             ListEmptyComponent={
                 <View style={styles.listaVacia}>
                     <Ionicons name={isFiltrado ? "search-outline" : "checkmark-circle-outline"} size={56} color={colors.textoTerciario} />
-                    <Text style={[styles.listaVaciaTexto, { color: colors.textoPrincipal }]}>
+                    <Text variant="body" weight="bold" color={colors.textoPrincipal} style={styles.listaVaciaTexto}>
                         {isFiltrado ? 'No se encontraron pedidos' : 'Sin pedidos pendientes'}
                     </Text>
-                    <Text style={[styles.listaVaciaSubtexto, { color: colors.textoSecundario }]}>
+                    <Text variant="small" color={colors.textoSecundario} style={styles.listaVaciaSubtexto}>
                         {isFiltrado ? 'Intenta con otros criterios de búsqueda.' : 'Los pedidos nuevos aparecerán aquí al sincronizar.'}
                     </Text>
                 </View>
@@ -173,7 +170,7 @@ interface ListaReactivaParams {
 }
 
 export const PickingList = withObservables(['busqueda', 'filtroEstado', 'ordenDesc'], ({ busqueda, filtroEstado, ordenDesc }: ListaReactivaParams) => {
-    let condiciones: any[] = [];
+    const condiciones: Clause[] = []; 
     
     if (filtroEstado) {
         condiciones.push(Q.where('estado', filtroEstado));
@@ -238,10 +235,10 @@ export const PickingScreen = () => {
             />
 
             {/* Cabecera */}
-            <View style={[styles.cabecera, {
-                backgroundColor: colors.superficie,
-                borderBottomColor: colors.borde,
-            }]}>
+            <Surface 
+                variant="flat" 
+                style={[styles.cabecera, { borderBottomColor: colors.borde }]}
+            >
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <Ionicons name="arrow-back" size={22} color={colors.textoPrincipal} />
                 </TouchableOpacity>
@@ -270,10 +267,13 @@ export const PickingScreen = () => {
                         <Ionicons name="sync" size={22} color={colors.primario} />
                     )}
                 </TouchableOpacity>
-            </View>
+            </Surface>
 
             {/* Buscador y Filtros */}
-            <View style={[styles.filtrosBox, { backgroundColor: colors.superficie, borderBottomColor: colors.borde, padding: TOKENS.spacing.lg }]}>
+            <Surface 
+                variant="flat" 
+                style={[styles.filtrosBox, { borderBottomColor: colors.borde, padding: TOKENS.spacing.lg }]}
+            >
                 <Input 
                     placeholder="Buscar por código o cliente..."
                     value={busqueda}
@@ -294,7 +294,7 @@ export const PickingScreen = () => {
                         <Text 
                             variant="small" 
                             weight="medium"
-                            color={filtroEstado === 'Pendiente' ? '#FFF' : colors.primario}
+                            color={filtroEstado === 'Pendiente' ? colors.superficie : colors.primario}
                         >
                             Pendientes
                         </Text>
@@ -311,7 +311,7 @@ export const PickingScreen = () => {
                         <Text 
                             variant="small" 
                             weight="medium"
-                            color={filtroEstado === 'En_Tienda' ? '#FFF' : colors.primario}
+                            color={filtroEstado === 'En_Tienda' ? colors.superficie : colors.primario}
                         >
                             En Tienda
                         </Text>
@@ -328,7 +328,7 @@ export const PickingScreen = () => {
                         <Text 
                             variant="small" 
                             weight="medium"
-                            color={filtroEstado === 'Entregado' ? '#FFF' : colors.primario}
+                            color={filtroEstado === 'Entregado' ? colors.superficie : colors.primario}
                         >
                             Entregados
                         </Text>
@@ -347,7 +347,7 @@ export const PickingScreen = () => {
                         />
                     </TouchableOpacity>
                 </View>
-            </View>
+            </Surface>
 
             {/* Lista reactiva de envíos */}
             <View style={{ flex: 1 }}>
@@ -384,6 +384,17 @@ export const PickingScreen = () => {
 
 const styles = StyleSheet.create({
     contenedor: { flex: 1 },
+    flex1: { flex: 1 },
+    marginLeft4: { marginLeft: 4 },
+    cardIdContainer: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        marginBottom: 2 
+    },
+    despacharBtn: { 
+        flex: 1, 
+        marginRight: TOKENS.spacing.sm 
+    },
     cabecera: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -485,18 +496,6 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         letterSpacing: -0.1,
     },
-    canalBadge: {
-        backgroundColor: 'rgba(75, 160, 66, 0.15)', // Light version of primario
-        paddingHorizontal: 6,
-        paddingVertical: 2,
-        borderRadius: 4,
-        marginLeft: 8,
-    },
-    canalBadgeText: {
-        color: '#4ba042',
-        fontSize: 10,
-        fontWeight: '800',
-    },
     logisticaRow: {
         flexDirection: 'row',
         gap: 12,
@@ -547,7 +546,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
     },
     btnPrimarioText: {
-        color: '#fff',
         fontSize: 14,
         fontWeight: '600',
     },

@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/47</span>
+                <span class='fraction'>0/48</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/19</span>
+                <span class='fraction'>0/23</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/43</span>
+                <span class='fraction'>0/44</span>
             </div>
         
             
@@ -157,21 +157,13 @@
 <a name='L92'></a><a href='#L92'>92</a>
 <a name='L93'></a><a href='#L93'>93</a>
 <a name='L94'></a><a href='#L94'>94</a>
-<a name='L95'></a><a href='#L95'>95</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -183,6 +175,17 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -228,6 +231,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -256,6 +260,7 @@ import { PersistentQueue } from './PersistentQueue';
 import { QueueRetryStrategy } from './QueueRetryStrategy';
 import { jobHandlers } from './jobHandlers';
 import { JobType } from './types';
+import OutboxJob from '../../database/models/OutboxJob';
 &nbsp;
 export class QueueProcessor {
   private queue = <span class="cstat-no" title="statement not covered" >new PersistentQueue();</span>
@@ -321,13 +326,14 @@ export class QueueProcessor {
         // Handler returned false, maybe a logic error, we retry
 <span class="cstat-no" title="statement not covered" >        await this.handleFailure(job, new Error('Handler returned false'));</span>
       }
-    } catch (error: any) {
-<span class="cstat-no" title="statement not covered" >      console.error(`[QueueProcessor] Job ${job.id} failed:`, error.message);</span>
-<span class="cstat-no" title="statement not covered" >      await this.handleFailure(job, error);</span>
+    } catch (error: unknown) {
+      const errorMessage = <span class="cstat-no" title="statement not covered" >error instanceof Error ? error.message : String(error);</span>
+<span class="cstat-no" title="statement not covered" >      console.error(`[QueueProcessor] Job ${job.id} failed:`, errorMessage);</span>
+<span class="cstat-no" title="statement not covered" >      await this.handleFailure(job, error instanceof Error ? error : new Error(errorMessage));</span>
     }
   }
 &nbsp;
-<span class="fstat-no" title="function not covered" >  pr</span>ivate async handleFailure(job: any, error: Error) {
+<span class="fstat-no" title="function not covered" >  pr</span>ivate async handleFailure(job: OutboxJob, error: Error) {
 <span class="cstat-no" title="statement not covered" >    if (this.retryStrategy.shouldRetry(job)) {</span>
       const nextRetry = <span class="cstat-no" title="statement not covered" >this.retryStrategy.getNextRetryTime(job);</span>
 <span class="cstat-no" title="statement not covered" >      await this.queue.updateRetry(job.id, nextRetry.getTime(), error.message);</span>
@@ -352,7 +358,7 @@ export const queueProcessor = <span class="cstat-no" title="statement not covere
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-22T00:12:22.269Z
+                at 2026-04-22T01:15:10.619Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

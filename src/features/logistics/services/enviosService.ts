@@ -5,7 +5,7 @@
  */
 
 import { supabase } from '../../../core/database/supabase';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import { Logger } from '../../../core/services/LoggerService';
 import { decode } from 'base64-arraybuffer';
 
@@ -38,7 +38,7 @@ export const EnviosService = {
         });
 
       if (error) {
-        Logger.error('[EnviosService] Error subiendo foto', error.message);
+        Logger.error('[EnviosService] Error subiendo foto', new Error(error.message));
         return null;
       }
 
@@ -51,7 +51,7 @@ export const EnviosService = {
       Logger.info('[EnviosService] Foto subida exitosamente', { url });
       return url;
     } catch (err) {
-      Logger.error('[EnviosService] Error fatal al subir foto', err);
+      Logger.error('[EnviosService] Error fatal al subir foto', err instanceof Error ? err : new Error(String(err)));
       return null;
     }
   },
@@ -86,7 +86,7 @@ export const EnviosService = {
         .eq('id', params.supabaseRowId);
 
       if (error) {
-        Logger.error('[EnviosService] Error actualizando Supabase', error.message);
+        Logger.error('[EnviosService] Error actualizando Supabase', new Error(error.message));
         return { exito: false, error: error.message };
       }
 
@@ -95,7 +95,7 @@ export const EnviosService = {
       });
       return { exito: true };
     } catch (err) {
-      Logger.error('[EnviosService] Error fatal en update', err);
+      Logger.error('[EnviosService] Error fatal en update', err instanceof Error ? err : new Error(String(err)));
       return { exito: false, error: String(err) };
     }
   },
@@ -117,7 +117,8 @@ export const EnviosService = {
       Logger.info('[EnviosService] Google Sheets notificado');
     } catch (err) {
       // No bloquear el flujo si Sheets falla
-      Logger.warn('[EnviosService] Advertencia: Sheets no respondió', err);
+      Logger.warn('[EnviosService] Advertencia: Sheets no respondió', { error: err } as Record<string, any>);
     }
   },
 };
+

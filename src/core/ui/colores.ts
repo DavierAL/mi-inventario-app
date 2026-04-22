@@ -17,7 +17,7 @@ export const ThemeColors = {
         // Accent
         primario: '#4ba042',           // Notion Blue — CTAs and interactive
         primarioActivo: '#6cc062ff',     // Active Blue — pressed state
-        fondoPrimario: '#f2f9ff',      // Badge Blue Bg — tinted blue surface
+        fondoPrimario: '#e8f5e9ff',      // Light Green Bg
         // Semantic
         error: '#d03212ff',              // Orange — warnings
         exito: '#1aae39',              // Green — confirmation
@@ -35,6 +35,8 @@ export const ThemeColors = {
         bannerOfflineBoton: '#f6c026',
         marcadorEscaner: '#4ba042',
         fondoBuscador: '#f6f5f4',
+        absolutoBlanco: '#ffffff',
+        absolutoNegro: '#000000',
     },
     dark: {
         // Backgrounds — warm charcoal, NOT cold blue-gray
@@ -68,5 +70,7 @@ export const ThemeColors = {
         bannerOfflineBoton: '#f6c026',
         marcadorEscaner: '#4ba042',
         fondoBuscador: '#232220',
+        absolutoBlanco: '#ffffff',
+        absolutoNegro: '#000000',
     },
 };

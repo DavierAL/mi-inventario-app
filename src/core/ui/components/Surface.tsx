@@ -1,6 +1,6 @@
 // ARCHIVO: src/core/ui/components/Surface.tsx
 import React from 'react';
-import { View, ViewStyle, ViewProps } from 'react-native';
+import { View, ViewStyle, ViewProps, StyleProp } from 'react-native';
 import { useTheme } from '../ThemeContext';
 import { TOKENS } from '../tokens';
 
@@ -9,7 +9,7 @@ interface SurfaceProps extends ViewProps {
     padding?: keyof typeof TOKENS.spacing;
     radius?: keyof typeof TOKENS.radius;
     children?: React.ReactNode;
-    style?: ViewStyle;
+    style?: StyleProp<ViewStyle>;
     testID?: string;
 }
 

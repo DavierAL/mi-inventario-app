@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Platform, ActivityIndicator, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { View, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import Modal from 'react-native-modal';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
@@ -12,6 +12,9 @@ import { useTheme } from '../../../core/ui/ThemeContext';
 import { Logger } from '../../../core/services/LoggerService';
 import { ErrorService } from '../../../core/services/ErrorService';
 import { validateData, EditProductoSchema } from '../../../core/validation/schemas';
+
+import { Text, Surface, Button, Input } from '../../../core/ui/components';
+import { TOKENS } from '../../../core/ui/tokens';
 
 interface Props {
     visible: boolean;
@@ -85,7 +88,7 @@ export const EditProductoModal: React.FC<Props> = ({
         });
 
         if (!validation.isValid) {
-            setErrors(validation.errors as any);
+            setErrors(validation.errors as Record<string, string[]>);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
             return;
         }
@@ -120,24 +123,25 @@ export const EditProductoModal: React.FC<Props> = ({
         <Modal 
             isVisible={visible} 
             onBackdropPress={onCancelar}
-            onSwipeComplete={onCancelar}
-            swipeDirection="down"
             style={styles.modalBase}
             avoidKeyboard={true}
         >
             <KeyboardAvoidingView 
                 behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} 
-                style={{ flex: 1, justifyContent: 'flex-end' }}
+                style={styles.keyboardView}
             >
-                <View style={[styles.modalContenedor, { backgroundColor: colors.superficie, maxHeight: '90%' }]}>
+                <Surface 
+                    variant="elevated" 
+                    style={[styles.modalContenedor, { backgroundColor: colors.superficie }]}
+                >
                     
                     <View style={styles.handleContainer}>
-                        <View style={[styles.handleBar, { backgroundColor: colors.borde }]} />
+                        <Surface variant="flat" style={[styles.handleBar, { backgroundColor: colors.borde }]} />
                     </View>
  
                     <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
-                <View style={[styles.cabeceraModal, { marginTop: -10 }]}>
+                <View style={styles.cabeceraModalAjustada}>
                     <View style={[styles.contenedorImagenModal, { backgroundColor: colors.inputDeshabilitado, borderColor: colors.borde }]}>
                         {producto.imagen ? (
                             <Image
@@ -148,56 +152,59 @@ export const EditProductoModal: React.FC<Props> = ({
                                 cachePolicy="disk"
                             />
                         ) : (
-                            <Text style={styles.imagenModalPlaceholder}>📦</Text>
+                            <Text variant="h1" align="center">📦</Text>
                         )}
                     </View>
                     <View style={styles.infoModal}>
-                        <Text style={[styles.modalTitulo, { color: colors.textoPrincipal }]}>Actualizar Inventario</Text>
-                        <Text style={[styles.modalSubtitulo, { color: colors.textoSecundario }]} numberOfLines={2}>{producto.descripcion}</Text>
-                        <Text style={[styles.modalCod, { color: colors.textoSecundario, backgroundColor: colors.inputDeshabilitado }]}>CÓDIGO: {producto.codBarras}</Text>
+                        <Text variant="h2" weight="bold">Actualizar Inventario</Text>
+                        <Text variant="body" color={colors.textoSecundario} numberOfLines={2}>{producto.descripcion}</Text>
+                        <Text variant="tiny" weight="bold" style={[styles.modalCod, { color: colors.textoSecundario, backgroundColor: colors.inputDeshabilitado }]}>CÓDIGO: {producto.codBarras}</Text>
                     </View>
                 </View>
 
-                <View style={[styles.filaPrecios, { backgroundColor: colors.fondoPrimario }]}>
+                <Surface variant="flat" style={[styles.filaPrecios, { backgroundColor: colors.fondoPrimario }]}>
                     <View style={styles.precioItem}>
-                        <Text style={[styles.precioLabel, { color: colors.textoSecundario }]}>Precio Web</Text>
-                        <Text style={[styles.precioValor, { color: colors.textoPrincipal }]}>{formatearPrecio(producto.precioWeb)}</Text>
+                        <Text variant="tiny" weight="bold" color={colors.textoSecundario}>Precio Web</Text>
+                        <Text variant="h3" weight="bold">{formatearPrecio(producto.precioWeb)}</Text>
                     </View>
                     <View style={styles.precioDivisor} />
                     <View style={styles.precioItem}>
-                        <Text style={[styles.precioLabel, { color: colors.textoSecundario }]}>Precio Tienda</Text>
-                        <Text style={[styles.precioValor, { color: colors.primario }]}>{formatearPrecio(producto.precioTienda)}</Text>
+                        <Text variant="tiny" weight="bold" color={colors.textoSecundario}>Precio Tienda</Text>
+                        <Text variant="h3" weight="bold" color={colors.primario}>{formatearPrecio(producto.precioTienda)}</Text>
                     </View>
-                </View>
+                </Surface>
 
                 <View style={styles.filaFormulario}>
                     <View style={styles.columnaFormulario}>
-                        <Text style={[styles.label, { color: colors.textoSecundario }]}>Stock Físico</Text>
-                        <TextInput
-                            style={[styles.input, { backgroundColor: colors.inputDeshabilitado, color: colors.textoSecundario, borderColor: colors.borde }]}
+                        <Text variant="tiny" weight="bold" color={colors.textoSecundario} style={styles.labelInput}>Stock Físico</Text>
+                        <Input
                             value={String(producto.stockMaster || 0)}
                             editable={false}
+                            containerStyle={{ backgroundColor: colors.inputDeshabilitado }}
                         />
                     </View>
                     <View style={styles.columnaFormulario}>
-                        <Text style={[styles.label, { color: colors.textoSecundario }]}>Vencimiento</Text>
-                        <TouchableOpacity
+                        <Text variant="tiny" weight="bold" color={colors.textoSecundario} style={styles.labelInput}>Vencimiento</Text>
+                        <Surface 
+                            variant="flat" 
                             style={[
                                 styles.inputTouchable, 
-                                { backgroundColor: colors.fondoPrimario, borderColor: errors.fv_actual ? '#eb5757' : colors.primario }
+                                { backgroundColor: colors.fondoPrimario, borderColor: errors.fv_actual ? colors.error : colors.primario }
                             ]}
-                            onPress={() => {
-                                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                                setMostrarDatePicker(true);
-                            }}
                         >
-                            <Text style={[styles.inputTouchableTexto, { color: colors.textoPrincipal }, !formFV && { color: colors.placeholder }]}>
-                                {formFV || 'Seleccionar...'}
-                            </Text>
-                            <Text style={styles.iconoCalendario}>📅</Text>
-                        </TouchableOpacity>
+                            <Button 
+                                label={formFV || 'Seleccionar...'}
+                                variant="ghost"
+                                style={styles.botonFecha}
+                                icon={<Text variant="body">📅</Text>}
+                                onPress={() => {
+                                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                                    setMostrarDatePicker(true);
+                                }}
+                            />
+                        </Surface>
                         {errors.fv_actual && (
-                            <Text style={{ color: '#eb5757', fontSize: 10, marginTop: 4, fontWeight: '600' }}>
+                            <Text variant="tiny" weight="bold" color={colors.error} style={styles.errorText}>
                                 {errors.fv_actual[0]}
                             </Text>
                         )}
@@ -215,22 +222,18 @@ export const EditProductoModal: React.FC<Props> = ({
                         />
                     )}
 
-                    <Text style={[styles.label, { color: colors.textoSecundario }]}>Fecha de Edición</Text>
-                    <TextInput
-                        style={[styles.input, { backgroundColor: colors.inputDeshabilitado, color: colors.textoSecundario, borderColor: colors.borde }]}
+                    <Text variant="tiny" weight="bold" color={colors.textoSecundario} style={styles.labelSeccion}>Fecha de Edición</Text>
+                    <Input
                         value={formFechaEdicion}
                         editable={false}
+                        containerStyle={{ backgroundColor: colors.inputDeshabilitado }}
                     />
 
-                    <Text style={[styles.label, { color: colors.textoSecundario }]}>Comentarios</Text>
-                    <TextInput
-                        style={[
-                            styles.input, 
-                            styles.inputMultilinea, 
-                            { backgroundColor: colors.inputFondo, color: colors.textoPrincipal, borderColor: errors.comentarios ? '#eb5757' : colors.borde }
-                        ]}
+                    <Text variant="tiny" weight="bold" color={colors.textoSecundario} style={styles.labelSeccion}>Comentarios</Text>
+                    <Input
+                        placeholder="Añadir nota de revisión..."
                         multiline
-                        returnKeyType="done"
+                        numberOfLines={3}
                         value={formComentario}
                         onChangeText={(val) => {
                             setFormComentario(val);
@@ -241,40 +244,26 @@ export const EditProductoModal: React.FC<Props> = ({
                                 });
                             }
                         }}
-                        placeholder="Añadir nota de revisión..."
-                        placeholderTextColor={colors.placeholder}
+                        error={errors.comentarios ? errors.comentarios[0] : undefined}
                     />
-                    {errors.comentarios && (
-                        <Text style={{ color: '#eb5757', fontSize: 10, marginTop: 4, fontWeight: '600' }}>
-                            {errors.comentarios[0]}
-                        </Text>
-                    )}
 
                     <View style={styles.filaBotones}>
-                        <TouchableOpacity
-                            style={[styles.boton, { backgroundColor: colors.textoSecundario }]}
+                        <Button 
+                            label="Cancelar"
+                            variant="secondary"
+                            style={styles.flex1}
                             onPress={onCancelar}
-                        >
-                            <Text style={styles.textoBoton}>Cancelar</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[
-                                styles.boton, 
-                                { backgroundColor: isSubmitting ? colors.inputDeshabilitado : colors.primario },
-                                isSubmitting && { borderColor: 'transparent' }
-                            ]}
+                        />
+                        <Button 
+                            label="Confirmar"
+                            variant="primary"
+                            loading={isSubmitting}
+                            style={styles.flex1}
                             onPress={handleConfirmar}
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? (
-                                <ActivityIndicator color={colors.textoPrincipal} size="small" />
-                            ) : (
-                                <Text style={styles.textoBoton}>Confirmar</Text>
-                            )}
-                        </TouchableOpacity>
+                        />
                     </View>
                 </ScrollView>
-            </View>
+                </Surface>
             </KeyboardAvoidingView>
         </Modal>
     );
@@ -370,7 +359,6 @@ const styles = StyleSheet.create({
     precioDivisor: {
         width: 1,
         height: 30,
-        backgroundColor: 'rgba(0,0,0,0.1)',
     },
     filaFormulario: {
         flexDirection: 'row',
@@ -428,10 +416,38 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     textoBoton: {
-        color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '700',
         letterSpacing: 0.5,
+    },
+    keyboardView: { 
+        flex: 1, 
+        justifyContent: 'flex-end' 
+    },
+    cabeceraModalAjustada: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 16,
+        gap: 14,
+        marginTop: -10,
+    },
+    labelInput: { 
+        marginBottom: 6 
+    },
+    labelSeccion: { 
+        marginBottom: 6, 
+        marginTop: 12 
+    },
+    errorText: { 
+        marginTop: 4 
+    },
+    botonFecha: { 
+        flex: 1, 
+        justifyContent: 'space-between', 
+        paddingHorizontal: 0 
+    },
+    flex1: { 
+        flex: 1 
     },
 });
 

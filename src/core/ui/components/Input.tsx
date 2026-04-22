@@ -18,7 +18,7 @@ interface InputProps extends TextInputProps {
     icon?: React.ReactNode;
     containerStyle?: ViewStyle;
     editable?: boolean;
-    style?: ViewStyle;
+    style?: import('react-native').StyleProp<import('react-native').TextStyle>;
     testID?: string;
 }
 

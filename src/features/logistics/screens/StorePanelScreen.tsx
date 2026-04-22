@@ -4,7 +4,7 @@
  * Diseño: Notion Design System — dark-mode-first, warm charcoal surfaces, whisper borders.
  */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Alert, ActivityIndicator, Modal, Linking } from 'react-native';
+import { View, StyleSheet, ScrollView, StatusBar, Alert, Modal, Linking, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -24,7 +24,7 @@ import { useTheme } from '../../../core/ui/ThemeContext';
 import { RootStackParamList } from '../../../core/types/navigation';
 import { useNetworkStatus } from '../../../core/utils/useNetworkStatus';
 import { useLogisticsSync } from '../hooks/useLogisticsSync';
-import { Text, Surface, Button, Badge } from '../../../core/ui/components';
+import { Text, Surface, Button, Badge, AnimatedPressable as TouchableOpacity } from '../../../core/ui/components';
 import { TOKENS } from '../../../core/ui/tokens';
 import { Logger } from '../../../core/services/LoggerService';
 import { ErrorService } from '../../../core/services/ErrorService';
@@ -34,14 +34,6 @@ import { EnviosService } from '../services/enviosService';
 
 type StorePanelNavProp = NativeStackNavigationProp<RootStackParamList, 'StorePanel'>;
 type StorePanelRoute = RouteProp<RootStackParamList, 'StorePanel'>;
-
-// ─── Badge config por estado ──────────────────────────────────────────────────
-
-const ESTADO_BADGE: Record<EstadoPedido, { bg: string; text: string; label: string }> = {
-    Pendiente:  { bg: 'rgba(255, 171, 0, 0.15)', text: '#ffab00', label: 'Pendiente' }, // Notion Yellow/Warning
-    En_Tienda:  { bg: 'rgba(0, 117, 222, 0.1)', text: '#0075de', label: 'En Tienda' }, // Notion Blue
-    Entregado:  { bg: 'rgba(75, 160, 66, 0.15)', text: '#4ba042', label: 'Entregado' }, // Notion Green
-};
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 
@@ -179,9 +171,10 @@ export const StorePanelScreen = () => {
             setModoFoto(false);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             Toast.show({ type: 'success', text1: 'Foto capturada', text2: 'Lista para guardar' });
-        } catch (e: any) {
-            console.error('[POD Camera Error]:', e?.message ?? e);
-            Toast.show({ type: 'error', text1: 'Error al capturar foto', text2: e?.message ?? 'Intenta de nuevo' });
+        } catch (e: unknown) {
+            const err = e as Error;
+            console.error('[POD Camera Error]:', err.message);
+            Toast.show({ type: 'error', text1: 'Error al capturar foto', text2: err.message || 'Intenta de nuevo' });
         } finally {
             setProcesando(false);
         }
@@ -282,24 +275,24 @@ export const StorePanelScreen = () => {
     if (modoEscaner) {
         return (
             <Modal visible animationType="slide" onRequestClose={() => setModoEscaner(false)}>
-                <View style={{ flex: 1, backgroundColor: '#000' }}>
+                <Surface style={[styles.modalFull, { backgroundColor: colors.absolutoNegro }]}>
                     <CameraView
-                        style={{ flex: 1 }}
+                        style={styles.cameraFull}
                         facing="back"
                         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
                         onBarcodeScanned={handleQrEscaneado}
                     />
                     <SafeAreaView style={styles.escanerOverlay}>
-                        <View style={styles.escanerMarco} />
-                        <Text style={styles.escanerHint}>Apunta al QR del envio</Text>
+                        <View style={[styles.escanerMarco, { borderColor: colors.absolutoBlanco }]} />
+                        <Text style={[styles.escanerHint, { color: colors.absolutoBlanco }]}>Apunta al QR del envio</Text>
                         <TouchableOpacity
                             style={styles.escanerCerrar}
                             onPress={() => setModoEscaner(false)}
                         >
-                            <Ionicons name="close-circle" size={48} color="#fff" />
+                            <Ionicons name="close-circle" size={48} color={colors.absolutoBlanco} />
                         </TouchableOpacity>
                     </SafeAreaView>
-                </View>
+                </Surface>
             </Modal>
         );
     }
@@ -309,36 +302,36 @@ export const StorePanelScreen = () => {
     if (modoFoto) {
         return (
             <Modal visible animationType="slide" onRequestClose={() => setModoFoto(false)}>
-                <View style={{ flex: 1, backgroundColor: '#000' }}>
+                <Surface style={[styles.modalFull, { backgroundColor: colors.absolutoNegro }]}>
                     <CameraView
                         ref={cameraRef}
-                        style={{ flex: 1 }}
+                        style={styles.cameraFull}
                         facing="back"
                         onCameraReady={() => setIsCameraReady(true)}
                     />
                     <SafeAreaView style={styles.camaraOverlay}>
                         <TouchableOpacity style={styles.camaraCerrar} onPress={() => setModoFoto(false)}>
-                            <Ionicons name="close-circle" size={44} color="#fff" />
+                            <Ionicons name="close-circle" size={44} color={colors.absolutoBlanco} />
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[
                                 styles.camaraDisparador,
-                                !isCameraReady && { opacity: 0.4 },
+                                { backgroundColor: colors.superficieAlta },
+                                !isCameraReady && styles.disabledOpacity,
                             ]}
                             onPress={handleCapturarFoto}
                             disabled={procesando || !isCameraReady}
-                            activeOpacity={0.8}
                         >
                             {procesando
-                                ? <ActivityIndicator color="#0075de" />
-                                : <Ionicons name="camera" size={36} color="#0075de" />
+                                ? <ActivityIndicator color={colors.primario} />
+                                : <Ionicons name="camera" size={36} color={colors.primario} />
                             }
                         </TouchableOpacity>
-                        <Text style={styles.camaraHint}>
+                        <Text style={[styles.camaraHint, { color: colors.absolutoBlanco }]}>
                             {isCameraReady ? 'Fotografía la evidencia de entrega' : 'Iniciando cámara...'}
                         </Text>
                     </SafeAreaView>
-                </View>
+                </Surface>
             </Modal>
         );
     }
@@ -350,7 +343,7 @@ export const StorePanelScreen = () => {
     const OrderDetailsCard = React.memo(({ item }: { item: Envio }) => (
         <Surface variant="elevated" padding="lg" style={styles.card}>
             <View style={styles.cardHeader}>
-                <View style={{ flex: 1 }}>
+                <View style={styles.flex1}>
                     <Text variant="tiny" weight="bold" color={colors.textoTerciario}>
                         CÓDIGO DE ENVÍO
                     </Text>
@@ -366,7 +359,7 @@ export const StorePanelScreen = () => {
 
             <View style={styles.infoRow}>
                 <Ionicons name="person-outline" size={16} color={colors.textoTerciario} />
-                <View style={{ marginLeft: 12, flex: 1 }}>
+                <View style={styles.infoCol}>
                     <Text variant="tiny" weight="bold" color={colors.textoTerciario}>CLIENTE</Text>
                     <Text variant="body" weight="medium">{item.cliente}</Text>
                     {item.telefono && (
@@ -378,23 +371,23 @@ export const StorePanelScreen = () => {
             {(item.direccion || item.distrito) && (
                 <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
                     <Ionicons name="location-outline" size={16} color={colors.textoTerciario} />
-                    <View style={{ marginLeft: 12, flex: 1 }}>
+                    <View style={styles.infoCol}>
                         <Text variant="tiny" weight="bold" color={colors.textoTerciario}>DIRECCIÓN</Text>
                         <Text variant="body">
                             {item.direccion}{item.distrito ? `, ${item.distrito}` : ''}
                         </Text>
                         {item.referencia && (
-                            <Text variant="small" color={colors.textoSecundario} style={{ marginTop: 2 }}>
+                            <Text variant="small" color={colors.textoSecundario} style={styles.marginTop2}>
                                 Ref: {item.referencia}
                             </Text>
                         )}
                         {item.gmapsUrl && (
                             <TouchableOpacity 
-                                style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center' }} 
+                                style={styles.gmapsBtn} 
                                 onPress={handleAbrirGmaps}
                             >
                                 <Ionicons name="map-outline" size={14} color={colors.primario} />
-                                <Text variant="small" weight="bold" color={colors.primario} style={{ marginLeft: 4 }}>
+                                <Text variant="small" weight="bold" color={colors.primario} style={styles.marginLeft4}>
                                     Ver en Google Maps
                                 </Text>
                             </TouchableOpacity>
@@ -406,7 +399,7 @@ export const StorePanelScreen = () => {
             {item.operador && (
                 <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
                     <Ionicons name="bicycle-outline" size={16} color={colors.textoTerciario} />
-                    <View style={{ marginLeft: 12 }}>
+                    <View style={styles.marginLeft12}>
                         <Text variant="tiny" weight="bold" color={colors.textoTerciario}>OPERADOR</Text>
                         <Text variant="body" weight="medium">{item.operador.toUpperCase()}</Text>
                     </View>
@@ -417,7 +410,7 @@ export const StorePanelScreen = () => {
                 <>
                     <View style={[styles.divider, { backgroundColor: colors.borde }]} />
                     <Text variant="tiny" weight="bold" color={colors.textoTerciario}>NOTAS</Text>
-                    <Text variant="small" color={colors.textoSecundario} style={{ marginTop: 4 }}>
+                    <Text variant="small" color={colors.textoSecundario} style={styles.marginTop4}>
                         {item.notas}
                     </Text>
                 </>
@@ -427,16 +420,16 @@ export const StorePanelScreen = () => {
 
     const PODEvidenceSection = React.memo(({ uri, isDelivered }: { uri: string | null, isDelivered: boolean }) => (
         <>
-            <Text variant="h3" weight="bold" style={{ color: colors.textoPrincipal, marginTop: TOKENS.spacing.xl, marginBottom: TOKENS.spacing.sm }}>
+            <Text variant="h3" weight="bold" style={styles.podTitulo}>
                 Evidencia de Entrega (POD)
             </Text>
 
             {uri ? (
-                <Surface variant="elevated" padding="lg" style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <View style={[styles.fotoCheck, { backgroundColor: isDark ? '#0a1f12' : '#f0fdf4' }]}>
-                        <Ionicons name="checkmark-circle" size={32} color="#22c55e" />
+                <Surface variant="elevated" padding="lg" style={styles.podCard}>
+                    <View style={[styles.fotoCheck, { backgroundColor: colors.fondoPrimario }]}>
+                        <Ionicons name="checkmark-circle" size={32} color={colors.exito} />
                     </View>
-                    <View style={{ flex: 1, marginLeft: TOKENS.spacing.md }}>
+                    <View style={styles.podInfo}>
                         <Text variant="body" weight="bold">Foto capturada</Text>
                         <Text variant="small" color={colors.textoTerciario} numberOfLines={1}>
                             Guardada localmente
@@ -452,15 +445,15 @@ export const StorePanelScreen = () => {
                     )}
                 </Surface>
             ) : (
-                <Surface variant="outline" padding="xl" style={{ alignItems: 'center', borderStyle: 'dashed' }}>
+                <Surface variant="outline" padding="xl" style={styles.podPlaceholder}>
                     <Ionicons name="camera-outline" size={48} color={colors.textoTerciario} />
-                    <Text variant="body" color={colors.textoSecundario} style={{ marginTop: TOKENS.spacing.sm, textAlign: 'center' }}>
+                    <Text variant="body" color={colors.textoSecundario} style={styles.podText}>
                         Es necesario capturar una foto para confirmar la entrega.
                     </Text>
                     <Button 
                         label="Tomar Fotografía"
                         variant="secondary"
-                        style={{ marginTop: TOKENS.spacing.lg }}
+                        style={styles.marginTopLg}
                         icon={<Ionicons name="camera" size={18} color={colors.primario} />}
                         onPress={handleAbrirCamara}
                     />
@@ -479,10 +472,10 @@ export const StorePanelScreen = () => {
             />
 
             {/* Cabecera */}
-            <View style={[styles.cabecera, {
-                backgroundColor: colors.superficie,
-                borderBottomColor: colors.borde,
-            }]}>
+            <Surface 
+                variant="flat" 
+                style={[styles.cabecera, { borderBottomColor: colors.borde }]}
+            >
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
                     <Ionicons name="arrow-back" size={22} color={colors.textoPrincipal} />
                 </TouchableOpacity>
@@ -497,7 +490,7 @@ export const StorePanelScreen = () => {
                     icon={<Ionicons name="qr-code-outline" size={18} color={colors.primario} />}
                     onPress={handleAbrirEscaner}
                 />
-            </View>
+            </Surface>
 
             <ScrollView contentContainerStyle={styles.scroll}>
 
@@ -505,17 +498,17 @@ export const StorePanelScreen = () => {
                 {!envio && (
                     <Surface variant="flat" padding="xxl" style={styles.placeholderCard}>
                         <Ionicons name="cube-outline" size={64} color={colors.textoTerciario} />
-                        <Text variant="h3" weight="bold" style={{ marginTop: TOKENS.spacing.md }}>
+                        <Text variant="h3" weight="bold" style={styles.marginTopMd}>
                             Sin envío cargado
                         </Text>
-                        <Text variant="body" align="center" color={colors.textoSecundario} style={{ marginTop: TOKENS.spacing.sm }}>
+                        <Text variant="body" align="center" color={colors.textoSecundario} style={styles.marginTopSm}>
                             Escanea el QR del envío o selecciónalo desde el Panel de Picking.
                         </Text>
                         <Button 
                             label="Escanear QR"
                             variant="primary"
-                            style={{ marginTop: TOKENS.spacing.xl, width: '100%' }}
-                            icon={<Ionicons name="qr-code-outline" size={18} color="#FFF" />}
+                            style={styles.escanerBtnFull}
+                            icon={<Ionicons name="qr-code-outline" size={18} color={colors.superficie} />}
                             onPress={handleAbrirEscaner}
                         />
                     </Surface>
@@ -537,15 +530,15 @@ export const StorePanelScreen = () => {
                             variant="primary"
                             loading={procesando}
                             disabled={!fotoUri || envio.estado === 'Entregado'}
-                            style={{ marginTop: TOKENS.spacing.xxl, marginBottom: TOKENS.spacing.huge }}
+                            style={styles.confirmBtn}
                             onPress={handleConfirmarEntrega}
-                            icon={!procesando && <Ionicons name="checkmark-circle-outline" size={20} color="#fff" />}
+                            icon={!procesando && <Ionicons name="checkmark-circle-outline" size={20} color={colors.superficie} />}
                         />
 
                         {envio.estado === 'Entregado' && (
-                            <Surface variant="flat" padding="md" style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#0a1f12' : '#f0fdf4', marginBottom: TOKENS.spacing.xl }}>
-                                <Ionicons name="checkmark-circle" size={24} color="#22c55e" />
-                                <Text variant="body" weight="bold" color="#22c55e" style={{ marginLeft: 8 }}>
+                            <Surface variant="flat" padding="md" style={styles.successBanner}>
+                                <Ionicons name="checkmark-circle" size={24} color={colors.exito} />
+                                <Text variant="body" weight="bold" color={colors.exito} style={styles.marginLeft8}>
                                     Envío entregado con éxito
                                 </Text>
                             </Surface>
@@ -571,6 +564,30 @@ export const StorePanelScreen = () => {
 
 const styles = StyleSheet.create({
     contenedor: { flex: 1 },
+    flex1: { flex: 1 },
+    marginLeft12: { marginLeft: 12 },
+    marginLeft4: { marginLeft: 4 },
+    marginLeft8: { marginLeft: 8 },
+    marginTop2: { marginTop: 2 },
+    marginTop4: { marginTop: 4 },
+    marginTopMd: { marginTop: TOKENS.spacing.md },
+    marginTopSm: { marginTop: TOKENS.spacing.sm },
+    marginTopLg: { marginTop: TOKENS.spacing.lg },
+    infoCol: { marginLeft: 12, flex: 1 },
+    gmapsBtn: { marginTop: 8, flexDirection: 'row', alignItems: 'center' },
+    podTitulo: { marginTop: TOKENS.spacing.xl, marginBottom: TOKENS.spacing.sm },
+    podCard: { flexDirection: 'row', alignItems: 'center' },
+    podInfo: { flex: 1, marginLeft: TOKENS.spacing.md },
+    podPlaceholder: { alignItems: 'center', borderStyle: 'dashed' },
+    podText: { marginTop: TOKENS.spacing.sm, textAlign: 'center' },
+    escanerBtnFull: { marginTop: TOKENS.spacing.xl, width: '100%' },
+    confirmBtn: { marginTop: TOKENS.spacing.xxl, marginBottom: TOKENS.spacing.huge },
+    successBanner: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        backgroundColor: 'transparent', // Se sobreescribe con el fondoPrimario dinámico en el componente
+        marginBottom: TOKENS.spacing.xl 
+    },
     cabecera: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -603,8 +620,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
     badgeWoo: {
-        backgroundColor: '#0075de',
-        color: '#fff',
         fontSize: 10,
         fontWeight: '800',
         paddingHorizontal: 6,
@@ -632,12 +647,10 @@ const styles = StyleSheet.create({
         width: 24,
         height: 24,
         borderRadius: 4,
-        backgroundColor: 'rgba(0,117,222,0.1)',
         alignItems: 'center',
         justifyContent: 'center',
     },
     itemCantidadText: {
-        color: '#0075de',
         fontSize: 12,
         fontWeight: '700',
     },
@@ -768,7 +781,6 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     btnPrimarioText: {
-        color: '#fff',
         fontSize: 15,
         fontWeight: '600',
     },
@@ -800,11 +812,8 @@ const styles = StyleSheet.create({
         height: 240,
         borderRadius: 16,
         borderWidth: 3,
-        borderColor: '#4ba042', // primario Notion
-        backgroundColor: 'transparent',
     },
     escanerHint: {
-        color: '#fff',
         fontSize: 14,
         fontWeight: '600',
         marginTop: 20,
@@ -813,6 +822,9 @@ const styles = StyleSheet.create({
         paddingVertical: 6,
         borderRadius: 9999,
     },
+    modalFull: { flex: 1 },
+    cameraFull: { flex: 1 },
+    disabledOpacity: { opacity: 0.4 },
     escanerCerrar: {
         position: 'absolute',
         bottom: 60,
@@ -833,13 +845,11 @@ const styles = StyleSheet.create({
         width: 72,
         height: 72,
         borderRadius: 36,
-        backgroundColor: '#f6f5f4', // superficieAlta
         alignItems: 'center',
         justifyContent: 'center',
         elevation: 8,
     },
     camaraHint: {
-        color: '#fff',
         fontSize: 13,
         fontWeight: '500',
         marginTop: 12,

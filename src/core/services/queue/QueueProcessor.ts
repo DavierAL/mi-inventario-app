@@ -3,6 +3,7 @@ import { PersistentQueue } from './PersistentQueue';
 import { QueueRetryStrategy } from './QueueRetryStrategy';
 import { jobHandlers } from './jobHandlers';
 import { JobType } from './types';
+import OutboxJob from '../../database/models/OutboxJob';
 
 export class QueueProcessor {
   private queue = new PersistentQueue();
@@ -68,13 +69,14 @@ export class QueueProcessor {
         // Handler returned false, maybe a logic error, we retry
         await this.handleFailure(job, new Error('Handler returned false'));
       }
-    } catch (error: any) {
-      console.error(`[QueueProcessor] Job ${job.id} failed:`, error.message);
-      await this.handleFailure(job, error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error(`[QueueProcessor] Job ${job.id} failed:`, errorMessage);
+      await this.handleFailure(job, error instanceof Error ? error : new Error(errorMessage));
     }
   }
 
-  private async handleFailure(job: any, error: Error) {
+  private async handleFailure(job: OutboxJob, error: Error) {
     if (this.retryStrategy.shouldRetry(job)) {
       const nextRetry = this.retryStrategy.getNextRetryTime(job);
       await this.queue.updateRetry(job.id, nextRetry.getTime(), error.message);

@@ -32,7 +32,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/103</span>
+                <span class='fraction'>0/97</span>
             </div>
         
             
@@ -914,7 +914,17 @@
 <a name='L849'></a><a href='#L849'>849</a>
 <a name='L850'></a><a href='#L850'>850</a>
 <a name='L851'></a><a href='#L851'>851</a>
-<a name='L852'></a><a href='#L852'>852</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L852'></a><a href='#L852'>852</a>
+<a name='L853'></a><a href='#L853'>853</a>
+<a name='L854'></a><a href='#L854'>854</a>
+<a name='L855'></a><a href='#L855'>855</a>
+<a name='L856'></a><a href='#L856'>856</a>
+<a name='L857'></a><a href='#L857'>857</a>
+<a name='L858'></a><a href='#L858'>858</a>
+<a name='L859'></a><a href='#L859'>859</a>
+<a name='L860'></a><a href='#L860'>860</a>
+<a name='L861'></a><a href='#L861'>861</a>
+<a name='L862'></a><a href='#L862'>862</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -954,19 +964,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -1096,6 +1098,7 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1486,6 +1489,23 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -1771,7 +1791,7 @@
  * Diseño: Notion Design System — dark-mode-first, warm charcoal surfaces, whisper borders.
  */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { View, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Alert, ActivityIndicator, Modal, Linking } from 'react-native';
+import { View, StyleSheet, ScrollView, StatusBar, Alert, Modal, Linking, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -1791,7 +1811,7 @@ import { useTheme } from '../../../core/ui/ThemeContext';
 import { RootStackParamList } from '../../../core/types/navigation';
 import { useNetworkStatus } from '../../../core/utils/useNetworkStatus';
 import { useLogisticsSync } from '../hooks/useLogisticsSync';
-import { Text, Surface, Button, Badge } from '../../../core/ui/components';
+import { Text, Surface, Button, Badge, AnimatedPressable as TouchableOpacity } from '../../../core/ui/components';
 import { TOKENS } from '../../../core/ui/tokens';
 import { Logger } from '../../../core/services/LoggerService';
 import { ErrorService } from '../../../core/services/ErrorService';
@@ -1801,14 +1821,6 @@ import { EnviosService } from '../services/enviosService';
 &nbsp;
 type StorePanelNavProp = NativeStackNavigationProp&lt;RootStackParamList, 'StorePanel'&gt;;
 type StorePanelRoute = RouteProp&lt;RootStackParamList, 'StorePanel'&gt;;
-&nbsp;
-// ─── Badge config por estado ──────────────────────────────────────────────────
-&nbsp;
-const ESTADO_BADGE: Record&lt;EstadoPedido, { bg: string; text: string; label: string }&gt; = <span class="cstat-no" title="statement not covered" >{</span>
-    Pendiente:  { bg: 'rgba(255, 171, 0, 0.15)', text: '#ffab00', label: 'Pendiente' }, // Notion Yellow/Warning
-    En_Tienda:  { bg: 'rgba(0, 117, 222, 0.1)', text: '#0075de', label: 'En Tienda' }, // Notion Blue
-    Entregado:  { bg: 'rgba(75, 160, 66, 0.15)', text: '#4ba042', label: 'Entregado' }, // Notion Green
-};
 &nbsp;
 // ─── Componente principal ─────────────────────────────────────────────────────
 &nbsp;
@@ -1946,9 +1958,10 @@ export const StorePanelScreen = <span class="cstat-no" title="statement not cove
 <span class="cstat-no" title="statement not covered" >            setModoFoto(false);</span>
 <span class="cstat-no" title="statement not covered" >            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);</span>
 <span class="cstat-no" title="statement not covered" >            Toast.show({ type: 'success', text1: 'Foto capturada', text2: 'Lista para guardar' });</span>
-        } catch (e: any) {
-<span class="cstat-no" title="statement not covered" >            console.error('[POD Camera Error]:', e?.message ?? e);</span>
-<span class="cstat-no" title="statement not covered" >            Toast.show({ type: 'error', text1: 'Error al capturar foto', text2: e?.message ?? 'Intenta de nuevo' });</span>
+        } catch (e: unknown) {
+            const err = <span class="cstat-no" title="statement not covered" >e as Error;</span>
+<span class="cstat-no" title="statement not covered" >            console.error('[POD Camera Error]:', err.message);</span>
+<span class="cstat-no" title="statement not covered" >            Toast.show({ type: 'error', text1: 'Error al capturar foto', text2: err.message || 'Intenta de nuevo' });</span>
         } finally {
 <span class="cstat-no" title="statement not covered" >            setProcesando(false);</span>
         }
@@ -2049,24 +2062,24 @@ export const StorePanelScreen = <span class="cstat-no" title="statement not cove
 <span class="cstat-no" title="statement not covered" >    if (modoEscaner) {</span>
 <span class="cstat-no" title="statement not covered" >        return (</span>
             &lt;Modal visible animationType="slide" onRequestClose={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setModoEscaner(false)}</span>&gt;
-                &lt;View style={{ flex: 1, backgroundColor: '#000' }}&gt;
+                &lt;Surface style={[styles.modalFull, { backgroundColor: colors.absolutoNegro }]}&gt;
                     &lt;CameraView
-                        style={{ flex: 1 }}
+                        style={styles.cameraFull}
                         facing="back"
                         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
                         onBarcodeScanned={handleQrEscaneado}
                     /&gt;
                     &lt;SafeAreaView style={styles.escanerOverlay}&gt;
-                        &lt;View style={styles.escanerMarco} /&gt;
-                        &lt;Text style={styles.escanerHint}&gt;Apunta al QR del envio&lt;/Text&gt;
+                        &lt;View style={[styles.escanerMarco, { borderColor: colors.absolutoBlanco }]} /&gt;
+                        &lt;Text style={[styles.escanerHint, { color: colors.absolutoBlanco }]}&gt;Apunta al QR del envio&lt;/Text&gt;
                         &lt;TouchableOpacity
                             style={styles.escanerCerrar}
                             onPress={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setModoEscaner(false)}</span>
                         &gt;
-                            &lt;Ionicons name="close-circle" size={48} color="#fff" /&gt;
+                            &lt;Ionicons name="close-circle" size={48} color={colors.absolutoBlanco} /&gt;
                         &lt;/TouchableOpacity&gt;
                     &lt;/SafeAreaView&gt;
-                &lt;/View&gt;
+                &lt;/Surface&gt;
             &lt;/Modal&gt;
         );
     }
@@ -2076,36 +2089,36 @@ export const StorePanelScreen = <span class="cstat-no" title="statement not cove
 <span class="cstat-no" title="statement not covered" >    if (modoFoto) {</span>
 <span class="cstat-no" title="statement not covered" >        return (</span>
             &lt;Modal visible animationType="slide" onRequestClose={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setModoFoto(false)}</span>&gt;
-                &lt;View style={{ flex: 1, backgroundColor: '#000' }}&gt;
+                &lt;Surface style={[styles.modalFull, { backgroundColor: colors.absolutoNegro }]}&gt;
                     &lt;CameraView
                         ref={cameraRef}
-                        style={{ flex: 1 }}
+                        style={styles.cameraFull}
                         facing="back"
                         onCameraReady={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setIsCameraReady(true)}</span>
                     /&gt;
                     &lt;SafeAreaView style={styles.camaraOverlay}&gt;
                         &lt;TouchableOpacity style={styles.camaraCerrar} onPress={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setModoFoto(false)}</span>&gt;
-                            &lt;Ionicons name="close-circle" size={44} color="#fff" /&gt;
+                            &lt;Ionicons name="close-circle" size={44} color={colors.absolutoBlanco} /&gt;
                         &lt;/TouchableOpacity&gt;
                         &lt;TouchableOpacity
                             style={[
                                 styles.camaraDisparador,
-                                !isCameraReady &amp;&amp; { opacity: 0.4 },
+                                { backgroundColor: colors.superficieAlta },
+                                !isCameraReady &amp;&amp; styles.disabledOpacity,
                             ]}
                             onPress={handleCapturarFoto}
                             disabled={procesando || !isCameraReady}
-                            activeOpacity={0.8}
                         &gt;
                             {procesando
-                                ? &lt;ActivityIndicator color="#0075de" /&gt;
-                                : &lt;Ionicons name="camera" size={36} color="#0075de" /&gt;
+                                ? &lt;ActivityIndicator color={colors.primario} /&gt;
+                                : &lt;Ionicons name="camera" size={36} color={colors.primario} /&gt;
                             }
                         &lt;/TouchableOpacity&gt;
-                        &lt;Text style={styles.camaraHint}&gt;
+                        &lt;Text style={[styles.camaraHint, { color: colors.absolutoBlanco }]}&gt;
                             {isCameraReady ? 'Fotografía la evidencia de entrega' : 'Iniciando cámara...'}
                         &lt;/Text&gt;
                     &lt;/SafeAreaView&gt;
-                &lt;/View&gt;
+                &lt;/Surface&gt;
             &lt;/Modal&gt;
         );
     }
@@ -2117,7 +2130,7 @@ export const StorePanelScreen = <span class="cstat-no" title="statement not cove
     const OrderDetailsCard = <span class="cstat-no" title="statement not covered" >React.memo(<span class="fstat-no" title="function not covered" >({</span> item }: { item: Envio }) =&gt; (</span>
 <span class="cstat-no" title="statement not covered" >        &lt;Surface variant="elevated" padding="lg" style={styles.card}&gt;</span>
             &lt;View style={styles.cardHeader}&gt;
-                &lt;View style={{ flex: 1 }}&gt;
+                &lt;View style={styles.flex1}&gt;
                     &lt;Text variant="tiny" weight="bold" color={colors.textoTerciario}&gt;
                         CÓDIGO DE ENVÍO
                     &lt;/Text&gt;
@@ -2133,7 +2146,7 @@ export const StorePanelScreen = <span class="cstat-no" title="statement not cove
 &nbsp;
             &lt;View style={styles.infoRow}&gt;
                 &lt;Ionicons name="person-outline" size={16} color={colors.textoTerciario} /&gt;
-                &lt;View style={{ marginLeft: 12, flex: 1 }}&gt;
+                &lt;View style={styles.infoCol}&gt;
                     &lt;Text variant="tiny" weight="bold" color={colors.textoTerciario}&gt;CLIENTE&lt;/Text&gt;
                     &lt;Text variant="body" weight="medium"&gt;{item.cliente}&lt;/Text&gt;
                     {item.telefono &amp;&amp; (
@@ -2145,23 +2158,23 @@ export const StorePanelScreen = <span class="cstat-no" title="statement not cove
             {(item.direccion || item.distrito) &amp;&amp; (
                 &lt;View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}&gt;
                     &lt;Ionicons name="location-outline" size={16} color={colors.textoTerciario} /&gt;
-                    &lt;View style={{ marginLeft: 12, flex: 1 }}&gt;
+                    &lt;View style={styles.infoCol}&gt;
                         &lt;Text variant="tiny" weight="bold" color={colors.textoTerciario}&gt;DIRECCIÓN&lt;/Text&gt;
                         &lt;Text variant="body"&gt;
                             {item.direccion}{item.distrito ? `, ${item.distrito}` : ''}
                         &lt;/Text&gt;
                         {item.referencia &amp;&amp; (
-                            &lt;Text variant="small" color={colors.textoSecundario} style={{ marginTop: 2 }}&gt;
+                            &lt;Text variant="small" color={colors.textoSecundario} style={styles.marginTop2}&gt;
                                 Ref: {item.referencia}
                             &lt;/Text&gt;
                         )}
                         {item.gmapsUrl &amp;&amp; (
                             &lt;TouchableOpacity 
-                                style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center' }} 
+                                style={styles.gmapsBtn} 
                                 onPress={handleAbrirGmaps}
                             &gt;
                                 &lt;Ionicons name="map-outline" size={14} color={colors.primario} /&gt;
-                                &lt;Text variant="small" weight="bold" color={colors.primario} style={{ marginLeft: 4 }}&gt;
+                                &lt;Text variant="small" weight="bold" color={colors.primario} style={styles.marginLeft4}&gt;
                                     Ver en Google Maps
                                 &lt;/Text&gt;
                             &lt;/TouchableOpacity&gt;
@@ -2173,7 +2186,7 @@ export const StorePanelScreen = <span class="cstat-no" title="statement not cove
             {item.operador &amp;&amp; (
                 &lt;View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}&gt;
                     &lt;Ionicons name="bicycle-outline" size={16} color={colors.textoTerciario} /&gt;
-                    &lt;View style={{ marginLeft: 12 }}&gt;
+                    &lt;View style={styles.marginLeft12}&gt;
                         &lt;Text variant="tiny" weight="bold" color={colors.textoTerciario}&gt;OPERADOR&lt;/Text&gt;
                         &lt;Text variant="body" weight="medium"&gt;{item.operador.toUpperCase()}&lt;/Text&gt;
                     &lt;/View&gt;
@@ -2184,7 +2197,7 @@ export const StorePanelScreen = <span class="cstat-no" title="statement not cove
                 &lt;&gt;
                     &lt;View style={[styles.divider, { backgroundColor: colors.borde }]} /&gt;
                     &lt;Text variant="tiny" weight="bold" color={colors.textoTerciario}&gt;NOTAS&lt;/Text&gt;
-                    &lt;Text variant="small" color={colors.textoSecundario} style={{ marginTop: 4 }}&gt;
+                    &lt;Text variant="small" color={colors.textoSecundario} style={styles.marginTop4}&gt;
                         {item.notas}
                     &lt;/Text&gt;
                 &lt;/&gt;
@@ -2194,16 +2207,16 @@ export const StorePanelScreen = <span class="cstat-no" title="statement not cove
 &nbsp;
     const PODEvidenceSection = <span class="cstat-no" title="statement not covered" >React.memo(<span class="fstat-no" title="function not covered" >({</span> uri, isDelivered }: { uri: string | null, isDelivered: boolean }) =&gt; (</span>
 <span class="cstat-no" title="statement not covered" >        &lt;&gt;</span>
-            &lt;Text variant="h3" weight="bold" style={{ color: colors.textoPrincipal, marginTop: TOKENS.spacing.xl, marginBottom: TOKENS.spacing.sm }}&gt;
+            &lt;Text variant="h3" weight="bold" style={styles.podTitulo}&gt;
                 Evidencia de Entrega (POD)
             &lt;/Text&gt;
 &nbsp;
             {uri ? (
-                &lt;Surface variant="elevated" padding="lg" style={{ flexDirection: 'row', alignItems: 'center' }}&gt;
-                    &lt;View style={[styles.fotoCheck, { backgroundColor: isDark ? '#0a1f12' : '#f0fdf4' }]}&gt;
-                        &lt;Ionicons name="checkmark-circle" size={32} color="#22c55e" /&gt;
+                &lt;Surface variant="elevated" padding="lg" style={styles.podCard}&gt;
+                    &lt;View style={[styles.fotoCheck, { backgroundColor: colors.fondoPrimario }]}&gt;
+                        &lt;Ionicons name="checkmark-circle" size={32} color={colors.exito} /&gt;
                     &lt;/View&gt;
-                    &lt;View style={{ flex: 1, marginLeft: TOKENS.spacing.md }}&gt;
+                    &lt;View style={styles.podInfo}&gt;
                         &lt;Text variant="body" weight="bold"&gt;Foto capturada&lt;/Text&gt;
                         &lt;Text variant="small" color={colors.textoTerciario} numberOfLines={1}&gt;
                             Guardada localmente
@@ -2219,15 +2232,15 @@ export const StorePanelScreen = <span class="cstat-no" title="statement not cove
                     )}
                 &lt;/Surface&gt;
             ) : (
-                &lt;Surface variant="outline" padding="xl" style={{ alignItems: 'center', borderStyle: 'dashed' }}&gt;
+                &lt;Surface variant="outline" padding="xl" style={styles.podPlaceholder}&gt;
                     &lt;Ionicons name="camera-outline" size={48} color={colors.textoTerciario} /&gt;
-                    &lt;Text variant="body" color={colors.textoSecundario} style={{ marginTop: TOKENS.spacing.sm, textAlign: 'center' }}&gt;
+                    &lt;Text variant="body" color={colors.textoSecundario} style={styles.podText}&gt;
                         Es necesario capturar una foto para confirmar la entrega.
                     &lt;/Text&gt;
                     &lt;Button 
                         label="Tomar Fotografía"
                         variant="secondary"
-                        style={{ marginTop: TOKENS.spacing.lg }}
+                        style={styles.marginTopLg}
                         icon={&lt;Ionicons name="camera" size={18} color={colors.primario} /&gt;}
                         onPress={handleAbrirCamara}
                     /&gt;
@@ -2246,10 +2259,10 @@ export const StorePanelScreen = <span class="cstat-no" title="statement not cove
             /&gt;
 &nbsp;
             {/* Cabecera */}
-            &lt;View style={[styles.cabecera, {
-                backgroundColor: colors.superficie,
-                borderBottomColor: colors.borde,
-            }]}&gt;
+            &lt;Surface 
+                variant="flat" 
+                style={[styles.cabecera, { borderBottomColor: colors.borde }]}
+            &gt;
                 &lt;TouchableOpacity onPress={<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >navigation.goBack()}</span> style={styles.backBtn}&gt;
                     &lt;Ionicons name="arrow-back" size={22} color={colors.textoPrincipal} /&gt;
                 &lt;/TouchableOpacity&gt;
@@ -2264,7 +2277,7 @@ export const StorePanelScreen = <span class="cstat-no" title="statement not cove
                     icon={&lt;Ionicons name="qr-code-outline" size={18} color={colors.primario} /&gt;}
                     onPress={handleAbrirEscaner}
                 /&gt;
-            &lt;/View&gt;
+            &lt;/Surface&gt;
 &nbsp;
             &lt;ScrollView contentContainerStyle={styles.scroll}&gt;
 &nbsp;
@@ -2272,17 +2285,17 @@ export const StorePanelScreen = <span class="cstat-no" title="statement not cove
                 {!envio &amp;&amp; (
                     &lt;Surface variant="flat" padding="xxl" style={styles.placeholderCard}&gt;
                         &lt;Ionicons name="cube-outline" size={64} color={colors.textoTerciario} /&gt;
-                        &lt;Text variant="h3" weight="bold" style={{ marginTop: TOKENS.spacing.md }}&gt;
+                        &lt;Text variant="h3" weight="bold" style={styles.marginTopMd}&gt;
                             Sin envío cargado
                         &lt;/Text&gt;
-                        &lt;Text variant="body" align="center" color={colors.textoSecundario} style={{ marginTop: TOKENS.spacing.sm }}&gt;
+                        &lt;Text variant="body" align="center" color={colors.textoSecundario} style={styles.marginTopSm}&gt;
                             Escanea el QR del envío o selecciónalo desde el Panel de Picking.
                         &lt;/Text&gt;
                         &lt;Button 
                             label="Escanear QR"
                             variant="primary"
-                            style={{ marginTop: TOKENS.spacing.xl, width: '100%' }}
-                            icon={&lt;Ionicons name="qr-code-outline" size={18} color="#FFF" /&gt;}
+                            style={styles.escanerBtnFull}
+                            icon={&lt;Ionicons name="qr-code-outline" size={18} color={colors.superficie} /&gt;}
                             onPress={handleAbrirEscaner}
                         /&gt;
                     &lt;/Surface&gt;
@@ -2304,15 +2317,15 @@ export const StorePanelScreen = <span class="cstat-no" title="statement not cove
                             variant="primary"
                             loading={procesando}
                             disabled={!fotoUri || envio.estado === 'Entregado'}
-                            style={{ marginTop: TOKENS.spacing.xxl, marginBottom: TOKENS.spacing.huge }}
+                            style={styles.confirmBtn}
                             onPress={handleConfirmarEntrega}
-                            icon={!procesando &amp;&amp; &lt;Ionicons name="checkmark-circle-outline" size={20} color="#fff" /&gt;}
+                            icon={!procesando &amp;&amp; &lt;Ionicons name="checkmark-circle-outline" size={20} color={colors.superficie} /&gt;}
                         /&gt;
 &nbsp;
                         {envio.estado === 'Entregado' &amp;&amp; (
-                            &lt;Surface variant="flat" padding="md" style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#0a1f12' : '#f0fdf4', marginBottom: TOKENS.spacing.xl }}&gt;
-                                &lt;Ionicons name="checkmark-circle" size={24} color="#22c55e" /&gt;
-                                &lt;Text variant="body" weight="bold" color="#22c55e" style={{ marginLeft: 8 }}&gt;
+                            &lt;Surface variant="flat" padding="md" style={styles.successBanner}&gt;
+                                &lt;Ionicons name="checkmark-circle" size={24} color={colors.exito} /&gt;
+                                &lt;Text variant="body" weight="bold" color={colors.exito} style={styles.marginLeft8}&gt;
                                     Envío entregado con éxito
                                 &lt;/Text&gt;
                             &lt;/Surface&gt;
@@ -2338,6 +2351,30 @@ export const StorePanelScreen = <span class="cstat-no" title="statement not cove
 &nbsp;
 const styles = <span class="cstat-no" title="statement not covered" >StyleSheet.create({</span>
     contenedor: { flex: 1 },
+    flex1: { flex: 1 },
+    marginLeft12: { marginLeft: 12 },
+    marginLeft4: { marginLeft: 4 },
+    marginLeft8: { marginLeft: 8 },
+    marginTop2: { marginTop: 2 },
+    marginTop4: { marginTop: 4 },
+    marginTopMd: { marginTop: TOKENS.spacing.md },
+    marginTopSm: { marginTop: TOKENS.spacing.sm },
+    marginTopLg: { marginTop: TOKENS.spacing.lg },
+    infoCol: { marginLeft: 12, flex: 1 },
+    gmapsBtn: { marginTop: 8, flexDirection: 'row', alignItems: 'center' },
+    podTitulo: { marginTop: TOKENS.spacing.xl, marginBottom: TOKENS.spacing.sm },
+    podCard: { flexDirection: 'row', alignItems: 'center' },
+    podInfo: { flex: 1, marginLeft: TOKENS.spacing.md },
+    podPlaceholder: { alignItems: 'center', borderStyle: 'dashed' },
+    podText: { marginTop: TOKENS.spacing.sm, textAlign: 'center' },
+    escanerBtnFull: { marginTop: TOKENS.spacing.xl, width: '100%' },
+    confirmBtn: { marginTop: TOKENS.spacing.xxl, marginBottom: TOKENS.spacing.huge },
+    successBanner: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        backgroundColor: 'transparent', // Se sobreescribe con el fondoPrimario dinámico en el componente
+        marginBottom: TOKENS.spacing.xl 
+    },
     cabecera: {
         flexDirection: 'row',
         alignItems: 'center',
@@ -2370,8 +2407,6 @@ const styles = <span class="cstat-no" title="statement not covered" >StyleSheet.
         fontWeight: '600',
     },
     badgeWoo: {
-        backgroundColor: '#0075de',
-        color: '#fff',
         fontSize: 10,
         fontWeight: '800',
         paddingHorizontal: 6,
@@ -2399,12 +2434,10 @@ const styles = <span class="cstat-no" title="statement not covered" >StyleSheet.
         width: 24,
         height: 24,
         borderRadius: 4,
-        backgroundColor: 'rgba(0,117,222,0.1)',
         alignItems: 'center',
         justifyContent: 'center',
     },
     itemCantidadText: {
-        color: '#0075de',
         fontSize: 12,
         fontWeight: '700',
     },
@@ -2535,7 +2568,6 @@ const styles = <span class="cstat-no" title="statement not covered" >StyleSheet.
         borderRadius: 8,
     },
     btnPrimarioText: {
-        color: '#fff',
         fontSize: 15,
         fontWeight: '600',
     },
@@ -2567,11 +2599,8 @@ const styles = <span class="cstat-no" title="statement not covered" >StyleSheet.
         height: 240,
         borderRadius: 16,
         borderWidth: 3,
-        borderColor: '#4ba042', // primario Notion
-        backgroundColor: 'transparent',
     },
     escanerHint: {
-        color: '#fff',
         fontSize: 14,
         fontWeight: '600',
         marginTop: 20,
@@ -2580,6 +2609,9 @@ const styles = <span class="cstat-no" title="statement not covered" >StyleSheet.
         paddingVertical: 6,
         borderRadius: 9999,
     },
+    modalFull: { flex: 1 },
+    cameraFull: { flex: 1 },
+    disabledOpacity: { opacity: 0.4 },
     escanerCerrar: {
         position: 'absolute',
         bottom: 60,
@@ -2600,13 +2632,11 @@ const styles = <span class="cstat-no" title="statement not covered" >StyleSheet.
         width: 72,
         height: 72,
         borderRadius: 36,
-        backgroundColor: '#f6f5f4', // superficieAlta
         alignItems: 'center',
         justifyContent: 'center',
         elevation: 8,
     },
     camaraHint: {
-        color: '#fff',
         fontSize: 13,
         fontWeight: '500',
         marginTop: 12,
@@ -2623,7 +2653,7 @@ const styles = <span class="cstat-no" title="statement not covered" >StyleSheet.
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-22T00:12:22.269Z
+                at 2026-04-22T01:15:10.619Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

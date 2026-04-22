@@ -10,14 +10,16 @@ import { PersistentQueue } from './PersistentQueue';
 
 const persistentQueue = new PersistentQueue();
 
+import { WebhookPayload, FotoUploadJob, EstadoEnvioJob } from './types';
+
 /**
  * Convenience functions for the rest of the app to enqueue jobs
  * without needing to know about the internal classes.
  */
 export const QueueActions = {
-  enqueueWebhook: (payload: any) => persistentQueue.enqueue('webhook', payload),
-  enqueueFoto: (payload: any) => persistentQueue.enqueue('foto', payload),
-  enqueueEstadoEnvio: (payload: any) => persistentQueue.enqueue('ESTADO_ENVIO', payload),
+  enqueueWebhook: (payload: WebhookPayload) => persistentQueue.enqueue('webhook', payload),
+  enqueueFoto: (payload: FotoUploadJob) => persistentQueue.enqueue('foto', payload),
+  enqueueEstadoEnvio: (payload: EstadoEnvioJob) => persistentQueue.enqueue('ESTADO_ENVIO', payload),
   getStats: () => persistentQueue.getStats(),
 };
 

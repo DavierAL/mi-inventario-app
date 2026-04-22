@@ -29,5 +29,17 @@ jobs:
         echo "EXPO_PUBLIC_CLOUD_FUNCTION_URL=${{ secrets.CLOUD_FUNCTION_URL }}" >> .env
 
 
-    - name: Run tests
-      run: npm test
+    - name: TypeScript Check
+      run: npx tsc --noEmit
+
+    - name: Run Tests with Coverage
+      run: npm run test:coverage
+
+    - name: Run Performance Benchmark
+      run: npm run benchmark
+
+    - name: Upload Coverage Report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage/

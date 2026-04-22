@@ -2,14 +2,14 @@
 import { database } from '../../database';
 import { Q } from '@nozbe/watermelondb';
 import OutboxJob from '../../database/models/OutboxJob';
-import { JobStatus, JobType, QueueStats } from './types';
+import { JobStatus, JobType, QueueStats, QueueJobPayload } from './types';
 
 export class PersistentQueue {
   private get collection() {
     return database.get<OutboxJob>('outbox_jobs');
   }
 
-  async enqueue(type: JobType, payload: any): Promise<OutboxJob> {
+  async enqueue(type: JobType, payload: QueueJobPayload): Promise<OutboxJob> {
     return await database.write(async () => {
       return await this.collection.create((job) => {
         job.jobType = type;

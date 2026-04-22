@@ -4,6 +4,8 @@ import { supabase } from '../../../core/database/supabase';
 import { Logger } from '../../../core/services/LoggerService';
 import { ErrorService } from '../../../core/services/ErrorService';
 import NetInfo from '@react-native-community/netinfo';
+import SyncHistory from '../../../core/database/models/SyncHistory';
+import { Model } from '@nozbe/watermelondb';
 
 /**
  * Mapea los estados de Supabase/WooCommerce a los estados internos de la App.
@@ -14,6 +16,58 @@ function mapearEstadoEntrante(estadoOriginal: string): 'Pendiente' | 'En_Tienda'
   if (norm.includes('listo para envio') || norm === 'en tienda' || norm === 'en_tienda') return 'En_Tienda';
   if (norm.includes('entregado')) return 'Entregado';
   return 'Pendiente';
+}
+
+interface ProductoRemote {
+  id: string;
+  nombre?: string;
+  descripcion?: string;
+  precio?: number;
+  stock?: number;
+  categoria?: string;
+  imagen_url?: string;
+  codigo_barras?: string;
+  fv_actual?: string;
+  comentarios?: string;
+  created_at: string;
+  updated_at: string;
+  cod_barras?: string;
+  sku?: string;
+  stock_master?: number;
+  precio_web?: number;
+  precio_tienda?: number;
+  fv_actual_ts?: number;
+  fecha_edicion?: string;
+  marca?: string;
+  imagen?: string;
+}
+
+interface EnvioRemote {
+  id: string;
+  cod_pedido: string;
+  cliente: string;
+  direccion?: string;
+  telefono?: string;
+  estado: string;
+  lat?: number;
+  lng?: number;
+  pod_url?: string;
+  created_at: string;
+  updated_at: string;
+  operador?: string;
+  url_foto?: string;
+  notas?: string;
+  distrito?: string;
+  gmaps_url?: string;
+  referencia?: string;
+}
+
+interface SyncChanges {
+  [key: string]: {
+    created: Model[];
+    updated: Model[];
+    deleted: string[];
+  };
 }
 
 let isSyncing = false;
@@ -33,6 +87,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
   
   if (!netInfo.isConnected) {
     Logger.warn('[Sync] Abortado: Sin conexión a internet');
+    isSyncing = false;
     return;
   }
 
@@ -49,13 +104,15 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         const lastPulledDate = options.forceFull ? new Date(0).toISOString() : new Date(lastPulledAt || 0).toISOString();
         
         // --- PULL PRODUCTOS ---
-        let productosRemote: any[] = [];
+        let productosRemote: ProductoRemote[] = [];
         let hasMore = true;
         let page = 0;
         const pageSize = 1000;
 
         while (hasMore) {
-          let query = supabase.from('productos').select('*').range(page * pageSize, (page + 1) * pageSize - 1);
+          let query = supabase.from('productos')
+            .select('id, cod_barras, sku, descripcion, stock_master, precio_web, precio_tienda, fv_actual_ts, fecha_edicion, comentarios, marca, imagen, created_at, updated_at')
+            .range(page * pageSize, (page + 1) * pageSize - 1);
           if (lastPulledAt && !options.forceFull) {
             query = query.gte('updated_at', lastPulledDate);
           }
@@ -72,28 +129,30 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
 
         const productosUpdated = productosRemote.map(row => ({
           id: row.id?.toString() || '',
-          cod_barras: row.cod_barras,
-          sku: row.sku,
-          descripcion: row.descripcion,
-          stock_master: row.stock_master ?? 0,
-          precio_web: row.precio_web ?? 0,
-          precio_tienda: row.precio_tienda ?? 0,
-          fv_actual_ts: row.fv_actual_ts,
-          fecha_edicion: row.fecha_edicion,
-          comentarios: row.comentarios,
-          marca: row.marca,
-          imagen: row.imagen,
+          cod_barras: row.cod_barras || row.codigo_barras || '',
+          sku: row.sku || '',
+          descripcion: row.descripcion || '',
+          stock_master: row.stock_master ?? row.stock ?? 0,
+          precio_web: row.precio_web ?? row.precio ?? 0,
+          precio_tienda: row.precio_tienda ?? row.precio ?? 0,
+          fv_actual_ts: row.fv_actual_ts || (row.fv_actual ? new Date(row.fv_actual).getTime() : null),
+          fecha_edicion: row.fecha_edicion || null,
+          comentarios: row.comentarios || null,
+          marca: row.marca || 'Genérico',
+          imagen: row.imagen || row.imagen_url || null,
           created_at: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
           updated_at: row.updated_at ? new Date(row.updated_at).getTime() : Date.now(),
         }));
 
         // --- PULL ENVIOS ---
-        let enviosRemote: any[] = [];
+        let enviosRemote: EnvioRemote[] = [];
         let hasMoreEnv = true;
         let pageEnv = 0;
         
         while (hasMoreEnv) {
-          let queryEnv = supabase.from('envios').select('*').range(pageEnv * pageSize, (pageEnv + 1) * pageSize - 1);
+          let queryEnv = supabase.from('envios')
+            .select('id, cod_pedido, cliente, direccion, telefono, estado, lat, lng, pod_url, created_at, updated_at')
+            .range(pageEnv * pageSize, (pageEnv + 1) * pageSize - 1);
           if (lastPulledAt && !options.forceFull) {
             queryEnv = queryEnv.gte('updated_at', lastPulledDate);
           }
@@ -150,26 +209,28 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
       },
 
       // 2. PUSH: Enviar cambios locales
-      pushChanges: async ({ changes }: { changes: any }) => {
+      pushChanges: async ({ changes }: { changes: SyncChanges }) => {
         // --- PUSH PRODUCTOS ---
         if (changes.productos) {
           const all = [...changes.productos.created, ...changes.productos.updated];
           if (all.length > 0) {
-            const updates = all.map(record => ({
-              id: record.id,
-              cod_barras: record.cod_barras,
-              sku: record.sku,
-              descripcion: record.descripcion,
-              marca: record.marca,
-              stock_master: record.stock_master,
-              precio_web: record.precio_web,
-              precio_tienda: record.precio_tienda,
-              fv_actual_ts: record.fv_actual_ts,
-              comentarios: record.comentarios,
-              fecha_edicion: record.fecha_edicion,
-              imagen: record.imagen,
-              updated_at: new Date().toISOString()
-            }));
+            const updates = all.map((r: any) => {
+              return {
+                id: r.id,
+                cod_barras: r.codBarras,
+                sku: r.sku,
+                descripcion: r.descripcion,
+                marca: r.marca,
+                stock_master: r.stockMaster,
+                precio_web: r.precioWeb,
+                precio_tienda: r.precioTienda,
+                fv_actual_ts: r.fvActualTs ? new Date(r.fvActualTs).getTime() : null,
+                comentarios: r.comentarios,
+                fecha_edicion: r.fechaEdicion,
+                imagen: r.imagen,
+                updated_at: new Date().toISOString()
+              };
+            });
             const { error } = await supabase.from('productos').upsert(updates);
             if (error) throw error;
             pushedCount += updates.length;
@@ -180,22 +241,24 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         if (changes.envios) {
           const all = [...changes.envios.created, ...changes.envios.updated];
           if (all.length > 0) {
-            const updates = all.map(record => ({
-              id: record.id,
-              cod_pedido: record.cod_pedido,
-              cliente: record.cliente,
-              estado: record.estado.toLowerCase(),
-              operador: record.operador,
-              url_foto: record.url_foto,
-              pod_url: record.pod_url,
-              notas: record.notas,
-              direccion: record.direccion,
-              distrito: record.distrito,
-              telefono: record.telefono,
-              gmaps_url: record.gmaps_url,
-              referencia: record.referencia,
-              updated_at: new Date().toISOString()
-            }));
+            const updates = all.map((r: any) => {
+              return {
+                id: r.id,
+                cod_pedido: r.codPedido,
+                cliente: r.cliente,
+                estado: (r.estado as string).toLowerCase(),
+                operador: r.operador,
+                url_foto: r.urlFoto,
+                pod_url: r.podUrl,
+                notas: r.notas,
+                direccion: r.direccion,
+                distrito: r.distrito,
+                telefono: r.telefono,
+                gmaps_url: r.gmapsUrl,
+                referencia: r.referencia,
+                updated_at: new Date().toISOString()
+              };
+            });
             const { error } = await supabase.from('envios').upsert(updates);
             if (error) throw error;
             pushedCount += updates.length;
@@ -203,16 +266,15 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         }
       },
 
-      // 3. Resolución de Conflictos
       conflictResolver: (table, local, remote, resolved) => {
-        // Si el servidor tiene un stock_master diferente, comparamos timestamps
-        if (table === 'productos' && local.stock_master !== remote.stock_master) {
-          if (local.updated_at > remote.updated_at) {
-            Logger.info(`[Sync] Conflicto resuelto: Local gana para ${local.sku}`);
-            return { ...remote, stock_master: local.stock_master };
+        const localRec = local as Record<string, unknown>;
+        const remoteRec = remote as Record<string, unknown>;
+
+        if (table === 'productos' && localRec.stock_master !== remoteRec.stock_master) {
+          if ((localRec.updated_at as unknown as number) > (remoteRec.updated_at as unknown as number)) {
+            return { ...remoteRec, stock_master: localRec.stock_master };
           }
-          Logger.info(`[Sync] Conflicto resuelto: Remoto gana para ${local.sku}`);
-          return remote;
+          return remoteRec;
         }
         return resolved;
       }
@@ -220,7 +282,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
 
     // Registrar éxito
     await database.write(async () => {
-      await database.get('sync_history').create((h: any) => {
+      await database.get<SyncHistory>('sync_history').create((h) => {
         h.lastSyncAt = Date.now();
         h.status = 'SUCCESS';
         h.pulledCount = pulledCount;
@@ -238,7 +300,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
     // Registrar fallo
     try {
       await database.write(async () => {
-        await database.get('sync_history').create((h: any) => {
+        await database.get<SyncHistory>('sync_history').create((h) => {
           h.lastSyncAt = Date.now();
           h.status = 'FAILED';
           h.pulledCount = pulledCount;

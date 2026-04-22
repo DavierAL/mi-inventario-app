@@ -1,9 +1,12 @@
 import { useMemo } from 'react';
+import { useTheme } from '../../../core/ui/ThemeContext';
 import { calcularDiasRestantes } from '../../../core/utils/fecha';
 
 import Producto from '../../../core/database/models/Producto';
 
 export const useAnalytics = (productos: Producto[]) => {
+  const { colors } = useTheme();
+
   return useMemo(() => {
     let sanos = 0, riesgo = 0, vencidos = 0;
     let capitalPerdido = 0;
@@ -56,14 +59,14 @@ export const useAnalytics = (productos: Producto[]) => {
       saludPorcentaje,
       capitalPerdido,
       datosDona: [
-        { name: 'Sanos', stock: sanos, color: '#38A169', legendFontColor: '#4A5568' },
-        { name: 'En Riesgo', stock: riesgo, color: '#DD6B20', legendFontColor: '#4A5568' },
-        { name: 'Vencidos', stock: vencidos, color: '#E53E3E', legendFontColor: '#4A5568' },
+        { name: 'Sanos', stock: sanos, color: colors.exito, legendFontColor: colors.textoSecundario },
+        { name: 'En Riesgo', stock: riesgo, color: colors.primario, legendFontColor: colors.textoSecundario },
+        { name: 'Vencidos', stock: vencidos, color: colors.error, legendFontColor: colors.textoSecundario },
       ],
       marcasRiesgo: marcasOrdenadas,
       recomendaciones,
       totalInventario: totalFisico
     };
-  }, [productos]);
+  }, [productos, colors]);
 };
 

@@ -5,7 +5,8 @@ import {
     ActivityIndicator, 
     ViewStyle, 
     TextStyle,
-    View
+    View,
+    StyleProp
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from '../ThemeContext';
@@ -20,7 +21,7 @@ interface ButtonProps {
     loading?: boolean;
     disabled?: boolean;
     icon?: React.ReactNode;
-    style?: ViewStyle;
+    style?: StyleProp<ViewStyle>;
     testID?: string;
 }
 
@@ -58,7 +59,7 @@ export const Button: React.FC<ButtonProps> = ({
             case 'secondary':
                 return { ...base, backgroundColor: colors.fondoPrimario, borderWidth: 1, borderColor: colors.borde };
             case 'danger':
-                return { ...base, backgroundColor: 'rgba(235, 87, 87, 0.15)', borderWidth: 1, borderColor: 'rgba(235, 87, 87, 0.3)' };
+                return { ...base, backgroundColor: colors.fondoPrimario, borderWidth: 1, borderColor: colors.error };
             case 'ghost':
                 return { ...base, backgroundColor: 'transparent' };
             default:
@@ -74,11 +75,11 @@ export const Button: React.FC<ButtonProps> = ({
 
         switch (variant) {
             case 'primary':
-                return { ...base, color: '#FFFFFF' };
+                return { ...base, color: colors.absolutoBlanco };
             case 'secondary':
                 return { ...base, color: colors.primario };
             case 'danger':
-                return { ...base, color: '#eb5757' };
+                return { ...base, color: colors.error };
             case 'ghost':
                 return { ...base, color: colors.textoSecundario };
             default:
@@ -96,7 +97,7 @@ export const Button: React.FC<ButtonProps> = ({
             haptic={variant === 'primary' ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light}
         >
             {loading ? (
-                <ActivityIndicator size="small" color={variant === 'primary' ? '#FFF' : colors.primario} />
+                <ActivityIndicator size="small" color={variant === 'primary' ? colors.absolutoBlanco : colors.primario} />
             ) : (
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     {icon && <View style={{ marginRight: 8 }}>{icon}</View>}

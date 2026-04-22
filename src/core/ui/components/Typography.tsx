@@ -9,6 +9,7 @@ interface CustomTextProps extends TextProps {
     weight?: 'regular' | 'medium' | 'bold';
     color?: string;
     align?: 'left' | 'center' | 'right';
+    italic?: boolean;
 }
 
 export const Typography: React.FC<CustomTextProps> = ({ 
@@ -17,6 +18,7 @@ export const Typography: React.FC<CustomTextProps> = ({
     weight,
     color, 
     align = 'left',
+    italic = false,
     style,
     ...props 
 }) => {
@@ -49,6 +51,7 @@ export const Typography: React.FC<CustomTextProps> = ({
         ...(weight === 'medium' && { fontWeight: '500' }),
         ...(weight === 'bold' && { fontWeight: '700' }),
         ...(weight === 'regular' && { fontWeight: '400' }),
+        ...(italic && { fontStyle: 'italic' }),
     };
 
     return (

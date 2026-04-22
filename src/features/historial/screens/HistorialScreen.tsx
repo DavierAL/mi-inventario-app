@@ -19,11 +19,11 @@ const FastList = FlashList as any;
 
 const CONFIG_ACCION: Record<TipoAccionHistorial, {
     icono: string;
-    variant: 'info' | 'default' | 'success';
+    variant: 'primary' | 'neutral' | 'success';
     label: string;
 }> = {
-    FV_ACTUALIZADO:    { icono: 'calendar',   variant: 'info', label: 'Fecha Actualizada'  },
-    COMENTARIO_AGREGADO: { icono: 'chatbubble', variant: 'default', label: 'Nota Agregada'   },
+    FV_ACTUALIZADO:    { icono: 'calendar',   variant: 'primary', label: 'Fecha Actualizada'  },
+    COMENTARIO_AGREGADO: { icono: 'chatbubble', variant: 'neutral', label: 'Nota Agregada'   },
     EDICION_COMPLETA:  { icono: 'create',      variant: 'success', label: 'Edición Completa' },
 };
 
@@ -105,7 +105,7 @@ const EntradaCard = React.memo(({ entrada, esUltima }: EntradaCardProps) => {
                     </Surface>
                 )}
 
-                <View style={styles.tarjetaFooter}>
+                <View style={[styles.tarjetaFooter, { borderTopColor: colors.borde }]}>
                     <Text variant="tiny" color={colors.textoTerciario}>
                         {entrada.sku} · {entrada.marca}
                     </Text>
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     tarjeta: { flex: 1, marginBottom: 4 },
     tarjetaCabecera: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     filaCambio: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
-    tarjetaFooter: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)', paddingTop: 8 },
+    tarjetaFooter: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, borderTopWidth: 1, paddingTop: 8 },
     bannerInfo: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
     estadoVacio: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40, gap: 16 },
     skeletonCircle: { width: 36, height: 36, borderRadius: 18 },

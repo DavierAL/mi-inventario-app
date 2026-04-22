@@ -5,13 +5,15 @@ import * as FileSystem from 'expo-file-system';
 jest.mock('../../../../core/database/supabase', () => ({
   supabase: {
     storage: {
-      from: jest.fn().mockReturnThis(),
-      upload: jest.fn().mockResolvedValue({ data: {}, error: null }),
-      getPublicUrl: jest.fn().mockReturnValue({ data: { publicUrl: 'https://supabase.com/pod.jpg' } }),
+      from: jest.fn().mockReturnValue({
+        upload: jest.fn().mockResolvedValue({ data: {}, error: null }),
+        getPublicUrl: jest.fn().mockReturnValue({ data: { publicUrl: 'https://supabase.com/pod.jpg' } }),
+      } as any),
     },
-    from: jest.fn().mockReturnThis(),
-    update: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockResolvedValue({ error: null }),
+    from: jest.fn().mockReturnValue({
+      update: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockResolvedValue({ error: null }),
+    } as any),
     functions: {
       invoke: jest.fn().mockResolvedValue({ data: {}, error: null }),
     },
@@ -41,7 +43,8 @@ describe('EnviosService', () => {
     });
 
     it('debe retornar null si falla la subida', async () => {
-      (supabase.storage.upload as jest.Mock).mockResolvedValueOnce({ error: { message: 'Upload error' } });
+      const mockStorage = (supabase.storage.from as jest.Mock)();
+      (mockStorage.upload as jest.Mock).mockResolvedValueOnce({ error: { message: 'Upload error' } });
       const url = await EnviosService.subirFotoPOD('file://local/path.jpg', mockCodPedido);
       expect(url).toBeNull();
     });
@@ -49,6 +52,7 @@ describe('EnviosService', () => {
 
   describe('actualizarEstado', () => {
     it('debe actualizar el estado en Supabase correctamente', async () => {
+      const mockDb = (supabase.from as jest.Mock)();
       const result = await EnviosService.actualizarEstado({
         supabaseRowId: mockSupabaseId,
         nuevoEstado: 'Entregado',
@@ -56,7 +60,7 @@ describe('EnviosService', () => {
       });
 
       expect(supabase.from).toHaveBeenCalledWith('envios');
-      expect(supabase.update).toHaveBeenCalledWith(expect.objectContaining({
+      expect(mockDb.update).toHaveBeenCalledWith(expect.objectContaining({
         estado: 'entregado',
         pod_url: 'https://supabase.com/pod.jpg',
       }));

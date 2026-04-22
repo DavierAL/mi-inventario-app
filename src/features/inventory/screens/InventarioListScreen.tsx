@@ -2,9 +2,9 @@
 import React, { useEffect, useState, useCallback, useRef, memo } from 'react';
 import {
     StyleSheet, View, ActivityIndicator,
-    StatusBar, TouchableOpacity, Alert,
+    StatusBar, Alert,
     RefreshControl, ScrollView,
-    Platform, UIManager
+    Platform, UIManager, NativeSyntheticEvent, NativeScrollEvent
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useCameraPermissions } from 'expo-camera';
@@ -29,7 +29,7 @@ import { ProductoCard } from '../components/ProductoCard';
 import { SkeletonCard } from '../../../core/ui/SkeletonCard';
 import { map } from 'rxjs/operators';
 import { calcularDiasRestantes } from '../../../core/utils/fecha';
-import { Text, Surface, Button, Input, Badge } from '../../../core/ui/components';
+import { Text, Surface, Button, Input, Badge, AnimatedPressable as TouchableOpacity } from '../../../core/ui/components';
 import { TOKENS } from '../../../core/ui/tokens';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -44,7 +44,7 @@ interface ListaBaseProps {
     productos: Producto[];
     onPress: (p: Producto) => void;
     busqueda: string;
-    onScroll: (event: any) => void;
+    onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     listRef: any;
     refrescando: boolean;
     onRefresh: () => void;
@@ -66,7 +66,7 @@ const ListaBase = memo(({
             estimatedItemSize={110}
             onScroll={onScroll}
             scrollEventThrottle={16}
-            contentContainerStyle={{ paddingVertical: TOKENS.spacing.md }}
+            contentContainerStyle={styles.listaPadding}
             renderItem={({ item }: { item: Producto }) => (
                 <ProductoCard item={item} onPress={onPress} />
             )}
@@ -81,7 +81,7 @@ const ListaBase = memo(({
             ListEmptyComponent={
                 <Surface variant="flat" padding="xxl" style={styles.listaVacia}>
                     <Ionicons name="cube-outline" size={64} color={colors.textoTerciario} />
-                    <Text variant="body" color={colors.textoSecundario} align="center" style={{ marginTop: TOKENS.spacing.md }}>
+                    <Text variant="body" color={colors.textoSecundario} align="center" style={styles.marginTopMd}>
                         {busqueda ? MENSAJES.SIN_RESULTADOS(busqueda) : 'No hay productos en el inventario local.'}
                     </Text>
                     {!busqueda && (
@@ -89,7 +89,7 @@ const ListaBase = memo(({
                             label={sincronizandoFondo ? 'Sincronizando...' : 'Sincronizar Ahora'}
                             variant="primary"
                             loading={sincronizandoFondo}
-                            style={{ marginTop: TOKENS.spacing.xl, width: '100%' }}
+                            style={styles.syncBtnFull}
                             onPress={repararBaseDeDatos}
                         />
                     )}
@@ -137,7 +137,7 @@ export const InventarioListScreen = () => {
         listRef.current?.scrollToOffset({ offset: 0, animated: true });
     };
 
-    const handleScroll = useCallback((event: any) => {
+    const handleScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const offsetY = event.nativeEvent.contentOffset.y;
         const show = offsetY > 300;
         if (show !== mostrarRef.current) {
@@ -199,12 +199,12 @@ export const InventarioListScreen = () => {
                         </Text>
                     </View>
                     
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <View style={styles.filaSync}>
                         {pendientesSync > 0 && (
                             <Badge 
                                 label={String(pendientesSync)}
-                                variant="info"
-                                style={{ marginRight: 8 }}
+                                variant="primary"
+                                style={styles.marginRight8}
                             />
                         )}
                         <TouchableOpacity 
@@ -227,14 +227,14 @@ export const InventarioListScreen = () => {
                     value={busqueda}
                     onChangeText={setBusqueda}
                     icon={<Ionicons name="search-outline" size={20} color={colors.textoTerciario} />}
-                    containerStyle={{ marginTop: TOKENS.spacing.md }}
+                    containerStyle={styles.searchContainer}
                 />
             </View>
 
             <View style={[styles.areaContenido, { backgroundColor: colors.fondo }]}>
                 {modoOffline && (
                     <View style={[styles.bannerOffline, { backgroundColor: colors.error }]}>
-                        <Text variant="small" weight="bold" color="#FFF">
+                        <Text variant="small" weight="bold" color={colors.absolutoBlanco}>
                             {MENSAJES.MODO_OFFLINE_BANNER(lastSync || '--:--')}
                         </Text>
                     </View>
@@ -242,7 +242,7 @@ export const InventarioListScreen = () => {
 
                 {/* Filtros */}
                 <View style={[styles.filtrosRow, { backgroundColor: colors.superficie, borderBottomColor: colors.borde }]}>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filtrosScroll}>
                         {(['TODOS', 'VENCIDOS', '30_DIAS', '90_DIAS'] as FiltroCaducidad[]).map(f => (
                             <TouchableOpacity 
                                 key={f}
@@ -259,7 +259,7 @@ export const InventarioListScreen = () => {
                                 <Text 
                                     variant="small" 
                                     weight="bold" 
-                                    color={filtroRapido === f ? '#FFF' : colors.primario}
+                                    color={filtroRapido === f ? colors.absolutoBlanco : colors.primario}
                                 >
                                     {f === 'TODOS' ? 'Todos' : f === 'VENCIDOS' ? 'Vencidos' : f === '30_DIAS' ? '30 Días' : '90 Días'}
                                 </Text>
@@ -268,9 +268,9 @@ export const InventarioListScreen = () => {
                     </ScrollView>
                 </View>
 
-                <View style={{ flex: 1 }}>
+                <View style={styles.flex1}>
                     {cargando ? (
-                        <View style={{ flex: 1, padding: 20 }}>
+                        <View style={styles.cargandoContenedor}>
                             {[1,2,3,4,5].map(i => <SkeletonCard key={i} />)}
                         </View>
                     ) : (
@@ -290,7 +290,7 @@ export const InventarioListScreen = () => {
 
                 {mostrarBotonSubir && (
                     <TouchableOpacity 
-                        style={[styles.fab, { backgroundColor: colors.superficie, shadowColor: '#000' }]} 
+                        style={[styles.fab, { backgroundColor: colors.superficie, shadowColor: colors.textoPrincipal }]} 
                         onPress={scrollToTop}
                     >
                         <Ionicons name="arrow-up" size={24} color={colors.primario} />
@@ -318,6 +318,15 @@ export const InventarioListScreen = () => {
 };
 
 const styles = StyleSheet.create({
+    flex1: { flex: 1 },
+    marginTopMd: { marginTop: TOKENS.spacing.md },
+    marginRight8: { marginRight: 8 },
+    syncBtnFull: { marginTop: TOKENS.spacing.xl, width: '100%' },
+    filaSync: { flexDirection: 'row', alignItems: 'center' },
+    searchContainer: { marginTop: TOKENS.spacing.md },
+    filtrosScroll: { paddingHorizontal: 20, gap: 8 },
+    cargandoContenedor: { flex: 1, padding: 20 },
+    listaPadding: { paddingVertical: TOKENS.spacing.md },
     contenedor: { flex: 1 },
     areaContenido: { flex: 1 },
     cabecera: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 12, borderBottomWidth: 1 },

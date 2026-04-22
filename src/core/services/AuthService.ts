@@ -15,7 +15,7 @@ export const AuthService = {
       // Obtener perfil detallado desde la tabla public.usuarios
       const { data: profile, error: profileError } = await supabase
         .from('usuarios')
-        .select('*')
+        .select('id, nombre, email, rol, activo, created_at, updated_at')
         .eq('id', authData.user.id)
         .single();
 

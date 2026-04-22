@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
+import { View, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PieChart } from 'react-native-chart-kit';
 import { useAnalytics } from '../../analytics/hooks/useAnalytics';
@@ -13,8 +13,10 @@ import withObservables from '@nozbe/with-observables';
 import { database } from '../../../core/database';
 import Producto from '../../../core/database/models/Producto';
 
+import { SHADOWS } from '../../../core/ui/shadows';
 import { SkeletonCard } from '../../../core/ui/SkeletonCard';
 import { TOKENS } from '../../../core/ui/tokens';
+import { Text, Surface, AnimatedPressable as TouchableOpacity } from '../../../core/ui/components';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -82,7 +84,7 @@ const AnalyticsScreenRaw: React.FC<Props> = ({ productos }) => {
                         width={screenWidth - 80}
                         height={180}
                         chartConfig={{
-                            color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                            color: (opacity = 1) => isDark ? `rgba(255, 255, 255, ${opacity})` : `rgba(0, 0, 0, ${opacity})`,
                         }}
                         accessor={"stock"}
                         backgroundColor={"transparent"}
@@ -152,11 +154,14 @@ const AnalyticsScreenRaw: React.FC<Props> = ({ productos }) => {
 
             {/* BOTÓN FLOTANTE: COMPARTIR REPORTE */}
             <TouchableOpacity 
-                style={styles.botonCompartir}
+                style={[styles.botonCompartir, { 
+                    backgroundColor: colors.primario,
+                    shadowColor: colors.primario 
+                }]}
                 onPress={() => exportarReportePDF(saludPorcentaje, capitalPerdido, recomendaciones)}
             >
-                <Ionicons name="share-outline" size={22} color="#FFF" />
-                <Text style={styles.textoBotonCompartir}>{MENSAJES.EXPORTAR_PDF}</Text>
+                <Ionicons name="share-outline" size={22} color={colors.absolutoBlanco} />
+                <Text style={[styles.textoBotonCompartir, { color: colors.absolutoBlanco }]}>{MENSAJES.EXPORTAR_PDF}</Text>
             </TouchableOpacity>
         </SafeAreaView>
     );
@@ -178,7 +183,7 @@ const styles = StyleSheet.create({
     filaIndicadores: { flexDirection: 'row', gap: 12, marginBottom: 16 },
     tarjetaIndicador: {
         flex: 1, padding: 16, borderRadius: 12, borderWidth: 1,
-        shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 9, elevation: 2,
+        ...SHADOWS.CARD,
         justifyContent: 'center', alignItems: 'center'
     },
     tituloIndicador: { fontSize: 12, fontWeight: '600', letterSpacing: 0.125, marginBottom: 6 },
@@ -186,7 +191,7 @@ const styles = StyleSheet.create({
     // Chart cards
     tarjetaGrafico: {
         padding: 16, borderRadius: 12, borderWidth: 1,
-        shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.04, shadowRadius: 9, elevation: 2,
+        ...SHADOWS.CARD,
         marginBottom: 16
     },
     tituloGrafico: { fontSize: 16, fontWeight: '700', letterSpacing: -0.125, marginBottom: 12 },
@@ -201,12 +206,11 @@ const styles = StyleSheet.create({
     insightTexto: { fontSize: 14, lineHeight: 21 },
     seccionIA: { padding: 16, borderRadius: 12, marginBottom: 20, borderWidth: 1 },
     botonCompartir: {
-        backgroundColor: '#0075de',
         position: 'absolute', bottom: 20, right: 20, left: 20,
         flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
         padding: 14, borderRadius: 8, elevation: 4,
-        shadowColor: '#0075de', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8,
     },
-    textoBotonCompartir: { color: 'white', fontWeight: '600', fontSize: 15, marginLeft: 8 }
+    textoBotonCompartir: { fontWeight: '600', fontSize: 15, marginLeft: 8 }
 });
 

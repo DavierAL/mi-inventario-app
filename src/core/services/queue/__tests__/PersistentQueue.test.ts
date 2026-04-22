@@ -40,7 +40,7 @@ describe('PersistentQueue', () => {
     });
 
     it('encola trabajos correctamente', async () => {
-        const job = await queue.enqueue('webhook' as any, { a: 1 });
+        const job = await queue.enqueue('webhook' as any, { a: 1 } as any);
         
         expect(mockTable.create).toHaveBeenCalled();
         expect(job.id).toBe('new-id');
