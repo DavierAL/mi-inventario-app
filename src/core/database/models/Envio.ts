@@ -12,8 +12,8 @@ export default class Envio extends Model {
   @text('operador') operador?: string;
   @text('url_foto') urlFoto?: string;
   @text('pod_local_uri') podLocalUri?: string;
-  @field('supabase_id') supabaseId!: string;
-  @field('pod_url') podUrl?: string | null;
+  @text('supabase_id') supabaseId!: string;
+  @text('pod_url') podUrl?: string | null;
 
   @text('notas') notas?: string;
 
@@ -33,7 +33,6 @@ export default class Envio extends Model {
   @text('hora_desde') horaDesde?: string;
   @text('hora_hasta') horaHasta?: string;
 
-  @children('pedido_items') items!: any;
 
   @field('created_at') createdAt!: number;
   @field('updated_at') updatedAt!: number;

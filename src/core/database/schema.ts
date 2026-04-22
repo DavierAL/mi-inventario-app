@@ -27,7 +27,7 @@ export const schema = appSchema({
         { name: 'fv_actual_ts', type: 'number', isOptional: true, isIndexed: true },
         { name: 'fecha_edicion', type: 'string', isOptional: true },
         { name: 'comentarios', type: 'string', isOptional: true },
-        { name: 'marca', type: 'string' },
+        { name: 'marca', type: 'string', isOptional: true },
         { name: 'imagen', type: 'string', isOptional: true },
         { name: 'created_at', type: 'number' },
         { name: 'updated_at', type: 'number' }
@@ -39,7 +39,7 @@ export const schema = appSchema({
         { name: 'producto_id', type: 'string', isIndexed: true },
         { name: 'sku', type: 'string' },
         { name: 'descripcion', type: 'string' },
-        { name: 'marca', type: 'string' },
+        { name: 'marca', type: 'string', isOptional: true },
         { name: 'accion', type: 'string' },
         { name: 'fv_anterior_ts', type: 'number', isOptional: true, isIndexed: true },
         { name: 'fv_nuevo_ts', type: 'number', isOptional: true, isIndexed: true },

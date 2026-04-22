@@ -87,7 +87,7 @@ const migrations = schemaMigrations({
             { name: 'fv_actual_ts', type: 'number', isOptional: true },
             { name: 'fecha_edicion', type: 'string', isOptional: true },
             { name: 'comentarios', type: 'string', isOptional: true },
-            { name: 'marca', type: 'string' },
+            { name: 'marca', type: 'string', isOptional: true },
             { name: 'imagen', type: 'string', isOptional: true },
           ],
         }),

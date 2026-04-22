@@ -55,6 +55,7 @@ interface EnvioRemote {
   gmaps_url?: string;
   referencia?: string;
   pod_url?: string;
+  bultos?: number;
 }
 
 interface SyncChanges {
@@ -146,7 +147,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         
         while (hasMoreEnv) {
           let queryEnv = supabase.from('envios')
-            .select('id, cod_pedido, cliente, direccion, telefono, estado, operador, url_foto, pod_url, notas, distrito, gmaps_url, referencia, bultos, created_at, updated_at')
+            .select('id, cod_pedido, cliente, direccion, telefono, estado, operador, url_foto, notas, distrito, gmaps_url, referencia, bultos, created_at, updated_at')
             .range(pageEnv * pageSize, (pageEnv + 1) * pageSize - 1);
           if (lastPulledAt && !options.forceFull) {
             queryEnv = queryEnv.gte('updated_at', lastPulledDate);
@@ -173,13 +174,24 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
           estado: mapearEstadoEntrante(row.estado),
           operador: row.operador || null,
           url_foto: row.url_foto || null,
-          pod_url: row.pod_url || null,
+          pod_url: row.url_foto || null, // Fallback a url_foto para mantener coexistencia local
           notas: row.notas || null,
           direccion: row.direccion || null,
           distrito: row.distrito || null,
           telefono: row.telefono || null,
           gmaps_url: row.gmaps_url || null,
           referencia: row.referencia || null,
+          bultos: row.bultos || 1,
+          pod_local_uri: null,
+          forma_pago: null,
+          a_pagar: 0,
+          recaudado: 0,
+          costo_envio: 0,
+          operacion: null,
+          tamano: null,
+          peso: 0,
+          hora_desde: null,
+          hora_hasta: null,
           created_at: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
           updated_at: row.updated_at ? new Date(row.updated_at).getTime() : Date.now(),
         }));
@@ -198,6 +210,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
               updated: lastPulledAt && !options.forceFull ? enviosUpdated : [], 
               deleted: [] 
             },
+            logistica_historial: { created: [], updated: [], deleted: [] },
           },
           timestamp: Date.now(),
         };
@@ -259,7 +272,6 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
                 estado: Envio.toExternalStatus(r.estado),
                 operador: r.operador || null,
                 url_foto: r.urlFoto || null,
-                pod_url: r.podUrl || null,
                 notas: r.notas || null,
                 direccion: r.direccion || null,
                 distrito: r.distrito || null,
