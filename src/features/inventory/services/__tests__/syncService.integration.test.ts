@@ -81,6 +81,7 @@ describe('SyncService Integration', () => {
             await db.get('productos').create((p: any) => {
                 p._raw.id = 'local-1';
                 p._raw.sku = 'SKU-LOCAL';
+                p._raw.cod_barras = '1234567890';
                 p._raw.stock_master = 50;
                 p._raw.created_at = Date.now();
                 p._raw.updated_at = Date.now();

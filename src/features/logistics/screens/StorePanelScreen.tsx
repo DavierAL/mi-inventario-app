@@ -221,6 +221,16 @@ export const StorePanelScreen = () => {
                 podUrl: podUrl ?? undefined,
             });
 
+            // PASO 3.5: Persistir URL pública localmente para que syncService la conozca
+            if (podUrl) {
+                await database.write(async () => {
+                    await envio.update((p) => {
+                        p.urlFoto = podUrl;
+                        p.podUrl = podUrl;
+                    });
+                });
+            }
+
             if (resultado.exito) {
                 // PASO 4: Notificar Google Sheets (no-bloqueante)
                 EnviosService.notificarSheets(supabaseId).catch(() => {});

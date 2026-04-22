@@ -5,3 +5,4 @@ export * from './Surface';
 export * from './Input';
 export * from './Badge';
 export * from './AnimatedPressable';
+export * from './HeaderPremium';

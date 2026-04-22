@@ -59,18 +59,29 @@ const ProductoCardComponent: React.FC<Props> = ({ item, onPress }) => {
                         <Text variant="tiny" color={colors.textoTerciario} style={{ fontFamily: 'monospace' }}>
                             {item.codBarras}
                         </Text>
-                        {typeof item.fvActualTs === 'number' ? (() => {
-                            const fv = item.fvActualTs as number;
+                        {item.fvActualTs instanceof Date ? (() => {
+                            const fvDate = item.fvActualTs;
                             const nowTs = Date.now();
-                            const diffDays = (fv - nowTs) / (1000 * 60 * 60 * 24);
-                            const dateStr = new Date(fv).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: '2-digit' });
+                            const diffDays = (fvDate.getTime() - nowTs) / (1000 * 60 * 60 * 24);
+                            const dateStr = formatearFecha(fvDate);
                             
-                            if (diffDays < 0) return (
-                                <Badge label={`VENCIDO (${dateStr})`} variant="error" style={{ marginLeft: 8 }} />
+                            // Rojo: Vencido o menos de 30 días
+                            if (diffDays < 30) return (
+                                <Badge 
+                                    label={diffDays < 0 ? `VENCIDO (${dateStr})` : `${Math.floor(diffDays)}d (${dateStr})`} 
+                                    variant="error" 
+                                    style={{ marginLeft: 8 }} 
+                                />
                             );
+                            // Naranja: Menos de 3 meses (90 días)
                             if (diffDays < 90) return (
                                 <Badge label={`${Math.floor(diffDays)}d (${dateStr})`} variant="warning" style={{ marginLeft: 8 }} />
                             );
+                            // Más de 6 meses: Éxito (Verde) — Siempre mostrar badge para consistencia
+                            if (diffDays > 180) return (
+                                <Badge label={dateStr} variant="success" style={{ marginLeft: 8 }} />
+                            );
+                            // Entre 3 y 6 meses: Neutro estándar
                             return (
                                 <Badge label={dateStr} variant="neutral" style={{ marginLeft: 8 }} />
                             );

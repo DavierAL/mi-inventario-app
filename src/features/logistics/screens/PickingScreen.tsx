@@ -27,6 +27,7 @@ import {
     Button, 
     Badge, 
     Input,
+    HeaderPremium,
     AnimatedPressable as TouchableOpacity
 } from '../../../core/ui/components';
 import { TOKENS } from '../../../core/ui/tokens';
@@ -217,53 +218,12 @@ export const PickingScreen = () => {
                 backgroundColor={colors.fondo}
             />
 
-            {/* Cabecera */}
-            <Surface 
-                variant="flat" 
-                style={[styles.cabecera, { borderBottomColor: colors.borde }]}
-            >
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-                    <Ionicons name="arrow-back" size={22} color={colors.textoPrincipal} />
-                </TouchableOpacity>
-                <View style={styles.headerBranding}>
-                    <Image 
-                        source={require('../../../../assets/logo-mascotify.svg')}
-                        style={styles.logoTiny}
-                        contentFit="contain"
-                    />
-                    <View>
-                        <Text variant="h2" weight="bold">Mascotify</Text>
-                        <Text variant="small" color={colors.textoSecundario}>Panel de Picking</Text>
-                    </View>
-                </View>
-                <TouchableOpacity 
-                    onPress={() => reSincronizar()} 
-                    onLongPress={() => {
-                        Alert.alert(
-                            "Reparar Logística",
-                            "¿Deseas forzar una resincronización total de pedidos?",
-                            [
-                                { text: "Cancelar", style: "cancel" },
-                                { text: "Sincronizar Todo", onPress: () => reSincronizar({ forceFull: true }) }
-                            ]
-                        );
-                    }}
-                    style={styles.syncBtn} 
-                    disabled={cargando}
-                >
-                    {cargando ? (
-                        <ActivityIndicator size="small" color={colors.primario} />
-                    ) : (
-                        <Ionicons name="sync" size={22} color={colors.primario} />
-                    )}
-                </TouchableOpacity>
-                <TouchableOpacity 
-                    style={[styles.btnCircle, { backgroundColor: colors.fondoPrimario, marginLeft: 8 }]}
-                    onPress={toggleTheme}
-                >
-                    <Ionicons name={isDark ? 'sunny' : 'moon'} size={22} color={colors.primario} />
-                </TouchableOpacity>
-            </Surface>
+            <HeaderPremium 
+                titulo="Logística" 
+                showSync={true}
+                isSyncing={cargando}
+                onSync={reSincronizar}
+            />
 
             {/* Buscador y Filtros */}
             <Surface 

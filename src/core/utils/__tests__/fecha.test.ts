@@ -9,9 +9,7 @@ describe('Fecha Utils', () => {
     describe('formatearFecha', () => {
         it('formatea Date a DD/MM/YYYY', () => {
             const date = new Date(2023, 0, 1); // 1 Jan 2023
-            // Nota: formatearFecha usa getUTCDate, así que usamos UTC para el test
-            const utcDate = new Date(Date.UTC(2023, 0, 1));
-            expect(formatearFecha(utcDate)).toBe('01/01/2023');
+            expect(formatearFecha(date)).toBe('01/01/2023');
         });
 
         it('devuelve string vacio si la fecha es invalida', () => {

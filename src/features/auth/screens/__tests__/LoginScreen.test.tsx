@@ -22,18 +22,18 @@ describe('LoginScreen', () => {
   test('renderiza correctamente el formulario', () => {
     const { getByPlaceholderText, getByText } = render(<LoginScreen />);
     
-    expect(getByPlaceholderText('ejemplo@correo.com')).toBeTruthy();
+    expect(getByPlaceholderText('admin@mascotify.pe')).toBeTruthy();
     expect(getByPlaceholderText('••••••••')).toBeTruthy();
-    expect(getByText('Entrar')).toBeTruthy();
+    expect(getByText('Iniciar Sesión')).toBeTruthy();
   });
 
   test('dispara la acción de login al presionar el botón', async () => {
     mockLogin.mockResolvedValue(true);
     const { getByPlaceholderText, getByText } = render(<LoginScreen />);
     
-    fireEvent.changeText(getByPlaceholderText('ejemplo@correo.com'), 'test@admin.com');
+    fireEvent.changeText(getByPlaceholderText('admin@mascotify.pe'), 'test@admin.com');
     fireEvent.changeText(getByPlaceholderText('••••••••'), 'password123');
-    fireEvent.press(getByText('Entrar'));
+    fireEvent.press(getByText('Iniciar Sesión'));
 
     await waitFor(() => {
       expect(mockLogin).toHaveBeenCalledWith('test@admin.com', 'password123');

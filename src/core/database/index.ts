@@ -77,6 +77,21 @@ const migrations = schemaMigrations({
         }),
       ],
     },
+    {
+      toVersion: 11,
+      steps: [
+        addColumns({
+          table: 'productos',
+          columns: [
+            { name: 'fv_actual_ts', type: 'number', isOptional: true },
+            { name: 'fecha_edicion', type: 'string', isOptional: true },
+            { name: 'comentarios', type: 'string', isOptional: true },
+            { name: 'marca', type: 'string' },
+            { name: 'imagen', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
   ],
 });
 

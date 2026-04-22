@@ -63,6 +63,7 @@ export const jobHandlers = {
       .from('envios')
       .update({
         pod_url: publicUrl,
+        url_foto: publicUrl,
         estado: 'entregado',
         updated_at: new Date().toISOString(),
       })

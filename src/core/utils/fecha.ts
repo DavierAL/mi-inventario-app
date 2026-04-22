@@ -18,12 +18,12 @@ export function formatearFecha(valor: string | Date | number | null | undefined)
     }
 
     try {
-        const fecha = new Date(valor as string);
+        const fecha = new Date(valor);
         if (isNaN(fecha.getTime())) return '';
 
-        const dia = String(fecha.getUTCDate()).padStart(2, '0');
-        const mes = String(fecha.getUTCMonth() + 1).padStart(2, '0');
-        const anio = fecha.getUTCFullYear();
+        const dia = String(fecha.getDate()).padStart(2, '0');
+        const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+        const anio = fecha.getFullYear();
 
         return `${dia}/${mes}/${anio}`;
     } catch {

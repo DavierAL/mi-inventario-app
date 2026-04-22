@@ -67,6 +67,6 @@ describe('Button Component', () => {
         );
         const button = getByTestId('btn-danger');
         const flatStyle = StyleSheet.flatten(button.props.style);
-        expect(flatStyle.borderColor).toBe('rgba(235, 87, 87, 0.3)');
+        expect(flatStyle.borderColor).toBe(ThemeColors.light.error);
     });
 });

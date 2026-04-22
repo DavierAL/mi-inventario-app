@@ -148,7 +148,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         
         while (hasMoreEnv) {
           let queryEnv = supabase.from('envios')
-            .select('id, cod_pedido, cliente, direccion, telefono, estado, url_foto, created_at, updated_at')
+            .select('id, cod_pedido, cliente, direccion, telefono, estado, operador, url_foto, notas, distrito, gmaps_url, referencia, bultos, created_at, updated_at')
             .range(pageEnv * pageSize, (pageEnv + 1) * pageSize - 1);
           if (lastPulledAt && !options.forceFull) {
             queryEnv = queryEnv.gte('updated_at', lastPulledDate);
@@ -213,7 +213,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
           if (all.length > 0) {
             const updates = all
               .map((r: any) => {
-                const cod = r.codBarras || r.codigo_barras || '';
+                const cod = r.cod_barras || r.codBarras || r.codigo_barras || '';
                 if (!cod) {
                   Logger.warn(`[Sync] Saltando producto sin código de barras: ${r.sku || r.id}`);
                   return null;
@@ -224,12 +224,12 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
                   sku: r.sku || '',
                   descripcion: r.descripcion || '',
                   marca: r.marca || 'Genérico',
-                  stock_master: r.stockMaster || 0,
-                  precio_web: r.precioWeb || 0,
-                  precio_tienda: r.precioTienda || 0,
-                  fv_actual_ts: r.fvActualTs ? new Date(r.fvActualTs).getTime() : null,
+                  stock_master: r.stock_master ?? r.stockMaster ?? 0,
+                  precio_web: r.precio_web ?? r.precioWeb ?? 0,
+                  precio_tienda: r.precio_tienda ?? r.precioTienda ?? 0,
+                  fv_actual_ts: r.fv_actual_ts ?? r.fvActualTs ?? null,
                   comentarios: r.comentarios || null,
-                  fecha_edicion: r.fechaEdicion || null,
+                  fecha_edicion: r.fecha_edicion || null,
                   imagen: r.imagen || null,
                   updated_at: new Date().toISOString()
                 };
@@ -249,22 +249,27 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
           const all = [...changes.envios.created, ...changes.envios.updated];
           if (all.length > 0) {
             const updates = all.map((r: any) => {
+              const codPedido = r.cod_pedido || r.codPedido;
+              if (!codPedido) {
+                Logger.warn(`[Sync] Saltando envío sin cod_pedido: ${r.id}`);
+                return null;
+              }
               return {
                 id: r.id,
-                cod_pedido: r.codPedido,
+                cod_pedido: codPedido,
                 cliente: r.cliente,
-                estado: (r.estado as string).toLowerCase(),
-                operador: r.operador,
-                url_foto: r.urlFoto,
-                notas: r.notas,
-                direccion: r.direccion,
-                distrito: r.distrito,
-                telefono: r.telefono,
-                gmaps_url: r.gmapsUrl,
-                referencia: r.referencia,
+                estado: (r.estado as string || 'pendiente').toLowerCase(),
+                operador: r.operador || null,
+                url_foto: r.url_foto || r.urlFoto || null,
+                notas: r.notas || null,
+                direccion: r.direccion || null,
+                distrito: r.distrito || null,
+                telefono: r.telefono || null,
+                gmaps_url: r.gmaps_url || r.gmapsUrl || null,
+                referencia: r.referencia || null,
                 updated_at: new Date().toISOString()
               };
-            });
+            }).filter(u => u !== null);
             const { error } = await supabase.from('envios').upsert(updates);
             if (error) throw error;
             pushedCount += updates.length;

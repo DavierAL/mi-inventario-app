@@ -72,12 +72,13 @@ export const EnviosService = {
       });
 
       const updateData: Record<string, string> = {
-        estado: params.nuevoEstado.toLowerCase(),
+        estado: params.nuevoEstado.charAt(0).toUpperCase() + params.nuevoEstado.slice(1).toLowerCase(),
         updated_at: new Date().toISOString(),
       };
 
       if (params.podUrl) {
         updateData.pod_url = params.podUrl;
+        updateData.url_foto = params.podUrl; // Redundancia para compatibilidad con Edge Functions/Sheets
       }
 
       const { error } = await supabase

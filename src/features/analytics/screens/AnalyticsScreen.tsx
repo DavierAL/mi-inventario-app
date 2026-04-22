@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet, Dimensions } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, ScrollView, StyleSheet, Dimensions, useWindowDimensions } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { PieChart } from 'react-native-chart-kit';
 import { useAnalytics } from '../../analytics/hooks/useAnalytics';
 import { exportarReportePDF } from '../../../core/utils/exportaciones';
@@ -18,7 +18,7 @@ import Producto from '../../../core/database/models/Producto';
 import { SHADOWS } from '../../../core/ui/shadows';
 import { SkeletonCard } from '../../../core/ui/SkeletonCard';
 import { TOKENS } from '../../../core/ui/tokens';
-import { Text, Surface, AnimatedPressable as TouchableOpacity } from '../../../core/ui/components';
+import { Text, Surface, HeaderPremium, AnimatedPressable as TouchableOpacity } from '../../../core/ui/components';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -29,6 +29,8 @@ interface Props {
 const AnalyticsScreenRaw: React.FC<Props> = ({ productos }) => {
     const { colors, isDark, toggleTheme } = useTheme();
     const navigation = useNavigation<any>();
+    const insets = useSafeAreaInsets();
+    const { width: screenWidth } = useWindowDimensions();
     const analyticsData = useAnalytics(productos ?? []);
 
     if (!productos) {
@@ -53,9 +55,8 @@ const AnalyticsScreenRaw: React.FC<Props> = ({ productos }) => {
 
     return (
         <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.fondo }]}>
+            <HeaderPremium titulo="Análisis" />
             <ScrollView style={styles.contenedor}>
-                {/* Header — Notion typography */}
-                <Text style={[styles.tituloSec, { color: colors.textoPrincipal }]}>{MENSAJES.DASHBOARD_TITULO}</Text>
 
                 {/* 1. INDICADORES RÁPIDOS — Metric Cards */}
                 <View style={styles.filaIndicadores}>
@@ -159,7 +160,8 @@ const AnalyticsScreenRaw: React.FC<Props> = ({ productos }) => {
             <TouchableOpacity 
                 style={[styles.botonCompartir, { 
                     backgroundColor: colors.primario,
-                    shadowColor: colors.primario 
+                    shadowColor: colors.primario,
+                    bottom: 110 + (insets.bottom > 0 ? insets.bottom : 16) 
                 }]}
                 onPress={() => exportarReportePDF(saludPorcentaje, capitalPerdido, recomendaciones)}
             >
@@ -219,11 +221,24 @@ const styles = StyleSheet.create({
     insightTexto: { fontSize: 14, lineHeight: 21 },
     seccionIA: { padding: 16, borderRadius: 12, marginBottom: 20, borderWidth: 1 },
     botonCompartir: {
-        position: 'absolute', bottom: 20, right: 20, left: 20,
-        flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
-        padding: 14, borderRadius: 8, elevation: 4,
-        shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 8,
+        position: 'absolute', 
+        right: TOKENS.spacing.lg, 
+        left: TOKENS.spacing.lg,
+        flexDirection: 'row', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        padding: TOKENS.spacing.lg, 
+        borderRadius: TOKENS.radius.lg, 
+        elevation: 4,
+        shadowOffset: { width: 0, height: 4 }, 
+        shadowOpacity: 0.25, 
+        shadowRadius: 8,
     },
-    textoBotonCompartir: { fontWeight: '600', fontSize: 15, marginLeft: 8 }
+    textoBotonCompartir: { 
+        fontWeight: '700', 
+        fontSize: 16, 
+        marginLeft: TOKENS.spacing.sm,
+        letterSpacing: -0.25
+    }
 });
 

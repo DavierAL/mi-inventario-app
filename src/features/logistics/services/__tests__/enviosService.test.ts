@@ -1,6 +1,6 @@
 import { EnviosService } from '../enviosService';
 import { supabase } from '../../../../core/database/supabase';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 jest.mock('../../../../core/database/supabase', () => ({
   supabase: {
@@ -20,7 +20,7 @@ jest.mock('../../../../core/database/supabase', () => ({
   },
 }));
 
-jest.mock('expo-file-system', () => ({
+jest.mock('expo-file-system/legacy', () => ({
   readAsStringAsync: jest.fn().mockResolvedValue('base64data'),
   EncodingType: { Base64: 'base64' },
 }));

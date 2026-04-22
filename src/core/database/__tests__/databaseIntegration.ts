@@ -25,3 +25,10 @@ export const createTestDatabase = () => {
     modelClasses: [Producto, Movimiento, Envio, OutboxJob, Log, SyncHistory, Usuario],
   });
 };
+
+describe('DatabaseIntegration Helper', () => {
+  it('se inicializa correctamente', () => {
+    const db = createTestDatabase();
+    expect(db).toBeDefined();
+  });
+});

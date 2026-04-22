@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">12.5% </span>
+                <span class="strong">87.5% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>1/8</span>
+                <span class='fraction'>7/8</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">80% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/5</span>
+                <span class='fraction'>4/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">14.28% </span>
+                <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>1/7</span>
+                <span class='fraction'>7/7</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -92,27 +92,27 @@
 <a name='L27'></a><a href='#L27'>27</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { database } from '../../../core/database';
@@ -123,22 +123,22 @@ export const LogisticsRepository = {
    * Actualiza el estado de un envío en la base de datos local.
    * El syncService se encargará de propagar el cambio a Supabase.
    */
-<span class="fstat-no" title="function not covered" >  as</span>ync actualizarEstado(envio: Envio, nuevoEstado: string): Promise&lt;void&gt; {
-<span class="cstat-no" title="statement not covered" >    await database.write(<span class="fstat-no" title="function not covered" >as</span>ync () =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >      await envio.update(<span class="fstat-no" title="function not covered" >(p</span>) =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >        p.estado = nuevoEstado;</span>
+  async actualizarEstado(envio: Envio, nuevoEstado: string): Promise&lt;void&gt; {
+    await database.write(async () =&gt; {
+      await envio.update((p) =&gt; {
+        p.estado = nuevoEstado;
       });
     });
     // Trigger sync to Supabase immediately
-    const { syncConSupabase } = <span class="cstat-no" title="statement not covered" >require('../../inventory/services/syncService');</span>
-<span class="cstat-no" title="statement not covered" >    syncConSupabase().catch(<span class="fstat-no" title="function not covered" >(e</span>rr: Error) =&gt; <span class="cstat-no" title="statement not covered" >console.error('[Logistics] Sync failed:', err.message))</span>;</span>
+    const { syncConSupabase } = require('../../inventory/services/syncService');
+    syncConSupabase().catch(<span class="fstat-no" title="function not covered" >(e</span>rr: Error) =&gt; <span class="cstat-no" title="statement not covered" >console.error('[Logistics] Sync failed:', err.message))</span>;
   },
 &nbsp;
   /**
    * Busca un envío por su ID de WatermelonDB.
    */
-<span class="fstat-no" title="function not covered" >  as</span>ync obtenerPorId(id: string): Promise&lt;Envio&gt; {
-<span class="cstat-no" title="statement not covered" >    return await database.get&lt;Envio&gt;('envios').find(id);</span>
+  async obtenerPorId(id: string): Promise&lt;Envio&gt; {
+    return await database.get&lt;Envio&gt;('envios').find(id);
   }
 };
 &nbsp;</pre></td></tr></table></pre>
@@ -148,7 +148,7 @@ export const LogisticsRepository = {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-22T01:15:10.619Z
+                at 2026-04-22T04:04:20.990Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

@@ -25,8 +25,8 @@ describe('useHistorial Hook - Mapping Logic', () => {
                 marca: 'M',
                 sku: 'S',
                 accion: 'FV_ACTUALIZADO',
-                fvAnteriorTs: new Date('2023-01-01'),
-                fvNuevoTs: new Date('2024-01-01'),
+                fvAnteriorTs: new Date(2023, 0, 1),
+                fvNuevoTs: new Date(2024, 0, 1),
                 comentario: 'Test C',
                 timestamp: 1600000000000,
                 dispositivo: 'Android'

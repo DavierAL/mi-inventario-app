@@ -19,7 +19,7 @@ jest.mock('../../ThemeContext', () => ({
 describe('Badge Component', () => {
     it('renderiza con el texto correcto', () => {
         const { getByText } = render(<Badge label="Test" />);
-        expect(getByText('Test')).toBeTruthy();
+        expect(getByText('TEST')).toBeTruthy();
     });
 
     it('aplica el color segun variante', () => {

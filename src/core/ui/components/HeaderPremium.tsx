@@ -1,0 +1,149 @@
+// ARCHIVO: src/core/ui/components/HeaderPremium.tsx
+import React from 'react';
+import { View, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../ThemeContext';
+import { useAuthStore } from '../../store/useAuthStore';
+import { Text } from './Typography';
+import { SHADOWS } from '../shadows';
+
+interface Props {
+    titulo: string;
+    showSync?: boolean;
+    isSyncing?: boolean;
+    onSync?: () => void;
+    lastSync?: string | null;
+}
+
+export const HeaderPremium: React.FC<Props> = ({ 
+    titulo, 
+    showSync = false, 
+    isSyncing = false, 
+    onSync,
+    lastSync
+}) => {
+    const { colors, isDark, toggleTheme } = useTheme();
+    const { logout } = useAuthStore();
+
+    const handleLogout = () => {
+        Alert.alert(
+            'Cerrar Sesión',
+            '¿Estás seguro que deseas salir de Mascotify?',
+            [
+                { text: 'Cancelar', style: 'cancel' },
+                { 
+                    text: 'Salir', 
+                    style: 'destructive',
+                    onPress: () => logout()
+                }
+            ]
+        );
+    };
+
+    return (
+        <View style={[styles.header, { backgroundColor: colors.superficie, borderBottomColor: colors.borde }]}>
+            <View style={styles.filaArriba}>
+                <View style={styles.branding}>
+                    <View style={[styles.logoPlaceholder, { backgroundColor: colors.primario + '15' }]}>
+                        <Ionicons name="paw" size={18} color={colors.primario} />
+                    </View>
+                    <View>
+                        <Text variant="body" weight="bold" color={colors.textoPrincipal}>Mascotify</Text>
+                        <Text variant="tiny" color={colors.textoTerciario} weight="bold" style={{ marginTop: -2 }}>
+                            {titulo.toUpperCase()}
+                        </Text>
+                    </View>
+                </View>
+
+                <View style={styles.acciones}>
+                    {showSync && (
+                        <TouchableOpacity 
+                            style={[styles.btnCircle, { backgroundColor: colors.fondoPrimario }]}
+                            onPress={onSync}
+                            disabled={isSyncing}
+                        >
+                            {isSyncing ? (
+                                <ActivityIndicator size="small" color={colors.primario} />
+                            ) : (
+                                <Ionicons name="sync" size={20} color={colors.primario} />
+                            )}
+                        </TouchableOpacity>
+                    )}
+                    
+                    <TouchableOpacity 
+                        style={[styles.btnCircle, { backgroundColor: colors.fondoPrimario, marginLeft: 8 }]}
+                        onPress={toggleTheme}
+                    >
+                        <Ionicons name={isDark ? 'sunny' : 'moon'} size={20} color={colors.primario} />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity 
+                        style={[styles.btnCircle, { backgroundColor: colors.fondoPrimario, marginLeft: 8 }]}
+                        onPress={handleLogout}
+                    >
+                        <Ionicons name="power" size={20} color={colors.error} />
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            {showSync && lastSync && (
+                <View style={styles.barraSync}>
+                    <View style={[styles.dot, { backgroundColor: colors.exito }]} />
+                    <Text variant="tiny" weight="bold" color={colors.textoTerciario}>
+                        SINCRO: {lastSync}
+                    </Text>
+                </View>
+            )}
+        </View>
+    );
+};
+
+const styles = StyleSheet.create({
+    header: {
+        paddingTop: 12,
+        paddingBottom: 10,
+        paddingHorizontal: 16,
+        borderBottomWidth: 1,
+        ...SHADOWS.CARD,
+    },
+    filaArriba: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    branding: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    logoPlaceholder: {
+        width: 34,
+        height: 34,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    acciones: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    btnCircle: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    barraSync: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 8,
+        gap: 6,
+        opacity: 0.8,
+    },
+    dot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+    }
+});

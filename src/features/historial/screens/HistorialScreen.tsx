@@ -13,7 +13,7 @@ import { useTheme } from '../../../core/ui/ThemeContext';
 import { EntradaHistorial, TipoAccionHistorial } from '../../../core/types/inventario';
 import { formatearTiempoRelativo, formatearHora } from '../../../core/utils/fecha';
 import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
-import { Text, Surface, Badge } from '../../../core/ui/components';
+import { Text, Surface, Badge, HeaderPremium } from '../../../core/ui/components';
 import { TOKENS } from '../../../core/ui/tokens';
 
 const FastList = FlashList as any;
@@ -130,23 +130,9 @@ const HistorialScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={[styles.contenedor, { backgroundColor: colors.fondo }]}>
-            <View style={[styles.cabecera, { backgroundColor: colors.superficie, borderBottomColor: colors.borde }]}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.botonVolver}>
-                    <Ionicons name="arrow-back" size={22} color={colors.textoPrincipal} />
-                </TouchableOpacity>
-                <View>
-                    <Text variant="h2" weight="bold">Historial</Text>
-                    <Text variant="tiny" weight="bold" color={colors.textoSecundario}>
-                        {entradas.length} MOVIMIENTOS LOCALES
-                    </Text>
-                </View>
-                <TouchableOpacity 
-                    style={{ padding: 8, backgroundColor: colors.fondoPrimario, borderRadius: 20 }}
-                    onPress={toggleTheme}
-                >
-                    <Ionicons name={isDark ? 'sunny' : 'moon'} size={20} color={colors.primario} />
-                </TouchableOpacity>
-            </View>
+            <HeaderPremium 
+                titulo="Historial" 
+            />
 
             {cargando && <HistorialSkeleton />}
 

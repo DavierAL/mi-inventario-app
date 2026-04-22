@@ -30,7 +30,10 @@ import { ProductoCard } from '../components/ProductoCard';
 import { SkeletonCard } from '../../../core/ui/SkeletonCard';
 import { map } from 'rxjs/operators';
 import { calcularDiasRestantes } from '../../../core/utils/fecha';
-import { Text, Surface, Button, Input, Badge, AnimatedPressable as TouchableOpacity } from '../../../core/ui/components';
+import { 
+    Text, Surface, Button, Input, Badge, HeaderPremium,
+    AnimatedPressable as TouchableOpacity 
+} from '../../../core/ui/components';
 import { TOKENS } from '../../../core/ui/tokens';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -186,56 +189,15 @@ export const InventarioListScreen = () => {
     return (
         <SafeAreaView style={[styles.contenedor, { backgroundColor: colors.fondo }]}>
             <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.superficie} />
+            <HeaderPremium 
+                titulo="Almacén" 
+                showSync={true}
+                isSyncing={cargando}
+                onSync={handleSyncManual}
+                lastSync={lastSync}
+            />
 
-            {/* Cabecera Premium */}
-            <View style={[styles.cabecera, { 
-                backgroundColor: colors.superficie,
-                borderBottomColor: colors.borde,
-            }]}>
-                <View style={styles.headerTop}>
-                    <View style={styles.headerBranding}>
-                        <Image 
-                            source={require('../../../../assets/logo-mascotify.svg')}
-                            style={styles.logoTiny}
-                            contentFit="contain"
-                        />
-                        <View>
-                            <Text variant="h1" weight="bold">Mascotify</Text>
-                            <Text variant="tiny" weight="bold" color={colors.textoTerciario}>
-                                {lastSync ? `SYNC: ${lastSync}` : 'SIN SINCRONIZAR'}
-                            </Text>
-                        </View>
-                    </View>
-                    
-                    <View style={styles.filaSync}>
-                        {pendientesSync > 0 && (
-                            <Badge 
-                                label={String(pendientesSync)}
-                                variant="primary"
-                                style={styles.marginRight8}
-                            />
-                        )}
-                        <TouchableOpacity 
-                            style={[styles.btnCircle, { backgroundColor: colors.fondoPrimario }]}
-                            onPress={handleSyncManual}
-                            onLongPress={handleReparar}
-                            disabled={cargando}
-                        >
-                            {cargando ? (
-                                <ActivityIndicator size="small" color={colors.primario} />
-                            ) : (
-                                <Ionicons name="sync" size={20} color={colors.primario} />
-                            )}
-                        </TouchableOpacity>
-                        <TouchableOpacity 
-                            style={[styles.btnCircle, { backgroundColor: colors.fondoPrimario, marginLeft: 8 }]}
-                            onPress={toggleTheme}
-                        >
-                            <Ionicons name={isDark ? 'sunny' : 'moon'} size={20} color={colors.primario} />
-                        </TouchableOpacity>
-                    </View>
-                </View>
-
+            <View style={[styles.areaBuscador, { backgroundColor: colors.superficie, borderBottomColor: colors.borde }]}>
                 <Input 
                     placeholder={MENSAJES.BUSCAR_PLACEHOLDER}
                     value={busqueda}
@@ -340,6 +302,7 @@ const styles = StyleSheet.create({
     filaSync: { flexDirection: 'row', alignItems: 'center' },
     headerBranding: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     logoTiny: { width: 32, height: 32 },
+    areaBuscador: { paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1 },
     searchContainer: { marginTop: TOKENS.spacing.md },
     filtrosScroll: { paddingHorizontal: 20, gap: 8 },
     cargandoContenedor: { flex: 1, padding: 20 },

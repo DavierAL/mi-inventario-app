@@ -1,0 +1,10 @@
+{
+  "type": "UPDATE",
+  "table": "envios",
+  "record": {
+    "cod_pedido": "TEST-AI-001",
+    "cliente": "Test Antigravity",
+    "estado": "Entregado",
+    "url_foto": "https://mascotify.pe/test-image.jpg"
+  }
+}

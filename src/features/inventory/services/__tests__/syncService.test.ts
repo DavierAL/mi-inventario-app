@@ -1,7 +1,9 @@
 import NetInfo from '@react-native-community/netinfo';
 
 // Mocks
-jest.mock('@react-native-community/netinfo');
+jest.mock('@react-native-community/netinfo', () => ({
+  fetch: jest.fn().mockResolvedValue({ isConnected: true }),
+}));
 jest.mock('@nozbe/watermelondb/sync');
 
 describe('SyncService', () => {
