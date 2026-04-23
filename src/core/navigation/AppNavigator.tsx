@@ -43,6 +43,10 @@ export const AppNavigator = () => {
                         {(user.rol === 'admin' || user.rol === 'almacen' || user.rol === 'tienda' || user.rol === 'atencion') && (
                             <Stack.Screen name="InventarioList" component={InventarioListScreen} />
                         )}
+
+                        {(user.rol === 'admin' || user.rol === 'logistica' || user.rol === 'atencion') && (
+                            <Stack.Screen name="PickingList" component={PickingScreen} />
+                        )}
                         
                         {(user.rol === 'admin' || user.rol === 'almacen' || user.rol === 'tienda' || user.rol === 'logistica') && (
                             <Stack.Screen name="Scanner" component={ScannerScreen} />
@@ -62,7 +66,6 @@ export const AppNavigator = () => {
 
                         {(user.rol === 'admin' || user.rol === 'logistica' || user.rol === 'atencion') && (
                             <>
-                                <Stack.Screen name="PickingList" component={PickingScreen} />
                                 <Stack.Screen name="StorePanel" component={StorePanelScreen} />
                                 <Stack.Screen name="LogisticsHistory" component={LogisticsHistoryScreen} />
                             </>

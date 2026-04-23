@@ -77,7 +77,7 @@ Deno.serve(async (req: Request) => {
     console.log(`[sync-logistica-sheets] Relay -> Pedido: ${record.cod_pedido}, Estado: ${record.estado}, Foto: ${photoUrl}`);
 
     const payloadForSheets = {
-      table: 'pedidos', 
+      table: 'Envios', 
       type: 'UPDATE',
       record: {
         ...record,

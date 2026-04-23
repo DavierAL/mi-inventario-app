@@ -151,8 +151,8 @@ export const StorePanelScreen = () => {
 
             const manipResult = await ImageManipulator.manipulateAsync(
                 foto.uri,
-                [{ resize: { width: 1024 } }],
-                { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+                [{ resize: { width: 800 } }], // Reducido para asegurar peso < 100kb
+                { compress: 0.6, format: ImageManipulator.SaveFormat.JPEG }
             );
 
             const infoOptimizado = await FileSystem.getInfoAsync(manipResult.uri);
@@ -224,7 +224,7 @@ export const StorePanelScreen = () => {
 
             // PASO 3: ⚠️ CRÍTICO — Actualizar tabla `envios` en Supabase
             // (ESTE ERA EL PASO FALTANTE QUE CAUSABA QUE LOS CAMBIOS NO LLEGUEN)
-            const supabaseId = envio.supabaseId ?? envio.id;
+            const supabaseId = envio.supabaseId || envio.id; // Uso fallback a id si supabaseId es vacío
             const resultado = await EnviosService.actualizarEstado({
                 supabaseRowId: supabaseId,
                 nuevoEstado: 'Entregado',

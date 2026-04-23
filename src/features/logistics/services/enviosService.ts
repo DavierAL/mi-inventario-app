@@ -78,8 +78,7 @@ export const EnviosService = {
       };
 
       if (params.podUrl) {
-        updateData.pod_url = params.podUrl;
-        // Se elimina la redundancia de sobrescribir url_foto para preservar la imagen del producto
+        updateData.url_foto = params.podUrl; // La columna en Supabase envios es url_foto, no pod_url
       }
 
       const { error } = await supabase
