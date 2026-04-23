@@ -31,6 +31,7 @@ import {
     AnimatedPressable as TouchableOpacity
 } from '../../../core/ui/components';
 import { TOKENS } from '../../../core/ui/tokens';
+import { usePermissions } from '../../../core/hooks/usePermissions';
 
 type PickingNavProp = NativeStackNavigationProp<RootStackParamList, 'PickingList'>;
 
@@ -96,7 +97,7 @@ const PedidoCard = memo(({ envio, onDespachar, onVerPanel }: PedidoCardProps) =>
                 )}
             </View>
 
-            {puedeDespachar && (
+            {puedeDespachar && onDespachar && (
                 <Button 
                     label="Despachar a Logística"
                     variant="primary"
@@ -186,6 +187,8 @@ export const PickingScreen = () => {
     const { colors, isDark, toggleTheme } = useTheme();
     const navigation = useNavigation<PickingNavProp>();
     const { cargando, error, reSincronizar } = useLogisticsSync();
+    const { hasPermission } = usePermissions();
+    const canEdit = hasPermission('edit_logistics');
 
     const [busqueda, setBusqueda] = useState('');
     const [filtroEstado, setFiltroEstado] = useState<EstadoPedido | null>('En_Tienda');
@@ -319,7 +322,7 @@ export const PickingScreen = () => {
                     filtroEstado={filtroEstado} 
                     ordenDesc={ordenDesc}
                     isFiltrado={Boolean(busqueda.trim().length > 0 || filtroEstado !== null)}
-                    onDespachar={handleDespachar} 
+                    onDespachar={canEdit ? handleDespachar : undefined} 
                     onVerPanel={handleVerPanel} 
                 />
             </View>

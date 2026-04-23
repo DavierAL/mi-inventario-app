@@ -16,7 +16,7 @@ import { useTheme } from '../ui/ThemeContext';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const AppNavigator = () => {
-    const { isAuthenticated, isLoading, restoreSession } = useAuthStore();
+    const { isAuthenticated, user, isLoading, restoreSession } = useAuthStore();
     const { colors } = useTheme();
 
     useEffect(() => {
@@ -36,21 +36,37 @@ export const AppNavigator = () => {
             <Stack.Navigator
                 screenOptions={{ headerShown: false }}
             >
-                {!isAuthenticated ? (
+                {!isAuthenticated || !user ? (
                     <Stack.Screen name="Login" component={LoginScreen} />
                 ) : (
                     <>
-                        <Stack.Screen name="InventarioList" component={InventarioListScreen} />
-                        <Stack.Screen name="Scanner" component={ScannerScreen} />
-                        <Stack.Screen name="Analytics" component={AnalyticsScreen} />
-                        <Stack.Screen
-                            name="Historial"
-                            component={HistorialScreen}
-                            options={{ headerShown: false }}
-                        />
-                        <Stack.Screen name="PickingList" component={PickingScreen} />
-                        <Stack.Screen name="StorePanel" component={StorePanelScreen} />
-                        <Stack.Screen name="LogisticsHistory" component={LogisticsHistoryScreen} />
+                        {(user.rol === 'admin' || user.rol === 'almacen' || user.rol === 'tienda' || user.rol === 'atencion') && (
+                            <Stack.Screen name="InventarioList" component={InventarioListScreen} />
+                        )}
+                        
+                        {(user.rol === 'admin' || user.rol === 'almacen' || user.rol === 'tienda' || user.rol === 'logistica') && (
+                            <Stack.Screen name="Scanner" component={ScannerScreen} />
+                        )}
+
+                        {(user.rol === 'admin' || user.rol === 'atencion') && (
+                            <Stack.Screen name="Analytics" component={AnalyticsScreen} />
+                        )}
+
+                        {(user.rol === 'admin' || user.rol === 'almacen' || user.rol === 'tienda' || user.rol === 'logistica') && (
+                            <Stack.Screen
+                                name="Historial"
+                                component={HistorialScreen}
+                                options={{ headerShown: false }}
+                            />
+                        )}
+
+                        {(user.rol === 'admin' || user.rol === 'logistica' || user.rol === 'atencion') && (
+                            <>
+                                <Stack.Screen name="PickingList" component={PickingScreen} />
+                                <Stack.Screen name="StorePanel" component={StorePanelScreen} />
+                                <Stack.Screen name="LogisticsHistory" component={LogisticsHistoryScreen} />
+                            </>
+                        )}
                     </>
                 )}
             </Stack.Navigator>

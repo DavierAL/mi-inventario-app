@@ -35,6 +35,7 @@ import {
     AnimatedPressable as TouchableOpacity 
 } from '../../../core/ui/components';
 import { TOKENS } from '../../../core/ui/tokens';
+import { usePermissions } from '../../../core/hooks/usePermissions';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
     UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -118,6 +119,8 @@ export const InventarioListScreen = () => {
         repararBaseDeDatos, conectarInventario, cargarDatosSync,
         productoEditando, setProductoEditando, guardarEdicion, modoOffline
     } = useInventarioStore();
+    const { hasPermission } = usePermissions();
+    const canEdit = hasPermission('edit_inventory');
 
     const [busqueda, setBusqueda] = useState('');
     
@@ -252,7 +255,7 @@ export const InventarioListScreen = () => {
                     ) : (
                         <ListaReactiva 
                             query={queryProductos} 
-                            onPress={setProductoEditando} 
+                            onPress={canEdit ? setProductoEditando : undefined} 
                             busqueda={busqueda}
                             onScroll={handleScroll}
                             listRef={listRef}

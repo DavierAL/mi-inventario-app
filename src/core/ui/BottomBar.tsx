@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useTheme } from './ThemeContext';
+import { usePermissions } from '../hooks/usePermissions';
 
 export type TabActivo = 'lista' | 'escaner' | 'historial' | 'logistica' | 'analytics';
 
@@ -23,6 +24,7 @@ export const BottomBar: React.FC<Props> = ({ modoActivo, onTabPress }) => {
         onTabPress(tab);
     };
 
+    const { canAccessTab } = usePermissions();
     const iconColor = (tab: TabActivo) =>
         modoActivo === tab ? colors.primario : colors.bottomBarIcono;
 
@@ -37,84 +39,94 @@ export const BottomBar: React.FC<Props> = ({ modoActivo, onTabPress }) => {
         ]}>
             <View style={styles.contenedor}>
                 {/* TAB: ALMACÉN */}
-                <TouchableOpacity
-                    style={styles.tab}
-                    onPress={() => handlePress('lista')}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons
-                        name={modoActivo === 'lista' ? 'home' : 'home-outline'}
-                        size={22}
-                        color={iconColor('lista')}
-                    />
-                    <Text style={[styles.texto, { color: iconColor('lista') }]}>
-                        Almacén
-                    </Text>
-                </TouchableOpacity>
+                {canAccessTab('lista') && (
+                    <TouchableOpacity
+                        style={styles.tab}
+                        onPress={() => handlePress('lista')}
+                        activeOpacity={0.7}
+                    >
+                        <Ionicons
+                            name={modoActivo === 'lista' ? 'home' : 'home-outline'}
+                            size={22}
+                            color={iconColor('lista')}
+                        />
+                        <Text style={[styles.texto, { color: iconColor('lista') }]}>
+                            Almacén
+                        </Text>
+                    </TouchableOpacity>
+                )}
 
                 {/* TAB: LOGÍSTICA */}
-                <TouchableOpacity
-                    style={styles.tab}
-                    onPress={() => handlePress('logistica')}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons
-                        name={modoActivo === 'logistica' ? 'cube' : 'cube-outline'}
-                        size={22}
-                        color={iconColor('logistica')}
-                    />
-                    <Text style={[styles.texto, { color: iconColor('logistica') }]}>
-                        Logística
-                    </Text>
-                </TouchableOpacity>
+                {canAccessTab('logistica') && (
+                    <TouchableOpacity
+                        style={styles.tab}
+                        onPress={() => handlePress('logistica')}
+                        activeOpacity={0.7}
+                    >
+                        <Ionicons
+                            name={modoActivo === 'logistica' ? 'cube' : 'cube-outline'}
+                            size={22}
+                            color={iconColor('logistica')}
+                        />
+                        <Text style={[styles.texto, { color: iconColor('logistica') }]}>
+                            Logística
+                        </Text>
+                    </TouchableOpacity>
+                )}
 
                 {/* TAB: ESCÁNER */}
-                <TouchableOpacity
-                    style={styles.tab}
-                    onPress={() => handlePress('escaner')}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons
-                        name={modoActivo === 'escaner' ? 'barcode' : 'barcode-outline'}
-                        size={40} // Más grande como se solicitó
-                        color={colors.exito} // Más verde (usando color éxito)
-                    />
-                    <Text style={[styles.texto, { color: colors.exito, fontWeight: '900', marginTop: -2 }]}>
-                        Escáner
-                    </Text>
-                </TouchableOpacity>
+                {canAccessTab('escaner') && (
+                    <TouchableOpacity
+                        style={styles.tab}
+                        onPress={() => handlePress('escaner')}
+                        activeOpacity={0.7}
+                    >
+                        <Ionicons
+                            name={modoActivo === 'escaner' ? 'barcode' : 'barcode-outline'}
+                            size={40} // Más grande como se solicitó
+                            color={colors.exito} // Más verde (usando color éxito)
+                        />
+                        <Text style={[styles.texto, { color: colors.exito, fontWeight: '900', marginTop: -2 }]}>
+                            Escáner
+                        </Text>
+                    </TouchableOpacity>
+                )}
 
                 {/* TAB: HISTORIAL */}
-                <TouchableOpacity
-                    style={styles.tab}
-                    onPress={() => handlePress('historial')}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons
-                        name={modoActivo === 'historial' ? 'time' : 'time-outline'}
-                        size={22}
-                        color={iconColor('historial')}
-                    />
-                    <Text style={[styles.texto, { color: iconColor('historial') }]}>
-                        Historial
-                    </Text>
-                </TouchableOpacity>
+                {canAccessTab('historial') && (
+                    <TouchableOpacity
+                        style={styles.tab}
+                        onPress={() => handlePress('historial')}
+                        activeOpacity={0.7}
+                    >
+                        <Ionicons
+                            name={modoActivo === 'historial' ? 'time' : 'time-outline'}
+                            size={22}
+                            color={iconColor('historial')}
+                        />
+                        <Text style={[styles.texto, { color: iconColor('historial') }]}>
+                            Historial
+                        </Text>
+                    </TouchableOpacity>
+                )}
 
                 {/* TAB: ANALYTICS */}
-                <TouchableOpacity
-                    style={styles.tab}
-                    onPress={() => handlePress('analytics')}
-                    activeOpacity={0.7}
-                >
-                    <Ionicons
-                        name={modoActivo === 'analytics' ? 'stats-chart' : 'stats-chart-outline'}
-                        size={22}
-                        color={iconColor('analytics')}
-                    />
-                    <Text style={[styles.texto, { color: iconColor('analytics') }]}>
-                        Análisis
-                    </Text>
-                </TouchableOpacity>
+                {canAccessTab('analytics') && (
+                    <TouchableOpacity
+                        style={styles.tab}
+                        onPress={() => handlePress('analytics')}
+                        activeOpacity={0.7}
+                    >
+                        <Ionicons
+                            name={modoActivo === 'analytics' ? 'stats-chart' : 'stats-chart-outline'}
+                            size={22}
+                            color={iconColor('analytics')}
+                        />
+                        <Text style={[styles.texto, { color: iconColor('analytics') }]}>
+                            Análisis
+                        </Text>
+                    </TouchableOpacity>
+                )}
 
             </View>
         </View>
