@@ -174,7 +174,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
           estado: mapearEstadoEntrante(row.estado),
           operador: row.operador || null,
           url_foto: row.url_foto || null,
-          pod_url: row.url_foto || null, // Fallback a url_foto para mantener coexistencia local
+          pod_url: row.url_foto || null, // Se mantiene el nombre de la propiedad local mapeado a la columna real url_foto
           notas: row.notas || null,
           direccion: row.direccion || null,
           distrito: row.distrito || null,

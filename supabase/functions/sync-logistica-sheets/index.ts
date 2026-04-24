@@ -10,9 +10,8 @@ interface EnvioRecord {
   id: string;
   cod_pedido: string;
   estado: string;
-  pod_url: string | null;
   url_foto: string | null;
-  [key: string]: unknown; // Cumpliendo con Regla 5: usar unknown en lugar de any
+  [key: string]: unknown;
 }
 
 interface WebhookPayload {
@@ -58,7 +57,7 @@ Deno.serve(async (req: Request) => {
       // REGLA: Selección explícita de columnas en lugar de select('*')
       const { data, error } = await supabase
         .from('envios')
-        .select('id, cod_pedido, estado, pod_url, url_foto')
+        .select('id, cod_pedido, estado, url_foto')
         .eq('id', payload.envio_id)
         .single();
       
@@ -73,11 +72,11 @@ Deno.serve(async (req: Request) => {
     }
 
     // 2. Mapeo al formato exacto que espera el script de Google Sheets (doPost)
-    const photoUrl = record.pod_url || record.url_foto || "";
-    console.log(`[sync-logistica-sheets] Relay -> Pedido: ${record.cod_pedido}, Estado: ${record.estado}, Foto: ${photoUrl}`);
+    const photoUrl = record.url_foto || "";
+    console.log(`[sync-logistica-sheets] Relay -> Pedido: ${record.cod_pedido}, Estado: ${record.estado}`);
 
     const payloadForSheets = {
-      table: 'Envios', 
+      table: 'pedidos', 
       type: 'UPDATE',
       record: {
         ...record,
