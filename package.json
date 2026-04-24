@@ -64,5 +64,8 @@
     "supabase": "^2.92.1",
     "typescript": "~5.9.2"
   },
+  "overrides": {
+    "@types/react": "$@types/react"
+  },
   "private": true
 }

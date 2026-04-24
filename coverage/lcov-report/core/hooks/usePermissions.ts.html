@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">39.13% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/23</span>
+                <span class='fraction'>9/23</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">6.25% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/16</span>
+                <span class='fraction'>1/16</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>2/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">38.09% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/21</span>
+                <span class='fraction'>8/21</span>
             </div>
         
             
@@ -129,7 +129,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -137,35 +137,35 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-yes">6x</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">9x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -184,7 +184,7 @@ type Permission =
   | 'view_analytics'
   | 'view_history';
 &nbsp;
-const ROLE_PERMISSIONS: Record&lt;UserRole, Permission[]&gt; = <span class="cstat-no" title="statement not covered" >{</span>
+const ROLE_PERMISSIONS: Record&lt;UserRole, Permission[]&gt; = {
   admin: ['view_inventory', 'edit_inventory', 'view_logistics', 'edit_logistics', 'view_analytics', 'view_history'],
   logistica: ['view_logistics', 'edit_logistics', 'view_history'],
   almacen: ['view_inventory', 'edit_inventory', 'view_history', "view_logistics"],
@@ -192,16 +192,16 @@ const ROLE_PERMISSIONS: Record&lt;UserRole, Permission[]&gt; = <span class="csta
   atencion: ['view_inventory', 'view_logistics', 'view_history'],
 };
 &nbsp;
-export const usePermissions = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
-  const { user } = <span class="cstat-no" title="statement not covered" >useAuthStore();</span>
+export const usePermissions = () =&gt; {
+  const { user } = useAuthStore();
 &nbsp;
-  const hasPermission = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(p</span>ermission: Permission): boolean =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >    if (!user) <span class="cstat-no" title="statement not covered" >return false;</span></span>
+  const hasPermission = (permission: Permission): boolean =&gt; {
+    <span class="missing-if-branch" title="else path not taken" >E</span>if (!user) return false;
     const permissions = <span class="cstat-no" title="statement not covered" >ROLE_PERMISSIONS[user.rol] || [];</span>
 <span class="cstat-no" title="statement not covered" >    return permissions.includes(permission);</span>
   };
 &nbsp;
-  const hasRole = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(r</span>oles: UserRole | UserRole[]): boolean =&gt; {</span>
+  const hasRole = <span class="fstat-no" title="function not covered" >(r</span>oles: UserRole | UserRole[]): boolean =&gt; {
 <span class="cstat-no" title="statement not covered" >    if (!user) <span class="cstat-no" title="statement not covered" >return false;</span></span>
 <span class="cstat-no" title="statement not covered" >    if (Array.isArray(roles)) {</span>
 <span class="cstat-no" title="statement not covered" >      return roles.includes(user.rol);</span>
@@ -209,7 +209,7 @@ export const usePermissions = <span class="cstat-no" title="statement not covere
 <span class="cstat-no" title="statement not covered" >    return user.rol === roles;</span>
   };
 &nbsp;
-  const canAccessTab = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(t</span>ab: string): boolean =&gt; {</span>
+  const canAccessTab = <span class="fstat-no" title="function not covered" >(t</span>ab: string): boolean =&gt; {
 <span class="cstat-no" title="statement not covered" >    switch (tab) {</span>
       case 'lista': <span class="cstat-no" title="statement not covered" >return hasPermission('view_inventory');</span>
       case 'logistica': <span class="cstat-no" title="statement not covered" >return hasPermission('view_logistics');</span>
@@ -220,7 +220,7 @@ export const usePermissions = <span class="cstat-no" title="statement not covere
     }
   };
 &nbsp;
-<span class="cstat-no" title="statement not covered" >  return {</span>
+  return {
     user,
     role: user?.rol,
     hasPermission,
@@ -235,7 +235,7 @@ export const usePermissions = <span class="cstat-no" title="statement not covere
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-24T16:06:23.323Z
+                at 2026-04-24T16:16:23.909Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
