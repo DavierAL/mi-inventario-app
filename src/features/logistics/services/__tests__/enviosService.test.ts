@@ -61,8 +61,8 @@ describe('EnviosService', () => {
 
       expect(supabase.from).toHaveBeenCalledWith('envios');
       expect(mockDb.update).toHaveBeenCalledWith(expect.objectContaining({
-        estado: 'entregado',
-        pod_url: 'https://supabase.com/pod.jpg',
+        estado: 'Entregado',
+        url_foto: 'https://supabase.com/pod.jpg',
       }));
       expect(result.exito).toBe(true);
     });

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">81.25% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>13/16</span>
+                <span class='fraction'>0/16</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">50% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>2/4</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">83.33% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>5/6</span>
+                <span class='fraction'>0/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">78.57% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>11/14</span>
+                <span class='fraction'>0/14</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -143,20 +143,18 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -169,8 +167,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -179,10 +179,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -206,18 +206,18 @@ interface HistorialState {
  * Hook reactivo que expone los movimientos del historial
  * en tiempo real desde la base de datos local.
  */
-export const useHistorial = () =&gt; {
-    const [entradas, setEntradas] = useState&lt;EntradaHistorial[]&gt;([]);
-    const [cargando, setCargando] = useState(true);
-    const [error, setError] = useState&lt;string | null&gt;(null);
+export const useHistorial = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+    const [entradas, setEntradas] = <span class="cstat-no" title="statement not covered" >useState&lt;EntradaHistorial[]&gt;([]);</span>
+    const [cargando, setCargando] = <span class="cstat-no" title="statement not covered" >useState(true);</span>
+    const [error, setError] = <span class="cstat-no" title="statement not covered" >useState&lt;string | null&gt;(null);</span>
 &nbsp;
-    useEffect(() =&gt; {
-        const subscription = database.collections.get&lt;Movimiento&gt;('movimientos')
+<span class="cstat-no" title="statement not covered" >    useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+        const subscription = <span class="cstat-no" title="statement not covered" >database.collections.get&lt;Movimiento&gt;('movimientos')</span>
             .query(Q.sortBy('timestamp', Q.desc))
             .observe()
             .subscribe({
-                next: (movimientos) =&gt; {
-                    const mapped = movimientos.map(m =&gt; ({
+                next: <span class="fstat-no" title="function not covered" >(m</span>ovimientos) =&gt; {
+                    const mapped = <span class="cstat-no" title="statement not covered" >movimientos.map(<span class="fstat-no" title="function not covered" >m </span>=&gt; (<span class="cstat-no" title="statement not covered" >{</span></span>
                         id: m.id,
                         productoId: m.productoId,
                         descripcion: m.descripcion,
@@ -225,15 +225,15 @@ export const useHistorial = () =&gt; {
                         sku: m.sku,
                         accion: m.accion as any,
                         cambios: {
-                            fvAnterior: m.fvAnteriorTs ? formatearFecha(m.fvAnteriorTs) : <span class="branch-1 cbranch-no" title="branch not covered" >undefined,</span>
-                            fvNuevo: m.fvNuevoTs ? formatearFecha(m.fvNuevoTs) : <span class="branch-1 cbranch-no" title="branch not covered" >undefined,</span>
+                            fvAnterior: m.fvAnteriorTs ? formatearFecha(m.fvAnteriorTs) : undefined,
+                            fvNuevo: m.fvNuevoTs ? formatearFecha(m.fvNuevoTs) : undefined,
                             comentario: m.comentario
                         },
                         timestamp: m.timestamp,
                         dispositivo: m.dispositivo
                     }));
-                    setEntradas(mapped);
-                    setCargando(false);
+<span class="cstat-no" title="statement not covered" >                    setEntradas(mapped);</span>
+<span class="cstat-no" title="statement not covered" >                    setCargando(false);</span>
                 },
                 error: <span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; {
 <span class="cstat-no" title="statement not covered" >                    console.error('[useHistorial] Error:', err);</span>
@@ -242,10 +242,10 @@ export const useHistorial = () =&gt; {
                 }
             });
 &nbsp;
-        return () =&gt; subscription.unsubscribe();
+<span class="cstat-no" title="statement not covered" >        return <span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >subscription.unsubscribe();</span></span>
     }, []);
 &nbsp;
-    return { 
+<span class="cstat-no" title="statement not covered" >    return { </span>
         entradas, 
         cargando, 
         error 
@@ -259,7 +259,7 @@ export const useHistorial = () =&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-22T04:04:20.990Z
+                at 2026-04-24T16:06:23.323Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

@@ -3,7 +3,7 @@
 <html lang="en">
 
 <head>
-    <title>Code coverage report for core/database/models/Producto.ts</title>
+    <title>Code coverage report for core/database/models/LogisticaHistorial.ts</title>
     <meta charset="utf-8" />
     <link rel="stylesheet" href="../../../prettify.css" />
     <link rel="stylesheet" href="../../../base.css" />
@@ -19,7 +19,7 @@
 <body>
 <div class='wrapper'>
     <div class='pad1'>
-        <h1><a href="../../../index.html">All files</a> / <a href="index.html">core/database/models</a> Producto.ts</h1>
+        <h1><a href="../../../index.html">All files</a> / <a href="index.html">core/database/models</a> LogisticaHistorial.ts</h1>
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
@@ -76,15 +76,7 @@
 <a name='L11'></a><a href='#L11'>11</a>
 <a name='L12'></a><a href='#L12'>12</a>
 <a name='L13'></a><a href='#L13'>13</a>
-<a name='L14'></a><a href='#L14'>14</a>
-<a name='L15'></a><a href='#L15'>15</a>
-<a name='L16'></a><a href='#L16'>16</a>
-<a name='L17'></a><a href='#L17'>17</a>
-<a name='L18'></a><a href='#L18'>18</a>
-<a name='L19'></a><a href='#L19'>19</a>
-<a name='L20'></a><a href='#L20'>20</a>
-<a name='L21'></a><a href='#L21'>21</a>
-<a name='L22'></a><a href='#L22'>22</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L14'></a><a href='#L14'>14</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -97,34 +89,18 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Model } from '@nozbe/watermelondb';
 import { field, text, date, readonly } from '@nozbe/watermelondb/decorators';
 &nbsp;
-export default class Producto extends Model {
-  static table = 'productos';
+export default class LogisticaHistorial extends Model {
+  static table = 'logistica_historial';
 &nbsp;
-  @text('cod_barras') codBarras!: string;
-  @text('sku') sku!: string;
-  @text('descripcion') descripcion!: string;
-  @field('stock_master') stockMaster!: number;
-  @field('precio_web') precioWeb!: number;
-  @field('precio_tienda') precioTienda!: number;
-  @date('fv_actual_ts') fvActualTs?: Date; // V4
-  @text('fecha_edicion') fechaEdicion?: string;
-  @text('comentarios') comentarios?: string;
-  @text('marca') marca!: string;
-  @text('imagen') imagen?: string;
-&nbsp;
-  @field('created_at') createdAt!: number;
-  @field('updated_at') updatedAt!: number;
+  @text('envio_id') envioId!: string;
+  @text('cod_pedido') codPedido!: string;
+  @text('estado_anterior') estadoAnterior!: string;
+  @text('estado_nuevo') estadoNuevo!: string;
+  @field('timestamp') timestamp!: number;
+  @text('operador') operador?: string;
 }
 &nbsp;</pre></td></tr></table></pre>
 

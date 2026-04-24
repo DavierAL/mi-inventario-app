@@ -12,10 +12,9 @@ describe('SyncService', () => {
     let synchronize: any;
 
     beforeEach(() => {
-        jest.resetModules();
         jest.clearAllMocks();
         
-        // Re-importar para tener un estado fresco (isSyncing = false)
+        // Usamos require una sola vez o importamos al inicio
         syncConSupabase = require('../syncService').syncConSupabase;
         database = require('../../../../core/database').database;
         synchronize = require('@nozbe/watermelondb/sync').synchronize;

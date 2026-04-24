@@ -9,6 +9,8 @@ import Log from '../models/Log';
 import SyncHistory from '../models/SyncHistory';
 import Usuario from '../models/Usuario';
 
+import LogisticaHistorial from '../models/LogisticaHistorial';
+
 /**
  * Crea una instancia de base de datos en memoria para tests de integración.
  * Utiliza LokiJSAdapter ideal para entornos de Node.js (Jest).
@@ -22,7 +24,7 @@ export const createTestDatabase = () => {
 
   return new Database({
     adapter,
-    modelClasses: [Producto, Movimiento, Envio, OutboxJob, Log, SyncHistory, Usuario],
+    modelClasses: [Producto, Movimiento, Envio, OutboxJob, Log, SyncHistory, Usuario, LogisticaHistorial],
   });
 };
 
