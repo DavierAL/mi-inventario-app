@@ -62,7 +62,7 @@ export const jobHandlers = {
     const { error: dbError } = await supabase
       .from('envios')
       .update({
-        pod_url: publicUrl,
+        url_foto: publicUrl,
         estado: 'Entregado',
         updated_at: new Date().toISOString(),
       })
