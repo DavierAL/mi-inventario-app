@@ -152,11 +152,19 @@ interface ListaReactivaParams {
     filtroEstado: EstadoPedido | null;
     ordenDesc: boolean;
     isFiltrado: boolean;
+    userRole?: string;
 }
 
-export const PickingList = withObservables(['busqueda', 'filtroEstado', 'ordenDesc'], ({ busqueda, filtroEstado, ordenDesc }: ListaReactivaParams) => {
+export const PickingList = withObservables(['busqueda', 'filtroEstado', 'ordenDesc', 'userRole'], ({ busqueda, filtroEstado, ordenDesc, userRole }: ListaReactivaParams) => {
     const condiciones: Clause[] = []; 
     
+    // Restricción por Rol
+    if (userRole === 'logistica') {
+        condiciones.push(Q.where('operador', 'Salva'));
+    } else if (userRole === 'tienda') {
+        condiciones.push(Q.where('operador', Q.oneOf(['Tienda', 'Yango', 'Cabify'])));
+    }
+
     if (filtroEstado) {
         condiciones.push(Q.where('estado', filtroEstado));
     }
@@ -187,7 +195,7 @@ export const PickingScreen = () => {
     const { colors, isDark, toggleTheme } = useTheme();
     const navigation = useNavigation<PickingNavProp>();
     const { cargando, error, reSincronizar } = useLogisticsSync();
-    const { hasPermission } = usePermissions();
+    const { hasPermission, role } = usePermissions();
     const canEdit = hasPermission('edit_logistics');
 
     const [busqueda, setBusqueda] = useState('');
@@ -321,6 +329,7 @@ export const PickingScreen = () => {
                     busqueda={busqueda} 
                     filtroEstado={filtroEstado} 
                     ordenDesc={ordenDesc}
+                    userRole={role}
                     isFiltrado={Boolean(busqueda.trim().length > 0 || filtroEstado !== null)}
                     onDespachar={canEdit ? handleDespachar : undefined} 
                     onVerPanel={handleVerPanel} 

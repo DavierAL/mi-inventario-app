@@ -1,20 +1,20 @@
 import { useAuthStore } from '../store/useAuthStore';
 import { UserRole } from '../types/auth';
 
-type Permission = 
-  | 'view_inventory' 
-  | 'edit_inventory' 
-  | 'view_logistics' 
-  | 'edit_logistics' 
-  | 'view_analytics' 
+type Permission =
+  | 'view_inventory'
+  | 'edit_inventory'
+  | 'view_logistics'
+  | 'edit_logistics'
+  | 'view_analytics'
   | 'view_history';
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
   admin: ['view_inventory', 'edit_inventory', 'view_logistics', 'edit_logistics', 'view_analytics', 'view_history'],
   logistica: ['view_logistics', 'edit_logistics', 'view_history'],
-  almacen: ['view_inventory', 'edit_inventory', 'view_history'],
-  tienda: ['view_inventory', 'edit_inventory', 'view_history'],
-  atencion: ['view_inventory', 'view_logistics', 'view_analytics'],
+  almacen: ['view_inventory', 'edit_inventory', 'view_history', "view_logistics"],
+  tienda: ['view_inventory', 'edit_inventory', 'view_logistics', 'edit_logistics', 'view_history'],
+  atencion: ['view_inventory', 'view_logistics', 'view_history'],
 };
 
 export const usePermissions = () => {

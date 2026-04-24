@@ -31,6 +31,7 @@ import { Logger } from '../../../core/services/LoggerService';
 import { ErrorService } from '../../../core/services/ErrorService';
 import { validateData, EnvioSchema } from '../../../core/validation/schemas';
 import { EnviosService } from '../services/enviosService';
+import { usePermissions } from '../../../core/hooks/usePermissions';
 
 
 type StorePanelNavProp = NativeStackNavigationProp<RootStackParamList, 'StorePanel'>;
@@ -43,7 +44,16 @@ export const StorePanelScreen = () => {
     const navigation = useNavigation<StorePanelNavProp>();
     const route = useRoute<StorePanelRoute>();
     const { isOnline } = useNetworkStatus();
-    const { } = useLogisticsSync();
+    const { cargando: syncCargando } = useLogisticsSync();
+    const { role } = usePermissions();
+
+    const esOperadorPermitido = (operador?: string) => {
+        if (!role || role === 'admin' || role === 'atencion') return true;
+        const op = operador || '';
+        if (role === 'logistica') return op === 'Salva';
+        if (role === 'tienda') return ['Tienda', 'Yango', 'Cabify'].includes(op);
+        return true;
+    };
 
     const [permisoCamera, pedirPermiso] = useCameraPermissions();
     const [envio, setEnvio] = useState<Envio | null>(null);
@@ -67,6 +77,11 @@ export const StorePanelScreen = () => {
     const cargarPedidoPorId = async (id: string) => {
         try {
             const p = await LogisticsRepository.obtenerPorId(id);
+            if (!esOperadorPermitido(p.operador)) {
+                Toast.show({ type: 'error', text1: 'Acceso restringido', text2: 'Este pedido no pertenece a tu operador' });
+                navigation.goBack();
+                return;
+            }
             setEnvio(p);
         } catch {
             Toast.show({ type: 'error', text1: 'envio no encontrado en local' });
@@ -88,8 +103,13 @@ export const StorePanelScreen = () => {
                 .query(Q.where('cod_pedido', codPedido))
                 .fetch();
             if (results.length > 0) {
+                const p = results[0];
+                if (!esOperadorPermitido(p.operador)) {
+                    Toast.show({ type: 'error', text1: 'Acceso restringido', text2: 'Este pedido no pertenece a tu operador' });
+                    return;
+                }
                 setFotoUri(null); // Reset photo for new order
-                setEnvio(results[0]);
+                setEnvio(p);
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                 Toast.show({ type: 'success', text1: `Envío ${codPedido} cargado` });
             } else {

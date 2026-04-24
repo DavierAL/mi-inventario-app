@@ -196,7 +196,87 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
           updated_at: row.updated_at ? new Date(row.updated_at).getTime() : Date.now(),
         }));
 
-        pulledCount = productosUpdated.length + enviosUpdated.length;
+        // --- PULL LOGISTICA HISTORIAL ---
+        let historialRemote: any[] = [];
+        let hasMoreHist = true;
+        let pageHist = 0;
+        
+        while (hasMoreHist) {
+          let queryHist = supabase.from('logistica_historial')
+            .select('id, envio_id, cod_pedido, estado_anterior, estado_nuevo, timestamp, operador, created_at, updated_at')
+            .range(pageHist * pageSize, (pageHist + 1) * pageSize - 1);
+          if (lastPulledAt && !options.forceFull) {
+            queryHist = queryHist.gte('updated_at', lastPulledDate);
+          }
+          const { data, error } = await queryHist;
+          if (error) {
+            Logger.error('[Sync] Error al descargar historial logística', error);
+            throw error;
+          }
+          if (data && data.length > 0) {
+            historialRemote = [...historialRemote, ...data];
+            hasMoreHist = data.length === pageSize;
+            pageHist++;
+          } else {
+            hasMoreHist = false;
+          }
+        }
+
+        const historialUpdated = historialRemote.map(row => ({
+          id: row.id?.toString() || '',
+          envio_id: row.envio_id,
+          cod_pedido: row.cod_pedido,
+          estado_anterior: row.estado_anterior,
+          estado_nuevo: row.estado_nuevo,
+          timestamp: row.timestamp ? Number(row.timestamp) : Date.now(),
+          operador: row.operador || null,
+          created_at: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+          updated_at: row.updated_at ? new Date(row.updated_at).getTime() : Date.now(),
+        }));
+
+        // --- PULL PRODUCTOS HISTORIAL (MOVIMIENTOS) ---
+        let movimientosRemote: any[] = [];
+        let hasMoreMov = true;
+        let pageMov = 0;
+        
+        while (hasMoreMov) {
+          let queryMov = supabase.from('historial')
+            .select('id, producto_id, sku, descripcion, marca, accion, fv_anterior_ts, fv_nuevo_ts, comentario, dispositivo, timestamp, created_at, updated_at')
+            .range(pageMov * pageSize, (pageMov + 1) * pageSize - 1);
+          if (lastPulledAt && !options.forceFull) {
+            queryMov = queryMov.gte('updated_at', lastPulledDate);
+          }
+          const { data, error } = await queryMov;
+          if (error) {
+            Logger.error('[Sync] Error al descargar historial productos', error);
+            throw error;
+          }
+          if (data && data.length > 0) {
+            movimientosRemote = [...movimientosRemote, ...data];
+            hasMoreMov = data.length === pageSize;
+            pageMov++;
+          } else {
+            hasMoreMov = false;
+          }
+        }
+
+        const movimientosUpdated = movimientosRemote.map(row => ({
+          id: row.id?.toString() || '',
+          producto_id: row.producto_id,
+          sku: row.sku,
+          descripcion: row.descripcion,
+          marca: row.marca,
+          accion: row.accion,
+          fv_anterior_ts: row.fv_anterior_ts ? Number(row.fv_anterior_ts) : null,
+          fv_nuevo_ts: row.fv_nuevo_ts ? Number(row.fv_nuevo_ts) : null,
+          comentario: row.comentario || null,
+          dispositivo: row.dispositivo || '📱 App',
+          timestamp: row.timestamp ? Number(row.timestamp) : Date.now(),
+          created_at: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+          updated_at: row.updated_at ? new Date(row.updated_at).getTime() : Date.now(),
+        }));
+
+        pulledCount = productosUpdated.length + enviosUpdated.length + historialUpdated.length + movimientosUpdated.length;
 
         return {
           changes: {
@@ -210,7 +290,16 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
               updated: lastPulledAt && !options.forceFull ? enviosUpdated : [], 
               deleted: [] 
             },
-            logistica_historial: { created: [], updated: [], deleted: [] },
+            logistica_historial: {
+              created: !lastPulledAt || options.forceFull ? historialUpdated : [],
+              updated: lastPulledAt && !options.forceFull ? historialUpdated : [],
+              deleted: []
+            },
+            movimientos: {
+              created: !lastPulledAt || options.forceFull ? movimientosUpdated : [],
+              updated: lastPulledAt && !options.forceFull ? movimientosUpdated : [],
+              deleted: []
+            },
           },
           timestamp: Date.now(),
         };
@@ -282,6 +371,51 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
               };
             }).filter(u => u !== null);
             const { error } = await supabase.from('envios').upsert(updates);
+            if (error) throw error;
+            pushedCount += updates.length;
+          }
+        }
+
+        // --- PUSH LOGISTICA HISTORIAL ---
+        if (changes.logistica_historial) {
+          const all = [...changes.logistica_historial.created, ...changes.logistica_historial.updated];
+          if (all.length > 0) {
+            const updates = all.map((r: any) => ({
+              id: r.id,
+              envio_id: r.envio_id || r.envioId,
+              cod_pedido: r.cod_pedido || r.codPedido,
+              estado_anterior: r.estado_anterior || r.estadoAnterior,
+              estado_nuevo: r.estado_nuevo || r.estadoNuevo,
+              timestamp: r.timestamp,
+              operador: r.operador || null,
+              created_at: new Date(r.timestamp).toISOString(),
+              updated_at: new Date().toISOString()
+            }));
+            const { error } = await supabase.from('logistica_historial').upsert(updates);
+            if (error) throw error;
+            pushedCount += updates.length;
+          }
+        }
+
+        // --- PUSH PRODUCTOS HISTORIAL (MOVIMIENTOS) ---
+        if (changes.movimientos) {
+          const all = [...changes.movimientos.created, ...changes.movimientos.updated];
+          if (all.length > 0) {
+            const updates = all.map((r: any) => ({
+              id: r.id,
+              producto_id: r.producto_id || r.productoId,
+              sku: r.sku,
+              descripcion: r.descripcion,
+              marca: r.marca,
+              accion: r.accion,
+              fv_anterior_ts: r.fv_anterior_ts || r.fvAnteriorTs,
+              fv_nuevo_ts: r.fv_nuevo_ts || r.fvNuevoTs,
+              comentario: r.comentario || null,
+              dispositivo: r.dispositivo || '📱 App',
+              timestamp: r.timestamp,
+              updated_at: new Date().toISOString()
+            }));
+            const { error } = await supabase.from('historial').upsert(updates);
             if (error) throw error;
             pushedCount += updates.length;
           }
