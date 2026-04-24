@@ -6,7 +6,8 @@ import {
   Platform,
   SafeAreaView,
   Alert,
-  StatusBar
+  StatusBar,
+  TouchableOpacity
 } from 'react-native';
 import { Image } from 'expo-image';
 import { Button, Surface, Typography, Input } from '../../../core/ui/components';
@@ -24,6 +25,7 @@ export const LoginScreen = () => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -31,8 +33,15 @@ export const LoginScreen = () => {
       return;
     }
     const success = await login(email, password);
-    if (!success && error) {
-      Alert.alert('Error de Login', error);
+    if (!success) {
+      const currentError = useAuthStore.getState().error;
+      let errorMessage = currentError || 'Ocurrió un error al intentar iniciar sesión.';
+      
+      if (currentError?.toLowerCase().includes('invalid login credentials') || currentError?.toLowerCase().includes('credenciales')) {
+        errorMessage = 'Credenciales inválidas o el usuario no existe. Verifica tus datos e intenta nuevamente.';
+      }
+      
+      Alert.alert('Error de Inicio de Sesión', errorMessage);
     }
   };
 
@@ -75,8 +84,17 @@ export const LoginScreen = () => {
               placeholder="••••••••"
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
+              secureTextEntry={!showPassword}
               icon={<Ionicons name="lock-closed-outline" size={20} color={colors.textoTerciario} />}
+              rightIcon={
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={{ padding: 4 }}>
+                  <Ionicons 
+                    name={showPassword ? "eye-off-outline" : "eye-outline"} 
+                    size={20} 
+                    color={colors.textoTerciario} 
+                  />
+                </TouchableOpacity>
+              }
               containerStyle={styles.inputGroup}
             />
 

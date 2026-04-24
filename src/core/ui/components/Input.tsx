@@ -16,6 +16,7 @@ interface InputProps extends TextInputProps {
     label?: string;
     error?: string;
     icon?: React.ReactNode;
+    rightIcon?: React.ReactNode;
     containerStyle?: ViewStyle;
     editable?: boolean;
     style?: import('react-native').StyleProp<import('react-native').TextStyle>;
@@ -26,6 +27,7 @@ export const Input: React.FC<InputProps> = ({
     label, 
     error, 
     icon, 
+    rightIcon,
     containerStyle,
     ...props 
 }) => {
@@ -58,6 +60,7 @@ export const Input: React.FC<InputProps> = ({
                     onBlur={() => setIsFocused(false)}
                     {...props}
                 />
+                {rightIcon && <View style={styles.rightIconContainer}>{rightIcon}</View>}
             </View>
             {error && (
                 <Text style={[styles.errorText, { color: colors.error }]}>
@@ -98,5 +101,8 @@ const styles = StyleSheet.create({
         fontSize: TOKENS.typography.size.tiny,
         marginTop: TOKENS.spacing.xs,
         marginLeft: 2,
+    },
+    rightIconContainer: {
+        marginLeft: TOKENS.spacing.sm,
     }
 });
