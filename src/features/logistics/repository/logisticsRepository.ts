@@ -7,7 +7,7 @@ export const LogisticsRepository = {
    * Actualiza el estado de un envío en la base de datos local.
    * El syncService se encargará de propagar el cambio a Supabase.
    */
-  async actualizarEstado(envio: Envio, nuevoEstado: string): Promise<void> {
+  async actualizarEstado(envio: Envio, nuevoEstado: string, rolUsuario?: string): Promise<void> {
     const estadoAnterior = envio.estado;
     const codPedido = envio.codPedido;
     const envioId = envio.id;
@@ -24,6 +24,7 @@ export const LogisticsRepository = {
       codPedido,
       estadoAnterior,
       estadoNuevo: nuevoEstado,
+      rolUsuario,
     });
 
     // Trigger sync to Supabase immediately

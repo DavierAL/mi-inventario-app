@@ -15,4 +15,5 @@ export default class Movimiento extends Model {
   @text('dispositivo') dispositivo!: string;
   
   @field('timestamp') timestamp!: number;
+  @text('rol_usuario') rolUsuario?: string;
 }

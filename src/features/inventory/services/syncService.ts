@@ -203,7 +203,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         
         while (hasMoreHist) {
           let queryHist = supabase.from('logistica_historial')
-            .select('id, envio_id, cod_pedido, estado_anterior, estado_nuevo, timestamp, operador, created_at, updated_at')
+            .select('id, envio_id, cod_pedido, estado_anterior, estado_nuevo, timestamp, operador, rol_usuario, created_at, updated_at')
             .range(pageHist * pageSize, (pageHist + 1) * pageSize - 1);
           if (lastPulledAt && !options.forceFull) {
             queryHist = queryHist.gte('updated_at', lastPulledDate);
@@ -230,6 +230,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
           estado_nuevo: row.estado_nuevo,
           timestamp: row.timestamp ? Number(row.timestamp) : Date.now(),
           operador: row.operador || null,
+          rol_usuario: row.rol_usuario || null,
           created_at: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
           updated_at: row.updated_at ? new Date(row.updated_at).getTime() : Date.now(),
         }));
@@ -241,7 +242,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         
         while (hasMoreMov) {
           let queryMov = supabase.from('historial')
-            .select('id, producto_id, sku, descripcion, marca, accion, fv_anterior_ts, fv_nuevo_ts, comentario, dispositivo, timestamp, created_at, updated_at')
+            .select('id, producto_id, sku, descripcion, marca, accion, fv_anterior_ts, fv_nuevo_ts, comentario, dispositivo, rol_usuario, timestamp, created_at, updated_at')
             .range(pageMov * pageSize, (pageMov + 1) * pageSize - 1);
           if (lastPulledAt && !options.forceFull) {
             queryMov = queryMov.gte('updated_at', lastPulledDate);
@@ -272,6 +273,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
           comentario: row.comentario || null,
           dispositivo: row.dispositivo || '📱 App',
           timestamp: row.timestamp ? Number(row.timestamp) : Date.now(),
+          rol_usuario: row.rol_usuario || null,
           created_at: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
           updated_at: row.updated_at ? new Date(row.updated_at).getTime() : Date.now(),
         }));
@@ -388,6 +390,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
               estado_nuevo: r.estado_nuevo || r.estadoNuevo,
               timestamp: r.timestamp,
               operador: r.operador || null,
+              rol_usuario: r.rol_usuario || r.rolUsuario || null,
               created_at: new Date(r.timestamp).toISOString(),
               updated_at: new Date().toISOString()
             }));
@@ -413,6 +416,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
               comentario: r.comentario || null,
               dispositivo: r.dispositivo || '📱 App',
               timestamp: r.timestamp,
+              rol_usuario: r.rol_usuario || r.rolUsuario || null,
               updated_at: new Date().toISOString()
             }));
             const { error } = await supabase.from('historial').upsert(updates);

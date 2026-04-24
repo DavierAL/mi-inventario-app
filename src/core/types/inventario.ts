@@ -33,4 +33,5 @@ export interface EntradaHistorial {
     };
     timestamp: number;       // Unix ms para ordenar y formatear
     dispositivo: string;     // Modelo del dispositivo
+    rolUsuario?: string;
 }

@@ -74,6 +74,13 @@ const PedidoCard = memo(({ envio, onDespachar, onVerPanel }: PedidoCardProps) =>
                         label={envio.estado.replace('_', ' ')} 
                         variant={getBadgeVariant(envio.estado)} 
                     />
+                    {envio.operador && (
+                        <Badge 
+                            label={envio.operador}
+                            variant={envio.operador === 'Salva' ? 'primary' : 'success'}
+                            style={{ marginTop: 4 }}
+                        />
+                    )}
                     <Ionicons name="chevron-forward" size={18} color={colors.textoTerciario} style={{ marginTop: 8 }} />
                 </View>
             </View>
@@ -204,7 +211,7 @@ export const PickingScreen = () => {
 
     const handleDespachar = async (envio: Envio) => {
         try {
-            await LogisticsRepository.actualizarEstado(envio, 'En_Tienda');
+            await LogisticsRepository.actualizarEstado(envio, 'En_Tienda', role || undefined);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             // Intentar sync inmediato
             reSincronizar().catch(() => {});

@@ -10,4 +10,5 @@ export default class LogisticaHistorial extends Model {
   @text('estado_nuevo') estadoNuevo!: string;
   @field('timestamp') timestamp!: number;
   @text('operador') operador?: string;
+  @text('rol_usuario') rolUsuario?: string;
 }

@@ -107,12 +107,27 @@ const EntradaCard = React.memo(({ entrada, esUltima }: EntradaCardProps) => {
                 )}
 
                 <View style={[styles.tarjetaFooter, { borderTopColor: colors.borde }]}>
-                    <Text variant="tiny" color={colors.textoTerciario}>
-                        {entrada.sku} · {entrada.marca}
-                    </Text>
-                    <Text variant="tiny" color={colors.textoTerciario}>
-                        {entrada.dispositivo} · {formatearHora(entrada.timestamp)}
-                    </Text>
+                    <View style={{ flex: 1 }}>
+                        <Text variant="tiny" color={colors.textoTerciario}>
+                            {entrada.sku} · {entrada.marca}
+                        </Text>
+                        {entrada.rolUsuario && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                                <Ionicons name="shield-checkmark" size={10} color={colors.primario} style={{ marginRight: 4 }} />
+                                <Text variant="tiny" weight="bold" color={colors.primario}>
+                                    {entrada.rolUsuario.toUpperCase()}
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+                    <View style={{ alignItems: 'flex-end' }}>
+                        <Text variant="tiny" color={colors.textoTerciario}>
+                            {entrada.dispositivo}
+                        </Text>
+                        <Text variant="tiny" color={colors.textoTerciario}>
+                            {formatearHora(entrada.timestamp)}
+                        </Text>
+                    </View>
                 </View>
             </Surface>
         </View>

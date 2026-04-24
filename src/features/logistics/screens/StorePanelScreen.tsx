@@ -11,6 +11,7 @@ import * as Haptics from 'expo-haptics';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import Animated, { FadeInDown, FadeIn, FadeOut, ZoomIn } from 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -63,6 +64,7 @@ export const StorePanelScreen = () => {
     const [fotoUri, setFotoUri] = useState<string | null>(null);
     const [qrEscaneado, setQrEscaneado] = useState(false);
     const [isCameraReady, setIsCameraReady] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
     const cameraRef = useRef<CameraView>(null);
 
     useEffect(() => {
@@ -236,6 +238,7 @@ export const StorePanelScreen = () => {
                 codPedido: envio.codPedido,
                 estadoAnterior,
                 estadoNuevo: 'Entregado',
+                rolUsuario: role || undefined
             });
 
             // PASO 2: Subir foto a Supabase Storage
@@ -266,11 +269,12 @@ export const StorePanelScreen = () => {
                 EnviosService.notificarSheets(supabaseId).catch(() => {});
 
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                Toast.show({
-                    type: 'success',
-                    text1: '✅ Entrega confirmada',
-                    text2: 'Evidencia guardada en el sistema',
-                });
+                
+                // --- MEJORA VISUAL: Mostrar overlay de éxito antes de salir ---
+                setShowSuccess(true);
+                setTimeout(() => {
+                    navigation.goBack();
+                }, 2000);
                 
                 Logger.info('[StorePanel] Entrega confirmada exitosamente', {
                     pedidoId: envio.id,
@@ -381,106 +385,112 @@ export const StorePanelScreen = () => {
     // ─── Componentes Memoizados ──────────────────────────────────────────────
     
     const OrderDetailsCard = React.memo(({ item }: { item: Envio }) => (
-        <Surface variant="elevated" padding="lg" style={styles.card}>
-            <View style={styles.cardHeader}>
-                <View style={styles.flex1}>
-                    <Text variant="tiny" weight="bold" color={colors.textoTerciario}>
-                        CÓDIGO DE ENVÍO
-                    </Text>
-                    <Text variant="h2" weight="bold">{item.codPedido}</Text>
-                </View>
-                <Badge 
-                    label={item.estado.replace('_', ' ')} 
-                    variant={item.estado === 'Entregado' ? 'success' : 'primary'} 
-                />
-            </View>
-
-            <View style={[styles.divider, { backgroundColor: colors.borde }]} />
-
-            <View style={styles.infoRow}>
-                <Ionicons name="person-outline" size={16} color={colors.textoTerciario} />
-                <View style={styles.infoCol}>
-                    <Text variant="tiny" weight="bold" color={colors.textoTerciario}>CLIENTE</Text>
-                    <Text variant="body" weight="medium">{item.cliente}</Text>
-                    {item.telefono && (
-                        <TouchableOpacity 
-                            onPress={() => Linking.openURL(`tel:${item.telefono}`)}
-                            style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}
-                        >
-                            <Ionicons name="call-outline" size={12} color={colors.primario} />
-                            <Text variant="small" weight="bold" color={colors.primario} style={{ marginLeft: 4 }}>
-                                {item.telefono}
-                            </Text>
-                        </TouchableOpacity>
-                    )}
-                </View>
-            </View>
-
-            {(item.direccion || item.distrito) && (
-                <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
-                    <Ionicons name="location-outline" size={16} color={colors.textoTerciario} />
-                    <View style={styles.infoCol}>
-                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>DIRECCIÓN</Text>
-                        <Text variant="body">
-                            {item.direccion}{item.distrito ? `, ${item.distrito}` : ''}
+        <Animated.View entering={FadeInDown.springify().damping(15)}>
+            <Surface variant="elevated" padding="lg" style={styles.card}>
+                <View style={styles.cardHeader}>
+                    <View style={styles.flex1}>
+                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>
+                            CÓDIGO DE ENVÍO
                         </Text>
-                        {item.referencia && (
-                            <Text variant="small" color={colors.textoSecundario} style={styles.marginTop2}>
-                                Ref: {item.referencia}
-                            </Text>
-                        )}
-                        {item.gmapsUrl && (
+                        <Text variant="h2" weight="bold">{item.codPedido}</Text>
+                    </View>
+                    <Badge 
+                        label={item.estado.replace('_', ' ')} 
+                        variant={item.estado === 'Entregado' ? 'success' : 'primary'} 
+                    />
+                </View>
+
+                <View style={[styles.divider, { backgroundColor: colors.borde }]} />
+
+                <View style={styles.infoRow}>
+                    <Ionicons name="person-outline" size={16} color={colors.textoTerciario} />
+                    <View style={styles.infoCol}>
+                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>CLIENTE</Text>
+                        <Text variant="body" weight="medium">{item.cliente}</Text>
+                        {item.telefono && (
                             <TouchableOpacity 
-                                style={styles.gmapsBtn} 
-                                onPress={handleAbrirGmaps}
+                                onPress={() => Linking.openURL(`tel:${item.telefono}`)}
+                                style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}
                             >
-                                <Ionicons name="map-outline" size={14} color={colors.primario} />
-                                <Text variant="small" weight="bold" color={colors.primario} style={styles.marginLeft4}>
-                                    Ver en Google Maps
+                                <Ionicons name="call-outline" size={12} color={colors.primario} />
+                                <Text variant="small" weight="bold" color={colors.primario} style={{ marginLeft: 4 }}>
+                                    {item.telefono}
                                 </Text>
                             </TouchableOpacity>
                         )}
                     </View>
                 </View>
-            )}
 
-            {item.operador && (
-                <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
-                    <Ionicons name="bicycle-outline" size={16} color={colors.textoTerciario} />
-                    <View style={styles.marginLeft12}>
-                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>OPERADOR</Text>
-                        <Text variant="body" weight="medium">{item.operador.toUpperCase()}</Text>
+                {(item.direccion || item.distrito) && (
+                    <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
+                        <Ionicons name="location-outline" size={16} color={colors.textoTerciario} />
+                        <View style={styles.infoCol}>
+                            <Text variant="tiny" weight="bold" color={colors.textoTerciario}>DIRECCIÓN</Text>
+                            <Text variant="body">
+                                {item.direccion}{item.distrito ? `, ${item.distrito}` : ''}
+                            </Text>
+                            {item.referencia && (
+                                <Text variant="small" color={colors.textoSecundario} style={styles.marginTop2}>
+                                    Ref: {item.referencia}
+                                </Text>
+                            )}
+                            {item.gmapsUrl && (
+                                <TouchableOpacity 
+                                    style={styles.gmapsBtn} 
+                                    onPress={handleAbrirGmaps}
+                                >
+                                    <Ionicons name="map-outline" size={14} color={colors.primario} />
+                                    <Text variant="small" weight="bold" color={colors.primario} style={styles.marginLeft4}>
+                                        Ver en Google Maps
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
                     </View>
-                </View>
-            )}
+                )}
 
-            {(item.aPagar !== undefined || item.formaPago) && (
-                <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
-                    <Ionicons name="cash-outline" size={16} color={colors.textoTerciario} />
-                    <View style={styles.marginLeft12}>
-                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>PAGO Y COBRO</Text>
-                        <Text variant="body" weight="bold">
-                            {item.aPagar && item.aPagar > 0 ? `S/ ${item.aPagar.toFixed(2)}` : 'S/ 0.00'}
-                            <Text variant="small" color={colors.textoSecundario}> ({item.formaPago || 'Sin especificar'})</Text>
+                {item.operador && (
+                    <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
+                        <Ionicons name="bicycle-outline" size={16} color={colors.textoTerciario} />
+                        <View style={styles.marginLeft12}>
+                            <Text variant="tiny" weight="bold" color={colors.textoTerciario}>OPERADOR</Text>
+                            <Badge 
+                                label={item.operador}
+                                variant={item.operador === 'Salva' ? 'primary' : 'success'}
+                                style={{ marginTop: 2 }}
+                            />
+                        </View>
+                    </View>
+                )}
+
+                {(item.aPagar !== undefined || item.formaPago) && (
+                    <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
+                        <Ionicons name="cash-outline" size={16} color={colors.textoTerciario} />
+                        <View style={styles.marginLeft12}>
+                            <Text variant="tiny" weight="bold" color={colors.textoTerciario}>PAGO Y COBRO</Text>
+                            <Text variant="body" weight="bold">
+                                {item.aPagar && item.aPagar > 0 ? `S/ ${item.aPagar.toFixed(2)}` : 'S/ 0.00'}
+                                <Text variant="small" color={colors.textoSecundario}> ({item.formaPago || 'Sin especificar'})</Text>
+                            </Text>
+                        </View>
+                    </View>
+                )}
+
+                {item.notas && (
+                    <>
+                        <View style={[styles.divider, { backgroundColor: colors.borde }]} />
+                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>NOTAS</Text>
+                        <Text variant="small" color={colors.textoSecundario} style={styles.marginTop4}>
+                            {item.notas}
                         </Text>
-                    </View>
-                </View>
-            )}
-
-            {item.notas && (
-                <>
-                    <View style={[styles.divider, { backgroundColor: colors.borde }]} />
-                    <Text variant="tiny" weight="bold" color={colors.textoTerciario}>NOTAS</Text>
-                    <Text variant="small" color={colors.textoSecundario} style={styles.marginTop4}>
-                        {item.notas}
-                    </Text>
-                </>
-            )}
-        </Surface>
+                    </>
+                )}
+            </Surface>
+        </Animated.View>
     ));
 
     const PODEvidenceSection = React.memo(({ uri, isDelivered }: { uri: string | null, isDelivered: boolean }) => (
-        <>
+        <Animated.View entering={FadeInDown.delay(200).springify()}>
             <Text variant="h3" weight="bold" style={styles.podTitulo}>
                 Evidencia de Entrega (POD)
             </Text>
@@ -520,8 +530,26 @@ export const StorePanelScreen = () => {
                     />
                 </Surface>
             )}
-        </>
+        </Animated.View>
     ));
+
+    const SuccessOverlay = () => (
+        <Animated.View 
+            entering={FadeIn} 
+            exiting={FadeOut}
+            style={[StyleSheet.absoluteFill, styles.successOverlay, { backgroundColor: colors.fondo + 'E6' }]}
+        >
+            <Animated.View entering={ZoomIn.delay(200)} style={styles.successContainer}>
+                <View style={[styles.successCircle, { backgroundColor: colors.fondoPrimario }]}>
+                    <Ionicons name="checkmark" size={80} color={colors.exito} />
+                </View>
+                <Text variant="h1" weight="bold" style={styles.successTitle}>¡Entregado!</Text>
+                <Text variant="body" color={colors.textoSecundario} align="center">
+                    El envío {envio?.codPedido} ha sido registrado con éxito.
+                </Text>
+            </Animated.View>
+        </Animated.View>
+    );
 
     // ─── Vista principal ──────────────────────────────────────────────────────
 
@@ -623,6 +651,8 @@ export const StorePanelScreen = () => {
                     if (tab === 'logistica') navigation.navigate('PickingList');
                 }}
             />
+
+            {showSuccess && <SuccessOverlay />}
         </SafeAreaView>
     );
 };
@@ -924,5 +954,27 @@ const styles = StyleSheet.create({
         paddingHorizontal: 14,
         paddingVertical: 5,
         borderRadius: 9999,
+    },
+    // --- Estilos de Éxito Premium ---
+    successOverlay: {
+        zIndex: 1000,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    successContainer: {
+        alignItems: 'center',
+        padding: TOKENS.spacing.xl,
+        width: '80%',
+    },
+    successCircle: {
+        width: 140,
+        height: 140,
+        borderRadius: 70,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: TOKENS.spacing.xl,
+    },
+    successTitle: {
+        marginBottom: TOKENS.spacing.sm,
     },
 });

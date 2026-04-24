@@ -66,9 +66,19 @@ const HistorialItem = React.memo(({ item, esUltimo }: { item: LogisticaHistorial
                 </View>
 
                 <View style={[styles.tarjetaFooter, { borderTopColor: colors.borde }]}>
-                    <Text variant="tiny" color={colors.textoTerciario}>
-                        {formatearHora(item.timestamp)}
-                    </Text>
+                    <View style={{ flex: 1 }}>
+                        <Text variant="tiny" color={colors.textoTerciario}>
+                            {formatearHora(item.timestamp)}
+                        </Text>
+                        {item.rolUsuario && (
+                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                                <Ionicons name="shield-checkmark" size={10} color={colors.primario} style={{ marginRight: 4 }} />
+                                <Text variant="tiny" weight="bold" color={colors.primario}>
+                                    {item.rolUsuario.toUpperCase()}
+                                </Text>
+                            </View>
+                        )}
+                    </View>
                     {item.operador && (
                         <Text variant="tiny" color={colors.textoTerciario}>
                             👤 {item.operador}

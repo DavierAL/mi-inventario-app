@@ -6,6 +6,7 @@ import { InventarioRepository } from '../repository/inventarioRepository';
 import { MENSAJES } from '../../../core/constants/mensajes';
 import { TipoAccionHistorial } from '../../../core/types/inventario';
 import { parseFVToDate } from '../../../core/utils/fecha';
+import { useAuthStore } from '../../../core/store/useAuthStore';
 
 /**
  * DTO (Data Transfer Object) para el resultado de las operaciones de inventario.
@@ -107,6 +108,7 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
             });
 
             // 2. REGISTRO DE AUDITORÍA LOCAL (Historial)
+            const userRole = useAuthStore.getState().user?.rol;
             await InventarioRepository.registrarMovimiento({
                 productoId: codigo,
                 descripcion: productoEditando.descripcion,
@@ -117,7 +119,8 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
                     fvAnteriorTs: fvAnteriorTs?.getTime(),
                     fvNuevoTs: parseFVToDate(fv)?.getTime(),
                     comentario: comentario
-                }
+                },
+                rolUsuario: userRole
             });
 
             // 3. PUENTE A FIREBASE Y GOOGLE SHEETS (Usando el Repositorio original)
@@ -136,7 +139,8 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
                     marca: productoEditando.marca,
                     sku: productoEditando.sku,
                     fvAnteriorTs: fvAnteriorTs?.getTime(),
-                    accion: accion
+                    accion: accion,
+                    rolUsuario: userRole
                 }
             ).catch(e => console.warn('[Store] Error en actualizarProducto:', e));
 

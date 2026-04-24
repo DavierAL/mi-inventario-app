@@ -12,6 +12,7 @@ export const LogisticaHistorialRepository = {
     estadoAnterior: string;
     estadoNuevo: string;
     operador?: string;
+    rolUsuario?: string;
   }): Promise<void> {
     await database.write(async () => {
       await database.get<LogisticaHistorial>('logistica_historial').create((h) => {
@@ -21,6 +22,7 @@ export const LogisticaHistorialRepository = {
         h.estadoNuevo = params.estadoNuevo;
         h.timestamp = Date.now();
         h.operador = params.operador;
+        h.rolUsuario = params.rolUsuario;
       });
     });
   },

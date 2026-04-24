@@ -54,6 +54,7 @@ export const InventarioRepository = {
             sku: string;
             fvAnteriorTs?: number;
             accion?: TipoAccionHistorial;
+            rolUsuario?: string;
         }
     ): Promise<{ exito: boolean; webhookEncolado: boolean }> {
         try {
@@ -88,6 +89,7 @@ export const InventarioRepository = {
                         fvNuevoTs: datos.FV_Actual_TS ?? (datos.FV_Actual ? parseFVToTimestamp(datos.FV_Actual) : undefined),
                         comentario: datos.Comentarios,
                     },
+                    rolUsuario: infoAuditoria.rolUsuario
                 });
             }
 
@@ -126,6 +128,7 @@ export const InventarioRepository = {
                     m.comentario = entrada.cambios.comentario;
                     m.dispositivo = Platform.OS === 'ios' ? '📱 iPhone' : '🤖 Android';
                     m.timestamp = Date.now();
+                    m.rolUsuario = entrada.rolUsuario;
                 });
             });
         } catch (error) {
