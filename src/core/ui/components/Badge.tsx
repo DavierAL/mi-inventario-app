@@ -7,7 +7,7 @@ import { TOKENS } from '../tokens';
 
 interface BadgeProps {
     label: string;
-    variant?: 'primary' | 'success' | 'warning' | 'error' | 'neutral';
+    variant?: 'primary' | 'success' | 'warning' | 'error' | 'neutral' | 'purple';
     style?: ViewStyle;
     testID?: string;
 }
@@ -30,6 +30,8 @@ export const Badge: React.FC<BadgeProps> = ({
                 return { bg: 'rgba(242, 153, 74, 0.15)', text: '#f2994a' };
             case 'primary':
                 return { bg: 'rgba(0, 117, 222, 0.1)', text: '#0075de' };
+            case 'purple':
+                return { bg: 'rgba(155, 81, 224, 0.15)', text: '#9b51e0' };
             case 'neutral':
             default:
                 return { bg: colors.fondoPrimario, text: colors.textoSecundario };

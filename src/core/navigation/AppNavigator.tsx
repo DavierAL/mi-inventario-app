@@ -44,7 +44,7 @@ export const AppNavigator = () => {
                             <Stack.Screen name="InventarioList" component={InventarioListScreen} />
                         )}
 
-                        {(user.rol === 'admin' || user.rol === 'logistica' || user.rol === 'atencion') && (
+                        {(user.rol === 'admin' || user.rol === 'logistica' || user.rol === 'atencion' || user.rol === 'tienda') && (
                             <Stack.Screen name="PickingList" component={PickingScreen} />
                         )}
                         
@@ -64,7 +64,7 @@ export const AppNavigator = () => {
                             />
                         )}
 
-                        {(user.rol === 'admin' || user.rol === 'logistica' || user.rol === 'atencion') && (
+                        {(user.rol === 'admin' || user.rol === 'logistica' || user.rol === 'atencion' || user.rol === 'tienda') && (
                             <>
                                 <Stack.Screen name="StorePanel" component={StorePanelScreen} />
                                 <Stack.Screen name="LogisticsHistory" component={LogisticsHistoryScreen} />

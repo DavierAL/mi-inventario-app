@@ -362,12 +362,12 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
                 cliente: r.cliente,
                 estado: Envio.toExternalStatus(r.estado),
                 operador: r.operador || null,
-                url_foto: r.urlFoto || null,
+                url_foto: r.url_foto || r.urlFoto || null,
                 notas: r.notas || null,
                 direccion: r.direccion || null,
                 distrito: r.distrito || null,
                 telefono: r.telefono || null,
-                gmaps_url: r.gmapsUrl || null,
+                gmaps_url: r.gmaps_url || r.gmapsUrl || null,
                 referencia: r.referencia || null,
                 updated_at: new Date().toISOString()
               };

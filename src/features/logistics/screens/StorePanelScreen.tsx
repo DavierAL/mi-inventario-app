@@ -223,12 +223,20 @@ export const StorePanelScreen = () => {
         try {
             setProcesando(true);
 
-            // PASO 1: Actualizar WatermelonDB local (optimistic update para UI)
+            // PASO 1: Subir foto a Supabase Storage
+            Toast.show({ type: 'info', text1: 'Subiendo evidencia...' });
+            const podUrl = await EnviosService.subirFotoPOD(fotoUri, envio.codPedido);
+
+            // PASO 2: Actualizar WatermelonDB local (optimistic update para UI y Sync)
             const estadoAnterior = envio.estado;
             await database.write(async () => {
                 await envio.update((p) => {
                     p.estado = 'Entregado';
                     p.podLocalUri = fotoUri;
+                    if (podUrl) {
+                        p.urlFoto = podUrl;
+                        p.podUrl = podUrl;
+                    }
                 });
             });
 
@@ -241,32 +249,16 @@ export const StorePanelScreen = () => {
                 rolUsuario: role || undefined
             });
 
-            // PASO 2: Subir foto a Supabase Storage
-            Toast.show({ type: 'info', text1: 'Subiendo evidencia...' });
-            const podUrl = await EnviosService.subirFotoPOD(fotoUri, envio.codPedido);
-
-            // PASO 3: ⚠️ CRÍTICO — Actualizar tabla `envios` en Supabase
-            // (ESTE ERA EL PASO FALTANTE QUE CAUSABA QUE LOS CAMBIOS NO LLEGUEN)
             const supabaseId = envio.supabaseId || envio.id; // Uso fallback a id si supabaseId es vacío
-            const resultado = await EnviosService.actualizarEstado({
-                supabaseRowId: supabaseId,
-                nuevoEstado: 'Entregado',
-                podUrl: podUrl ?? undefined,
-            });
 
-            // PASO 3.5: Persistir URL pública localmente para que syncService la conozca
             if (podUrl) {
-                await database.write(async () => {
-                    await envio.update((p) => {
-                        p.urlFoto = podUrl;
-                        p.podUrl = podUrl;
-                    });
-                });
-            }
-
-            if (resultado.exito) {
-                // PASO 4: Notificar Google Sheets (no-bloqueante)
-                EnviosService.notificarSheets(supabaseId).catch(() => {});
+                // PASO 3: Notificar Google Sheets (no-bloqueante)
+                // Se confía en que WatermelonDB suba el registro, pero enviamos el webhook con los datos para evitar lectura desactualizada
+                EnviosService.notificarSheets(supabaseId, {
+                    cod_pedido: envio.codPedido,
+                    estado: 'Entregado',
+                    url_foto: podUrl
+                }).catch(() => {});
 
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                 
@@ -280,7 +272,7 @@ export const StorePanelScreen = () => {
                     pedidoId: envio.id,
                 });
             } else {
-                // Fallback: sin conexión o error en Supabase
+                // Fallback: sin conexión o error en Supabase Storage
                 // Encolar el trabajo para retry automático cuando hay red
                 Toast.show({
                     type: 'warning',
@@ -298,9 +290,9 @@ export const StorePanelScreen = () => {
                     podLocalUri: fotoUri,
                     codPedido: envio.codPedido,
                 });
+                
+                navigation.goBack();
             }
-
-            navigation.goBack();
 
         } catch (error) {
             ErrorService.handle(error, {

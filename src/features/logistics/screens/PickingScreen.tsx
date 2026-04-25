@@ -56,6 +56,20 @@ const PedidoCard = memo(({ envio, onDespachar, onVerPanel }: PedidoCardProps) =>
         }
     };
 
+    
+    const displayEstado = (envio.estado === 'En_Tienda' && envio.operador !== 'Tienda') 
+        ? 'Listo para envio' 
+        : envio.estado.replace('_', ' ');
+
+    const getOperadorVariant = (operador?: string): 'primary' | 'success' | 'warning' | 'purple' | 'neutral' => {
+        if (!operador) return 'neutral';
+        const op = operador.toLowerCase();
+        if (op === 'urbano') return 'purple';
+        if (op === 'olva') return 'warning';
+        if (op === 'salva') return 'primary';
+        return 'success'; // Tienda u otros
+    };
+
     return (
         <TouchableOpacity 
             onPress={() => onVerPanel(envio)} 
@@ -71,13 +85,13 @@ const PedidoCard = memo(({ envio, onDespachar, onVerPanel }: PedidoCardProps) =>
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>
                     <Badge 
-                        label={envio.estado.replace('_', ' ')} 
+                        label={displayEstado} 
                         variant={getBadgeVariant(envio.estado)} 
                     />
                     {envio.operador && (
                         <Badge 
                             label={envio.operador}
-                            variant={envio.operador === 'Salva' ? 'primary' : 'success'}
+                            variant={getOperadorVariant(envio.operador)}
                             style={{ marginTop: 4 }}
                         />
                     )}

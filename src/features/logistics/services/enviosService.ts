@@ -105,14 +105,23 @@ export const EnviosService = {
    * Notifica a Google Sheets vía Edge Function.
    * Se llama de forma NO-BLOQUEANTE (fire and forget).
    */
-  async notificarSheets(supabaseRowId: string): Promise<void> {
+  async notificarSheets(supabaseRowId: string, recordParcial?: Partial<{cod_pedido: string, estado: string, url_foto: string | null}>): Promise<void> {
     try {
       Logger.info('[EnviosService] Notificando Google Sheets', {
         envioId: supabaseRowId,
       });
 
+      const bodyPayload: any = { envio_id: supabaseRowId };
+      if (recordParcial) {
+        bodyPayload.table = 'envios';
+        bodyPayload.record = {
+          id: supabaseRowId,
+          ...recordParcial
+        };
+      }
+
       await supabase.functions.invoke('sync-logistica-sheets', {
-        body: { envio_id: supabaseRowId },
+        body: bodyPayload,
       });
 
       Logger.info('[EnviosService] Google Sheets notificado');
