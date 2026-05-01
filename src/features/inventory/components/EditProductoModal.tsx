@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import * as Haptics from 'expo-haptics';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Producto from '../../../core/database/models/Producto';
 import { formatearFecha } from '../../../core/utils/fecha';
 import { formatearPrecio } from '../../../core/utils/formato';
@@ -127,18 +128,19 @@ export const EditProductoModal: React.FC<Props> = ({
             style={styles.modalBase}
             avoidKeyboard={true}
         >
-            <KeyboardAvoidingView 
-                behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} 
-                style={styles.keyboardView}
-            >
-                <Surface 
-                    variant="elevated" 
-                    style={[styles.modalContenedor, { backgroundColor: colors.superficie }]}
+            <GestureHandlerRootView style={{ flex: 1 }}>
+                <KeyboardAvoidingView 
+                    behavior={Platform.OS === 'ios' ? 'padding' : 'padding'} 
+                    style={styles.keyboardView}
                 >
-                    
-                    <View style={styles.handleContainer}>
-                        <Surface variant="flat" style={[styles.handleBar, { backgroundColor: colors.borde }]} />
-                    </View>
+                    <Surface 
+                        variant="elevated" 
+                        style={[styles.modalContenedor, { backgroundColor: colors.superficie }]}
+                    >
+                        
+                        <View style={styles.handleContainer}>
+                            <Surface variant="flat" style={[styles.handleBar, { backgroundColor: colors.borde }]} />
+                        </View>
  
                     <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
 
@@ -203,7 +205,6 @@ export const EditProductoModal: React.FC<Props> = ({
                                     setMostrarDatePicker(true);
                                 }}
                                 accessibilityLabel={`Fecha de vencimiento actual: ${formFV || 'No establecida'}. Presiona para cambiar.`}
-                                accessibilityRole="button"
                             />
                         </Surface>
                         {errors.fv_actual && (
@@ -269,7 +270,8 @@ export const EditProductoModal: React.FC<Props> = ({
                     </View>
                 </ScrollView>
                 </Surface>
-            </KeyboardAvoidingView>
+                </KeyboardAvoidingView>
+            </GestureHandlerRootView>
         </Modal>
     );
 };

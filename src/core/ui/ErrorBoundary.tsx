@@ -4,6 +4,7 @@ import { View, StyleSheet } from 'react-native';
 import { Text, Button, Surface } from './components';
 import { ErrorService } from '../services/ErrorService';
 import { TOKENS } from './tokens';
+import { ThemeColors } from './colores';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from './ThemeContext';
 
@@ -58,7 +59,9 @@ export class ErrorBoundary extends Component<Props, State> {
 }
 
 const ErrorScreen = ({ error, onReset }: { error: Error | null, onReset: () => void }) => {
-  const { colors } = useTheme();
+  const theme = useTheme();
+  // Salvaguarda por si el error ocurre fuera del provider o durante su inicialización
+  const colors = theme?.colors || ThemeColors.light;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.fondo }]}>

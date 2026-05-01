@@ -51,14 +51,15 @@ export const AnimatedPressable: React.FC<AnimatedPressableProps> = ({
 
     const tap = Gesture.Tap()
         .enabled(!disabled)
+        .maxDuration(10000)
         .onBegin(() => {
             scale.value = withSpring(scaleTo, { damping: 10, stiffness: 200 });
             opacity.value = withTiming(0.85, { duration: 100 });
             if (onPressIn) runOnJS(onPressIn)(null as any);
             runOnJS(triggerHaptic)();
         })
-        .onTouchesUp(() => {
-            if (onPress) runOnJS(onPress)(null as any);
+        .onEnd((event, success) => {
+            if (success && onPress) runOnJS(onPress)(null as any);
         })
         .onFinalize(() => {
             scale.value = withSpring(1, { damping: 10, stiffness: 200 });

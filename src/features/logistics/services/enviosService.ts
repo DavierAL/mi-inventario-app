@@ -22,19 +22,19 @@ export const EnviosService = {
 
       Logger.info('[EnviosService] Subiendo foto POD', { codPedido, storagePath });
 
-      // Leer el archivo como base64
-      const base64 = await FileSystem.readAsStringAsync(localUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      // Usamos FormData para evitar problemas de memoria (OOM) con Base64 grandes
+      const formData = new FormData();
+      formData.append('file', {
+        uri: localUri,
+        name: `pod_${Date.now()}.jpg`,
+        type: 'image/jpeg',
+      } as any);
 
-      // Usamos decode de base64-arraybuffer para mayor compatibilidad en React Native
-      const arrayBuffer = decode(base64);
-
-      // Subir a Storage
-      const { error } = await supabase.storage
+      // Subir a Storage usando Fetch estándar en React Native
+      const { data: uploadData, error } = await supabase.storage
         .from('evidencias')
-        .upload(storagePath, arrayBuffer, {
-          contentType: 'image/jpeg',
+        .upload(storagePath, formData, {
+          contentType: 'multipart/form-data',
           upsert: true,
         });
 

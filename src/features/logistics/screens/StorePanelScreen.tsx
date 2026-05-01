@@ -11,6 +11,7 @@ import * as Haptics from 'expo-haptics';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { FadeInDown, FadeIn, FadeOut, ZoomIn } from 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -33,6 +34,7 @@ import { ErrorService } from '../../../core/services/ErrorService';
 import { validateData, EnvioSchema } from '../../../core/validation/schemas';
 import { EnviosService } from '../services/enviosService';
 import { usePermissions } from '../../../core/hooks/usePermissions';
+import { syncConSupabase } from '../../inventory/services/syncService';
 
 
 type StorePanelNavProp = NativeStackNavigationProp<RootStackParamList, 'StorePanel'>;
@@ -161,11 +163,15 @@ export const StorePanelScreen = () => {
         try {
             setProcesando(true);
             const foto = await cameraRef.current.takePictureAsync({
-                quality: 0.75,
+                quality: 0.5, // Reducido para evitar picos de memoria en Android
                 base64: false,
-                skipProcessing: true, // más rápido y evita crashes en algunos dispositivos
+                skipProcessing: false // Forzar procesamiento nativo para evitar archivos corruptos
             });
             if (!foto?.uri) throw new Error('URI de foto nula');
+            
+            // Liberar la cámara inmediatamente para evitar bloqueos de hardware/memoria
+            // El procesamiento posterior se hace sobre el archivo en caché
+            setModoFoto(false);
             
             // --- OPTIMIZACIÓN DE IMAGEN (Reducción de peso ~90%) ---
             const infoOriginal = await FileSystem.getInfoAsync(foto.uri);
@@ -191,7 +197,6 @@ export const StorePanelScreen = () => {
             }
 
             setFotoUri(destino);
-            setModoFoto(false);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
             Toast.show({ type: 'success', text1: 'Foto capturada', text2: 'Lista para guardar' });
         } catch (e: unknown) {
@@ -227,8 +232,16 @@ export const StorePanelScreen = () => {
             Toast.show({ type: 'info', text1: 'Subiendo evidencia...' });
             const podUrl = await EnviosService.subirFotoPOD(fotoUri, envio.codPedido);
 
-            // PASO 2: Actualizar WatermelonDB local (optimistic update para UI y Sync)
-            const estadoAnterior = envio.estado;
+            const supabaseId = envio.supabaseId || envio.id;
+
+            // PASO 2: Actualizar Supabase vía REST (Inmediato)
+            const updateResult = await EnviosService.actualizarEstado({
+                supabaseRowId: supabaseId,
+                nuevoEstado: 'Entregado',
+                podUrl: podUrl || undefined
+            });
+
+            // PASO 3: Actualizar WatermelonDB local
             await database.write(async () => {
                 await envio.update((p) => {
                     p.estado = 'Entregado';
@@ -244,60 +257,39 @@ export const StorePanelScreen = () => {
             await LogisticaHistorialRepository.registrarCambio({
                 envioId: envio.id,
                 codPedido: envio.codPedido,
-                estadoAnterior,
+                estadoAnterior: envio.estado,
                 estadoNuevo: 'Entregado',
                 rolUsuario: role || undefined
             });
 
-            const supabaseId = envio.supabaseId || envio.id; // Uso fallback a id si supabaseId es vacío
+            // PASO 4: Notificar Google Sheets (fire and forget)
+            EnviosService.notificarSheets(supabaseId, {
+                cod_pedido: envio.codPedido,
+                estado: 'Entregado',
+                url_foto: podUrl
+            }).catch(e => Logger.warn('[StorePanel] Error Sheets', e));
 
-            if (podUrl) {
-                // PASO 3: Notificar Google Sheets (no-bloqueante)
-                // Se confía en que WatermelonDB suba el registro, pero enviamos el webhook con los datos para evitar lectura desactualizada
-                EnviosService.notificarSheets(supabaseId, {
-                    cod_pedido: envio.codPedido,
-                    estado: 'Entregado',
-                    url_foto: podUrl
-                }).catch(() => {});
-
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-                
-                // --- MEJORA VISUAL: Mostrar overlay de éxito antes de salir ---
-                setShowSuccess(true);
-                setTimeout(() => {
-                    navigation.goBack();
-                }, 2000);
-                
-                Logger.info('[StorePanel] Entrega confirmada exitosamente', {
-                    pedidoId: envio.id,
-                });
-            } else {
-                // Fallback: sin conexión o error en Supabase Storage
-                // Encolar el trabajo para retry automático cuando hay red
-                Toast.show({
-                    type: 'warning',
-                    text1: 'Sin conexión a Internet',
-                    text2: 'Guardado localmente. Se sincronizará cuando haya red.',
-                });
-
-                Logger.warn('[StorePanel] Encolando ESTADO_ENVIO para retry offline', {
-                    pedidoId: envio.id,
-                });
-
-                await QueueActions.enqueueEstadoEnvio({
-                    supabaseRowId: supabaseId,
-                    nuevoEstado: 'Entregado',
-                    podLocalUri: fotoUri,
-                    codPedido: envio.codPedido,
-                });
-                
+            // PASO 5: Éxito
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            setShowSuccess(true);
+            
+            setTimeout(() => {
                 navigation.goBack();
-            }
+                // Sincronización de fondo silenciosa para asegurar consistencia
+                syncConSupabase().catch(() => {});
+            }, 1500);
 
-        } catch (error) {
-            ErrorService.handle(error, {
-                operation: 'confirmarEntrega',
+            Logger.info('[StorePanel] Entrega confirmada exitosamente', {
                 pedidoId: envio.id,
+            });
+
+        } catch (e: unknown) {
+            const err = e as Error;
+            Logger.error('[StorePanel] Error en confirmación', err);
+            Toast.show({ 
+                type: 'error', 
+                text1: 'Error al confirmar', 
+                text2: err.message || 'Intenta de nuevo' 
             });
         } finally {
             setProcesando(false);
@@ -318,16 +310,18 @@ export const StorePanelScreen = () => {
                         barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
                         onBarcodeScanned={handleQrEscaneado}
                     />
-                    <SafeAreaView style={styles.escanerOverlay}>
-                        <View style={[styles.escanerMarco, { borderColor: colors.absolutoBlanco }]} />
-                        <Text style={[styles.escanerHint, { color: colors.absolutoBlanco }]}>Apunta al QR del envio</Text>
-                        <TouchableOpacity
-                            style={styles.escanerCerrar}
-                            onPress={() => setModoEscaner(false)}
-                        >
-                            <Ionicons name="close-circle" size={48} color={colors.absolutoBlanco} />
-                        </TouchableOpacity>
-                    </SafeAreaView>
+                    <GestureHandlerRootView style={StyleSheet.absoluteFill}>
+                        <SafeAreaView style={styles.escanerOverlay}>
+                            <View style={[styles.escanerMarco, { borderColor: colors.absolutoBlanco }]} />
+                            <Text style={[styles.escanerHint, { color: colors.absolutoBlanco }]}>Apunta al QR del envio</Text>
+                            <TouchableOpacity
+                                style={styles.escanerCerrar}
+                                onPress={() => setModoEscaner(false)}
+                            >
+                                <Ionicons name="close-circle" size={48} color={colors.absolutoBlanco} />
+                            </TouchableOpacity>
+                        </SafeAreaView>
+                    </GestureHandlerRootView>
                 </Surface>
             </Modal>
         );
@@ -345,28 +339,30 @@ export const StorePanelScreen = () => {
                         facing="back"
                         onCameraReady={() => setIsCameraReady(true)}
                     />
-                    <SafeAreaView style={styles.camaraOverlay}>
-                        <TouchableOpacity style={styles.camaraCerrar} onPress={() => setModoFoto(false)}>
-                            <Ionicons name="close-circle" size={44} color={colors.absolutoBlanco} />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[
-                                styles.camaraDisparador,
-                                { backgroundColor: colors.superficieAlta },
-                                !isCameraReady && styles.disabledOpacity,
-                            ]}
-                            onPress={handleCapturarFoto}
-                            disabled={procesando || !isCameraReady}
-                        >
-                            {procesando
-                                ? <ActivityIndicator color={colors.primario} />
-                                : <Ionicons name="camera" size={36} color={colors.primario} />
-                            }
-                        </TouchableOpacity>
-                        <Text style={[styles.camaraHint, { color: colors.absolutoBlanco }]}>
-                            {isCameraReady ? 'Fotografía la evidencia de entrega' : 'Iniciando cámara...'}
-                        </Text>
-                    </SafeAreaView>
+                    <GestureHandlerRootView style={StyleSheet.absoluteFill}>
+                        <SafeAreaView style={styles.camaraOverlay}>
+                            <TouchableOpacity style={styles.camaraCerrar} onPress={() => setModoFoto(false)}>
+                                <Ionicons name="close-circle" size={44} color={colors.absolutoBlanco} />
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[
+                                    styles.camaraDisparador,
+                                    { backgroundColor: colors.superficieAlta },
+                                    !isCameraReady && styles.disabledOpacity,
+                                ]}
+                                onPress={handleCapturarFoto}
+                                disabled={procesando || !isCameraReady}
+                            >
+                                {procesando
+                                    ? <ActivityIndicator color={colors.primario} />
+                                    : <Ionicons name="camera" size={36} color={colors.primario} />
+                                }
+                            </TouchableOpacity>
+                            <Text style={[styles.camaraHint, { color: colors.absolutoBlanco }]}>
+                                {isCameraReady ? 'Fotografía la evidencia de entrega' : 'Iniciando cámara...'}
+                            </Text>
+                        </SafeAreaView>
+                    </GestureHandlerRootView>
                 </Surface>
             </Modal>
         );

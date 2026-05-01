@@ -93,11 +93,52 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
   let pushedCount = 0;
 
   try {
+    // 0. Validar Sesión y Obtener Rol
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      Logger.warn('[Sync] Abortado: No hay sesión activa.');
+      isSyncing = false;
+      return;
+    }
+
+    const userId = session.user.id;
+    let userRole = session.user.app_metadata?.rol;
+
+    // Fallback si el metadata está vacío (sesión antigua)
+    if (!userRole) {
+      Logger.info('[Sync] Rol no encontrado en metadata, consultando base de datos...');
+      const { data: userData } = await supabase
+        .from('usuarios')
+        .select('rol')
+        .eq('id', userId)
+        .single();
+      userRole = userData?.rol;
+    }
+
+    if (!userRole) {
+      Logger.warn('[Sync] Abortado: Rol de usuario no identificado.');
+      isSyncing = false;
+      return;
+    }
+    
+    Logger.info(`[Sync] Usuario: ${session.user.email} (Rol detectado: ${userRole})`);
+
     await synchronize({
       database,
       // 1. PULL: Descargar cambios
       pullChanges: async ({ lastPulledAt }: { lastPulledAt?: number }) => {
-        const lastPulledDate = options.forceFull ? new Date(0).toISOString() : new Date(lastPulledAt || 0).toISOString();
+        // Aseguramos que si lastPulledAt es 0 o null, sea realmente el inicio de los tiempos
+        // 0.5 Verificar si la tabla de envíos está vacía (para forzar carga inicial si hubo fallo previo)
+        const enviosCount = await database.get<Envio>('envios').query().fetchCount();
+        const isFullSync = !lastPulledAt || options.forceFull || enviosCount === 0;
+
+        const lastPulledDate = (isFullSync) 
+          ? new Date(0).toISOString() 
+          : new Date(lastPulledAt!).toISOString();
+        
+        if (enviosCount === 0 && lastPulledAt) {
+          Logger.info('[Sync] Tabla envíos vacía detectada. Reparando con carga completa...');
+        }
         
         // --- PULL PRODUCTOS ---
         let productosRemote: ProductoRemote[] = [];
@@ -149,9 +190,28 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
           let queryEnv = supabase.from('envios')
             .select('id, cod_pedido, cliente, direccion, telefono, estado, operador, url_foto, notas, distrito, gmaps_url, referencia, bultos, created_at, updated_at')
             .range(pageEnv * pageSize, (pageEnv + 1) * pageSize - 1);
+
+          // Filtrado por Rol para optimizar descarga inicial
+          if (userRole === 'logistica') {
+            queryEnv = queryEnv.eq('operador', 'Salva');
+          } else if (userRole === 'tienda') {
+            queryEnv = queryEnv.in('operador', ['Tienda', 'Yango', 'Cabify']);
+          }
+
+          // OPTIMIZACIÓN: Descargar últimos 3 meses (90 días) para tener historial en el móvil
+          if (isFullSync && userRole !== 'admin') {
+            const ninetyDaysAgo = new Date();
+            ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+            
+            // Traer activos O entregados de los últimos 90 días
+            queryEnv = queryEnv.or(`estado.in.(pendiente,en_tienda,en_ruta,reprogramado),created_at.gte.${ninetyDaysAgo.toISOString()}`);
+          }
+
           if (lastPulledAt && !options.forceFull) {
             queryEnv = queryEnv.gte('updated_at', lastPulledDate);
           }
+          
+          Logger.info(`[Sync] Descargando envíos (página ${pageEnv})...`);
           const { data, error } = await queryEnv;
           if (error) {
             Logger.error('[Sync] Error al descargar envíos', error);

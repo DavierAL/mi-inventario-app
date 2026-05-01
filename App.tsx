@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ErrorBoundary } from './src/core/ui/ErrorBoundary';
 import { ThemeProvider } from './src/core/ui/ThemeContext';
 import { AppNavigator } from './src/core/navigation/AppNavigator';
@@ -28,13 +29,15 @@ export default function App() {
     if (!fontsLoaded) return null; 
 
     return (
-        <ErrorBoundary>
-            <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-                <ThemeProvider>
-                    <AppNavigator />
-                    <Toast />
-                </ThemeProvider>
-            </View>
-        </ErrorBoundary>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+            <ThemeProvider>
+                <ErrorBoundary>
+                    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+                        <AppNavigator />
+                        <Toast />
+                    </View>
+                </ErrorBoundary>
+            </ThemeProvider>
+        </GestureHandlerRootView>
     );
 }
