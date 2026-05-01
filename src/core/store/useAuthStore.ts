@@ -49,21 +49,34 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
   restoreSession: async () => {
     set({ isLoading: true });
     try {
-      // 1. Intentar cargar desde WatermelonDB (Local-First)
-      const localProfile = await AuthRepository.getLocalProfile();
-      
-      // 2. Verificar sesión en Supabase
+      // 1. Verificar sesión en Supabase (ahora persistida via AsyncStorage)
       const session = await AuthService.getSession();
 
-      if (session && localProfile && session.user.id === localProfile.id) {
-        set({ user: localProfile, isAuthenticated: true, isLoading: false });
-      } else if (!session) {
-        // Si no hay sesión en Supabase, limpiamos local por seguridad
+      if (!session) {
         await AuthRepository.clearLocalProfile();
         set({ user: null, isAuthenticated: false, isLoading: false });
+        return;
+      }
+
+      // 2. Intentar cargar desde WatermelonDB (Local-First)
+      const localProfile = await AuthRepository.getLocalProfile();
+      
+      if (localProfile && session.user.id === localProfile.id) {
+        set({ user: localProfile, isAuthenticated: true, isLoading: false });
+        return;
+      }
+
+      // 3. Si hay sesión pero no perfil local coherente, descargar desde el servidor
+      const { profile, error } = await AuthService.getProfile(session.user.id);
+      
+      if (profile) {
+        await AuthRepository.saveLocalProfile(profile);
+        set({ user: profile, isAuthenticated: true, isLoading: false });
       } else {
-        // Hay sesión pero no perfil local, o IDs no coinciden
-        set({ user: null, isAuthenticated: false, isLoading: false });
+        // Si no se pudo obtener el perfil, desloguear por seguridad
+        await AuthService.logout();
+        await AuthRepository.clearLocalProfile();
+        set({ user: null, isAuthenticated: false, isLoading: false, error });
       }
     } catch (e) {
       console.error('[AuthStore] Error al restaurar sesión:', e);

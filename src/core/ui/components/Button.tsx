@@ -23,6 +23,8 @@ interface ButtonProps {
     icon?: React.ReactNode;
     style?: StyleProp<ViewStyle>;
     testID?: string;
+    accessibilityLabel?: string;
+    accessibilityHint?: string;
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -34,7 +36,9 @@ export const Button: React.FC<ButtonProps> = ({
     disabled = false,
     icon,
     style,
-    testID
+    testID,
+    accessibilityLabel,
+    accessibilityHint
 }) => {
     const { colors } = useTheme();
 
@@ -101,6 +105,9 @@ export const Button: React.FC<ButtonProps> = ({
             style={[getBtnStyle(), style]}
             scaleTo={0.97}
             haptic={variant === 'primary' ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light}
+            accessibilityLabel={accessibilityLabel || label}
+            accessibilityHint={accessibilityHint}
+            accessibilityRole="button"
         >
             {loading ? (
                 <ActivityIndicator size="small" color={variant === 'primary' ? colors.absolutoBlanco : colors.primario} />

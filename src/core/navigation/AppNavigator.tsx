@@ -10,6 +10,7 @@ import { PickingScreen, StorePanelScreen, LogisticsHistoryScreen } from '../../f
 import { LoginScreen } from '../../features/auth/screens/LoginScreen';
 import { RootStackParamList } from '../types/navigation';
 import { useAuthStore } from '../store/useAuthStore';
+import { supabase } from '../database/supabase';
 import { ActivityIndicator, View } from 'react-native';
 import { useTheme } from '../ui/ThemeContext';
 
@@ -20,7 +21,20 @@ export const AppNavigator = () => {
     const { colors } = useTheme();
 
     useEffect(() => {
+        // 1. Restaurar sesión inicial
         restoreSession();
+
+        // 2. Escuchar cambios de estado (Token Refresh, SignOut, etc)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log(`[Auth] Evento: ${event}`);
+            if (event === 'SIGNED_IN' && session) {
+                restoreSession();
+            } else if (event === 'SIGNED_OUT') {
+                useAuthStore.getState().logout();
+            }
+        });
+
+        return () => subscription.unsubscribe();
     }, []);
 
     if (isLoading) {

@@ -1,11 +1,12 @@
-// src/core/ui/components/AnimatedPressable.tsx
 import React from 'react';
-import { Pressable, PressableProps, StyleProp, ViewStyle } from 'react-native';
+import { StyleProp, ViewStyle, PressableProps } from 'react-native';
+import { GestureDetector, Gesture } from 'react-native-gesture-handler';
 import Animated, { 
     useSharedValue, 
     useAnimatedStyle, 
     withSpring, 
-    withTiming 
+    withTiming,
+    runOnJS
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
@@ -14,17 +15,24 @@ interface AnimatedPressableProps extends PressableProps {
     style?: StyleProp<ViewStyle>;
     scaleTo?: number;
     haptic?: Haptics.ImpactFeedbackStyle;
+    accessibilityLabel?: string;
+    accessibilityHint?: string;
+    accessibilityRole?: import('react-native').AccessibilityRole;
 }
-
-const AnimatedPressableBase = Animated.createAnimatedComponent(Pressable);
 
 export const AnimatedPressable: React.FC<AnimatedPressableProps> = ({
     children,
     style,
     scaleTo = 0.96,
     haptic = Haptics.ImpactFeedbackStyle.Light,
+    onPress,
     onPressIn,
     onPressOut,
+    disabled,
+    testID,
+    accessibilityLabel,
+    accessibilityHint,
+    accessibilityRole,
     ...props
 }) => {
     const scale = useSharedValue(1);
@@ -35,28 +43,41 @@ export const AnimatedPressable: React.FC<AnimatedPressableProps> = ({
         opacity: opacity.value,
     }));
 
-    const handlePressIn = (e: any) => {
-        if (haptic) Haptics.impactAsync(haptic);
-        scale.value = withSpring(scaleTo, { damping: 10, stiffness: 200 });
-        opacity.value = withTiming(0.85, { duration: 100 });
-        onPressIn?.(e);
+    const triggerHaptic = () => {
+        if (haptic && !disabled) {
+            Haptics.impactAsync(haptic);
+        }
     };
 
-    const handlePressOut = (e: any) => {
-        scale.value = withSpring(1, { damping: 10, stiffness: 200 });
-        opacity.value = withTiming(1, { duration: 150 });
-        onPressOut?.(e);
-    };
+    const tap = Gesture.Tap()
+        .enabled(!disabled)
+        .onBegin(() => {
+            scale.value = withSpring(scaleTo, { damping: 10, stiffness: 200 });
+            opacity.value = withTiming(0.85, { duration: 100 });
+            if (onPressIn) runOnJS(onPressIn)(null as any);
+            runOnJS(triggerHaptic)();
+        })
+        .onTouchesUp(() => {
+            if (onPress) runOnJS(onPress)(null as any);
+        })
+        .onFinalize(() => {
+            scale.value = withSpring(1, { damping: 10, stiffness: 200 });
+            opacity.value = withTiming(1, { duration: 150 });
+            if (onPressOut) runOnJS(onPressOut)(null as any);
+        });
 
     return (
-        <AnimatedPressableBase
-            {...props}
-            testID={props.testID}
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-            style={[style, animatedStyle]}
-        >
-            {children}
-        </AnimatedPressableBase>
+        <GestureDetector gesture={tap}>
+            <Animated.View 
+                testID={testID} 
+                style={[style, animatedStyle]} 
+                accessibilityLabel={accessibilityLabel}
+                accessibilityHint={accessibilityHint}
+                accessibilityRole={accessibilityRole || 'button'}
+                {...props as any}
+            >
+                {children}
+            </Animated.View>
+        </GestureDetector>
     );
 };

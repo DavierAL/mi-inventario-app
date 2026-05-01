@@ -61,6 +61,9 @@ export const HeaderPremium: React.FC<Props> = ({
                             style={[styles.btnCircle, { backgroundColor: colors.fondoPrimario }]}
                             onPress={onSync}
                             disabled={isSyncing}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                            accessibilityLabel="Sincronizar datos con la nube"
+                            accessibilityRole="button"
                         >
                             {isSyncing ? (
                                 <ActivityIndicator size="small" color={colors.primario} />
@@ -73,6 +76,9 @@ export const HeaderPremium: React.FC<Props> = ({
                     <TouchableOpacity 
                         style={[styles.btnCircle, { backgroundColor: colors.fondoPrimario, marginLeft: 8 }]}
                         onPress={toggleTheme}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        accessibilityLabel={`Cambiar a modo ${isDark ? 'claro' : 'oscuro'}`}
+                        accessibilityRole="button"
                     >
                         <Ionicons name={isDark ? 'sunny' : 'moon'} size={20} color={colors.primario} />
                     </TouchableOpacity>
@@ -80,6 +86,9 @@ export const HeaderPremium: React.FC<Props> = ({
                     <TouchableOpacity 
                         style={[styles.btnCircle, { backgroundColor: colors.fondoPrimario, marginLeft: 8 }]}
                         onPress={handleLogout}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        accessibilityLabel="Cerrar sesión"
+                        accessibilityRole="button"
                     >
                         <Ionicons name="power" size={20} color={colors.error} />
                     </TouchableOpacity>

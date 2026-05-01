@@ -3,6 +3,7 @@
 import React, { memo } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
+import { Ionicons } from '@expo/vector-icons';
 import Producto from '../../../core/database/models/Producto';
 import { formatearFecha } from '../../../core/utils/fecha';
 import { formatearPrecio } from '../../../core/utils/formato';
@@ -30,6 +31,9 @@ const ProductoCardComponent: React.FC<Props> = ({ item, onPress }) => {
                 onPress={() => onPress(item)}
                 activeOpacity={0.7}
                 style={{ flexDirection: 'row', alignItems: 'center' }}
+                accessibilityLabel={`Producto: ${item.descripcion}. Stock: ${item.stockMaster} unidades.`}
+                accessibilityRole="button"
+                accessibilityHint="Presiona para editar los detalles del producto"
             >
                 {/* Imagen del producto */}
                 <View style={[styles.contenedorImagen, { backgroundColor: colors.inputFondo, borderColor: colors.borde }]}>
@@ -43,7 +47,7 @@ const ProductoCardComponent: React.FC<Props> = ({ item, onPress }) => {
                         />
                     ) : (
                         <View style={[styles.imagenPlaceholder, { backgroundColor: colors.inputDeshabilitado }]}>
-                            <Text variant="h2">📦</Text>
+                            <Ionicons name="cube-outline" size={32} color={colors.textoTerciario} />
                         </View>
                     )}
                 </View>

@@ -399,10 +399,13 @@ export const StorePanelScreen = () => {
                     <View style={styles.infoCol}>
                         <Text variant="tiny" weight="bold" color={colors.textoTerciario}>CLIENTE</Text>
                         <Text variant="body" weight="medium">{item.cliente}</Text>
-                        {item.telefono && (
+                        {!!item.telefono && (
                             <TouchableOpacity 
                                 onPress={() => Linking.openURL(`tel:${item.telefono}`)}
-                                style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}
+                                style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2, paddingVertical: 4 }}
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                accessibilityLabel={`Llamar al cliente al teléfono ${item.telefono}`}
+                                accessibilityRole="button"
                             >
                                 <Ionicons name="call-outline" size={12} color={colors.primario} />
                                 <Text variant="small" weight="bold" color={colors.primario} style={{ marginLeft: 4 }}>
@@ -421,15 +424,18 @@ export const StorePanelScreen = () => {
                             <Text variant="body">
                                 {item.direccion}{item.distrito ? `, ${item.distrito}` : ''}
                             </Text>
-                            {item.referencia && (
+                            {!!item.referencia && (
                                 <Text variant="small" color={colors.textoSecundario} style={styles.marginTop2}>
                                     Ref: {item.referencia}
                                 </Text>
                             )}
-                            {item.gmapsUrl && (
+                            {!!item.gmapsUrl && (
                                 <TouchableOpacity 
-                                    style={styles.gmapsBtn} 
+                                    style={[styles.gmapsBtn, { paddingVertical: 4 }]} 
                                     onPress={handleAbrirGmaps}
+                                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                    accessibilityLabel="Ver ubicación en Google Maps"
+                                    accessibilityRole="button"
                                 >
                                     <Ionicons name="map-outline" size={14} color={colors.primario} />
                                     <Text variant="small" weight="bold" color={colors.primario} style={styles.marginLeft4}>
@@ -441,7 +447,7 @@ export const StorePanelScreen = () => {
                     </View>
                 )}
 
-                {item.operador && (
+                {!!item.operador && (
                     <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
                         <Ionicons name="bicycle-outline" size={16} color={colors.textoTerciario} />
                         <View style={styles.marginLeft12}>
@@ -468,7 +474,7 @@ export const StorePanelScreen = () => {
                     </View>
                 )}
 
-                {item.notas && (
+                {!!item.notas && (
                     <>
                         <View style={[styles.divider, { backgroundColor: colors.borde }]} />
                         <Text variant="tiny" weight="bold" color={colors.textoTerciario}>NOTAS</Text>
@@ -557,7 +563,13 @@ export const StorePanelScreen = () => {
                 variant="flat" 
                 style={[styles.cabecera, { borderBottomColor: colors.borde }]}
             >
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+                <TouchableOpacity 
+                    onPress={() => navigation.goBack()} 
+                    style={styles.backBtn}
+                    hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+                    accessibilityLabel="Volver a la pantalla anterior"
+                    accessibilityRole="button"
+                >
                     <Ionicons name="arrow-back" size={22} color={colors.textoPrincipal} />
                 </TouchableOpacity>
                 <View style={{ flex: 1 }}>
@@ -570,6 +582,7 @@ export const StorePanelScreen = () => {
                     size="sm"
                     icon={<Ionicons name="qr-code-outline" size={18} color={colors.primario} />}
                     onPress={handleAbrirEscaner}
+                    accessibilityLabel="Escanear código QR de envío"
                 />
             </Surface>
 

@@ -21,6 +21,8 @@ interface InputProps extends TextInputProps {
     editable?: boolean;
     style?: import('react-native').StyleProp<import('react-native').TextStyle>;
     testID?: string;
+    accessibilityLabel?: string;
+    accessibilityHint?: string;
 }
 
 export const Input: React.FC<InputProps> = ({ 
@@ -29,6 +31,8 @@ export const Input: React.FC<InputProps> = ({
     icon, 
     rightIcon,
     containerStyle,
+    accessibilityLabel,
+    accessibilityHint,
     ...props 
 }) => {
     const { colors, isDark } = useTheme();
@@ -58,6 +62,8 @@ export const Input: React.FC<InputProps> = ({
                     placeholderTextColor={colors.textoTerciario}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
+                    accessibilityLabel={accessibilityLabel || label}
+                    accessibilityHint={accessibilityHint}
                     {...props}
                 />
                 {rightIcon && <View style={styles.rightIconContainer}>{rightIcon}</View>}

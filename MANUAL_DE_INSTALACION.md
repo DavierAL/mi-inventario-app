@@ -1,6 +1,6 @@
 # 📱 Guía de Instalación y Mantenimiento
 
-Este documento detalla el proceso para generar, instalar y actualizar la aplicación Mi Inventario en dispositivos Android usando tu entorno local (Java SDK + Android Studio).
+Este documento detalla el proceso para generar, instalar y actualizar la aplicación Mi Inventario en dispositivos Android usando tu entorno local (Java SDK  Android Studio).
 
 ---
 
@@ -17,7 +17,7 @@ npx expo prebuild --clean
 ### Paso B: Generar el instalable (APK)
 ```powershell
 npx expo run:android --variant release
-```
++```
 *Este proceso generará el archivo `app-release.apk` en:*  
 `C:/mi-inventario-app/android/app/build/outputs/apk/release/`
 

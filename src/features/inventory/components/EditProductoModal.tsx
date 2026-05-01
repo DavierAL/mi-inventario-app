@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Platform, KeyboardAvoidingView, ScrollView, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
+import { Ionicons } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import * as Haptics from 'expo-haptics';
@@ -152,7 +153,7 @@ export const EditProductoModal: React.FC<Props> = ({
                                 cachePolicy="disk"
                             />
                         ) : (
-                            <Text variant="h1" align="center">📦</Text>
+                            <Ionicons name="cube-outline" size={48} color={colors.textoTerciario} />
                         )}
                     </View>
                     <View style={styles.infoModal}>
@@ -196,11 +197,13 @@ export const EditProductoModal: React.FC<Props> = ({
                                 label={formFV || 'Seleccionar...'}
                                 variant="ghost"
                                 style={styles.botonFecha}
-                                icon={<Text variant="body">📅</Text>}
+                                icon={<Ionicons name="calendar-outline" size={18} color={colors.primario} />}
                                 onPress={() => {
                                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                                     setMostrarDatePicker(true);
                                 }}
+                                accessibilityLabel={`Fecha de vencimiento actual: ${formFV || 'No establecida'}. Presiona para cambiar.`}
+                                accessibilityRole="button"
                             />
                         </Surface>
                         {errors.fv_actual && (
@@ -253,6 +256,7 @@ export const EditProductoModal: React.FC<Props> = ({
                             variant="secondary"
                             style={styles.flex1}
                             onPress={onCancelar}
+                            accessibilityLabel="Cancelar cambios y cerrar modal"
                         />
                         <Button 
                             label="Confirmar"
@@ -260,6 +264,7 @@ export const EditProductoModal: React.FC<Props> = ({
                             loading={isSubmitting}
                             style={styles.flex1}
                             onPress={handleConfirmar}
+                            accessibilityLabel="Confirmar cambios y actualizar producto"
                         />
                     </View>
                 </ScrollView>
