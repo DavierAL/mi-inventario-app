@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">3.84% </span>
+                <span class="strong">61.53% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>1/26</span>
+                <span class='fraction'>16/26</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">70% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/10</span>
+                <span class='fraction'>7/10</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">0% </span>
+                <span class="strong">50% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/4</span>
+                <span class='fraction'>2/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">4.54% </span>
+                <span class="strong">63.63% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>1/22</span>
+                <span class='fraction'>14/22</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line low'></div>
+    <div class='status-line medium'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -130,24 +130,21 @@
 <a name='L65'></a><a href='#L65'>65</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">12x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -155,9 +152,6 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -168,13 +162,19 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -195,20 +195,20 @@
 import { UserProfile, UserRole } from '../types/auth';
 &nbsp;
 export const AuthService = {
-<span class="fstat-no" title="function not covered" >  as</span>ync getProfile(userId: string): Promise&lt;{ profile: UserProfile | null; error?: string }&gt; {
-<span class="cstat-no" title="statement not covered" >    try {</span>
-      const { data: profile, error: profileError } = <span class="cstat-no" title="statement not covered" >await supabase</span>
+  async getProfile(userId: string): Promise&lt;{ profile: UserProfile | null; error?: string }&gt; {
+    try {
+      const { data: profile, error: profileError } = await supabase
         .from('usuarios')
         .select('id, nombre, email, rol, activo, created_at, updated_at')
         .eq('id', userId)
         .single();
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      if (profileError) {</span>
-<span class="cstat-no" title="statement not covered" >        console.error('[Auth] Error al obtener perfil:', profileError);</span>
-<span class="cstat-no" title="statement not covered" >        return { profile: null, error: 'Perfil no encontrado en la base de datos' };</span>
+      if (profileError) {
+        console.error('[Auth] Error al obtener perfil:', profileError);
+        return { profile: null, error: 'Perfil no encontrado en la base de datos' };
       }
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      return {</span>
+      return {
         profile: {
           id: profile.id,
           nombre: profile.nombre,
@@ -225,20 +225,20 @@ export const AuthService = {
     }
   },
 &nbsp;
-<span class="fstat-no" title="function not covered" >  as</span>ync login(email: string, pass: string): Promise&lt;{ user: UserProfile | null; error?: string }&gt; {
-<span class="cstat-no" title="statement not covered" >    try {</span>
-      const { data: authData, error: authError } = <span class="cstat-no" title="statement not covered" >await supabase.auth.signInWithPassword({</span>
+  async login(email: string, pass: string): Promise&lt;{ user: UserProfile | null; error?: string }&gt; {
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password: pass,
       });
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      if (authError) <span class="cstat-no" title="statement not covered" >return { user: null, error: authError.message };</span></span>
-<span class="cstat-no" title="statement not covered" >      if (!authData.user) <span class="cstat-no" title="statement not covered" >return { user: null, error: 'No se pudo obtener el usuario' };</span></span>
+      if (authError) return { user: null, error: authError.message };
+      <span class="missing-if-branch" title="if path not taken" >I</span>if (!authData.user) <span class="cstat-no" title="statement not covered" >return { user: null, error: 'No se pudo obtener el usuario' };</span>
 &nbsp;
-      const { profile, error } = <span class="cstat-no" title="statement not covered" >await this.getProfile(authData.user.id);</span>
-<span class="cstat-no" title="statement not covered" >      if (error) <span class="cstat-no" title="statement not covered" >return { user: null, error };</span></span>
+      const { profile, error } = await this.getProfile(authData.user.id);
+      if (error) return { user: null, error };
 &nbsp;
-<span class="cstat-no" title="statement not covered" >      return { user: profile };</span>
+      return { user: profile };
     } catch (err) {
 <span class="cstat-no" title="statement not covered" >      console.error('[Auth] Fatal Error:', err);</span>
 <span class="cstat-no" title="statement not covered" >      return { user: null, error: 'Ocurrió un error inesperado durante el login' };</span>
@@ -262,7 +262,7 @@ export const AuthService = {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-02T17:22:35.567Z
+                at 2026-05-02T17:53:36.577Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

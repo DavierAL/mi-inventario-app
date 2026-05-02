@@ -30,7 +30,10 @@ export const AppNavigator = () => {
             if (event === 'SIGNED_IN' && session) {
                 restoreSession();
             } else if (event === 'SIGNED_OUT') {
-                useAuthStore.getState().logout();
+                const state = useAuthStore.getState();
+                if (state.isAuthenticated) {
+                    state.logout();
+                }
             }
         });
 
