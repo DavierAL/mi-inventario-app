@@ -347,6 +347,49 @@ jest.mock('react-native/Libraries/ReactNative/NativeI18nManager', () => ({
     },
 }));
 
+// Mock StatusBarManager completo
+jest.mock('react-native/Libraries/Components/StatusBar/StatusBar', () => {
+    const React = require('react');
+    const { View } = require('react-native');
+    return {
+        __esModule: true,
+        default: (props) => React.createElement(View, props),
+        setHidden: jest.fn(),
+        setBarStyle: jest.fn(),
+        setBackgroundColor: jest.fn(),
+        setTranslucent: jest.fn(),
+        setNetworkActivityIndicatorVisible: jest.fn(),
+    };
+});
+
+jest.mock('react-native/Libraries/Components/StatusBar/NativeStatusBarManagerAndroid', () => ({
+    __esModule: true,
+    default: {
+        getConstants: () => ({
+            DEFAULT_BACKGROUND_COLOR: 0,
+            HEIGHT: 24,
+            TRANSLUCENT: true,
+        }),
+        setHidden: jest.fn(),
+        setColor: jest.fn(),
+        setTranslucent: jest.fn(),
+        setStyle: jest.fn(),
+    },
+}));
+
+jest.mock('react-native/Libraries/Components/StatusBar/NativeStatusBarManagerIOS', () => ({
+    __esModule: true,
+    default: {
+        getConstants: () => ({
+            DEFAULT_BACKGROUND_COLOR: 0,
+            HEIGHT: 20,
+        }),
+        setHidden: jest.fn(),
+        setStyle: jest.fn(),
+        setNetworkActivityIndicatorVisible: jest.fn(),
+    },
+}));
+
 jest.mock('react-native/Libraries/Utilities/NativeDeviceInfo', () => ({
     __esModule: true,
     default: {
@@ -386,6 +429,15 @@ jest.mock('react-native-worklets', () => ({
         UI: 1,
     },
 }));
+
+// Mock FlashList
+jest.mock('@shopify/flash-list', () => {
+    const React = require('react');
+    const { FlatList } = require('react-native');
+    return {
+        FlashList: (props) => React.createElement(FlatList, props),
+    };
+});
 
 // Mock UI Components
 jest.mock('./src/core/ui/BottomBar', () => {

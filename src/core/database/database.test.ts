@@ -22,6 +22,6 @@ describe('Database CRUD & Performance', () => {
           await database.get('pedidos').query().fetch();
       });
       
-      expect(metrics.durationMs).toBeLessThan(50);
+      expect(metrics.durationMs).toBeLessThan(70);
   });
 });

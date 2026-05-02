@@ -12,6 +12,12 @@ jest.mock('../repository/logisticsRepository');
 jest.mock('../services/enviosService');
 jest.mock('../../inventory/store/useInventarioStore');
 
+// Mock de useRoute para proporcionar pedidoId
+jest.mock('@react-navigation/native', () => ({
+    useNavigation: () => ({ goBack: jest.fn(), navigate: jest.fn() }),
+    useRoute: () => ({ params: { pedidoId: 'envio-123' } }),
+}));
+
 const mockEnvio = {
     id: 'envio-123',
     supabaseId: 'sb-123',

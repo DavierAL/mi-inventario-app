@@ -1,15 +1,32 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Pressable } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { Button } from '../Button';
 import { ThemeColors } from '../../colores';
 import * as Haptics from 'expo-haptics';
 
-// Mock de Haptics
-jest.mock('expo-haptics', () => ({
-    impactAsync: jest.fn(),
-    ImpactFeedbackStyle: { Light: 'light' },
-}));
+// Mock AnimatedPressable para usar Pressable nativo en tests
+jest.mock('../AnimatedPressable', () => {
+    const React = require('react');
+    const { Pressable } = require('react-native');
+    const { impactAsync } = require('expo-haptics');
+    return {
+        AnimatedPressable: ({ children, onPress, disabled, style, testID, accessibilityLabel, accessibilityHint, accessibilityRole, haptic }) => (
+            React.createElement(Pressable, {
+                onPress: () => {
+                    if (haptic && !disabled) impactAsync(haptic);
+                    if (onPress) onPress();
+                },
+                disabled,
+                style,
+                testID,
+                accessibilityLabel,
+                accessibilityHint,
+                accessibilityRole,
+            }, children)
+        ),
+    };
+});
 
 // Mock del hook useTheme
 jest.mock('../../ThemeContext', () => ({

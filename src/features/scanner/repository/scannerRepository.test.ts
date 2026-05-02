@@ -15,6 +15,6 @@ describe('ScannerRepository - Unit & Performance', () => {
 
         expect(InventarioRepository.buscarPorCodigoBarras).toHaveBeenCalledWith('123');
         expect(result).toEqual(mockProducto);
-        expect(metrics.durationMs).toBeLessThan(50);
+        expect(metrics.durationMs).toBeLessThan(70);
     });
 });

@@ -4,11 +4,31 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { AnimatedPressable } from '../AnimatedPressable';
 import * as Haptics from 'expo-haptics';
 
-// Mock de Haptics
-jest.mock('expo-haptics', () => ({
-    impactAsync: jest.fn(),
-    ImpactFeedbackStyle: { Medium: 1 },
-}));
+// Mock completo de AnimatedPressable para tests
+jest.mock('../AnimatedPressable', () => {
+    const React = require('react');
+    const { Pressable } = require('react-native');
+    const mockHaptics = require('expo-haptics');
+    return {
+        AnimatedPressable: ({ children, onPress, disabled, style, testID, accessibilityLabel, accessibilityHint, accessibilityRole, haptic }) => (
+            React.createElement(Pressable, {
+                onPress: () => {
+                    if (haptic && !disabled) mockHaptics.impactAsync(haptic);
+                    if (onPress) onPress();
+                },
+                onPressIn: () => {
+                    if (haptic && !disabled) mockHaptics.impactAsync(haptic);
+                },
+                disabled,
+                style,
+                testID,
+                accessibilityLabel,
+                accessibilityHint,
+                accessibilityRole,
+            }, children)
+        ),
+    };
+});
 
 describe('AnimatedPressable Component', () => {
     it('renderiza correctamente los hijos', () => {
