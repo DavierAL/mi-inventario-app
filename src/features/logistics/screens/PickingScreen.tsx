@@ -1,5 +1,5 @@
 // ARCHIVO: src/features/logistics/screens/PickingScreen.tsx
-import React, { memo, useState } from 'react';
+import React, { memo, useState, useCallback, useMemo } from 'react';
 import { View, StyleSheet, StatusBar, Alert, ActivityIndicator, Platform, KeyboardAvoidingView, TouchableOpacity as RNTouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -79,11 +79,11 @@ const PedidoCard = memo(({ envio, onDespachar, onVerPanel }: PedidoCardProps) =>
                 <View style={styles.flex1}>
                     <Text variant="tiny" weight="bold" color={colors.textoTerciario}>PEDIDO</Text>
                     <Text variant="h2" weight="bold">{envio.codPedido}</Text>
-                    <Text variant="body" color={colors.textoSecundario} numberOfLines={1} style={{ marginTop: 2 }}>
+                    <Text variant="body" color={colors.textoSecundario} numberOfLines={1} style={styles.marginTop2}>
                         {envio.cliente}
                     </Text>
                 </View>
-                <View style={{ alignItems: 'flex-end' }}>
+                <View style={styles.alignItemsEnd}>
                     <Badge 
                         label={displayEstado} 
                         variant={getBadgeVariant(envio.estado)} 
@@ -92,10 +92,10 @@ const PedidoCard = memo(({ envio, onDespachar, onVerPanel }: PedidoCardProps) =>
                         <Badge 
                             label={envio.operador}
                             variant={getOperadorVariant(envio.operador)}
-                            style={{ marginTop: 4 }}
+                            style={styles.marginTop4}
                         />
                     )}
-                    <Ionicons name="chevron-forward" size={18} color={colors.textoTerciario} style={{ marginTop: 8 }} />
+                    <Ionicons name="chevron-forward" size={18} color={colors.textoTerciario} style={styles.marginTop8} />
                 </View>
             </View>
 
@@ -109,7 +109,7 @@ const PedidoCard = memo(({ envio, onDespachar, onVerPanel }: PedidoCardProps) =>
                     </View>
                 )}
                 {envio.bultos !== undefined && envio.bultos > 0 && (
-                    <View style={[styles.metaItem, { marginLeft: TOKENS.spacing.md }]}>
+                    <View style={[styles.metaItem, styles.marginLeftMd]}>
                         <Ionicons name="cube-outline" size={12} color={colors.textoTerciario} />
                         <Text variant="small" color={colors.textoTerciario} style={styles.marginLeft4}>
                                 {envio.bultos} bulto(s)
@@ -146,7 +146,7 @@ const ListaBase = memo(({ pedidos, isFiltrado, onDespachar, onVerPanel }: ListaB
         <FlashList
             data={pedidos}
             keyExtractor={(item) => item.id}
-            // @ts-ignore
+            // @ts-ignore - Caso excepcional: los tipos locales de FlashListProps omiten estimatedItemSize aunque es mandatorio
             estimatedItemSize={160}
             renderItem={({ item }) => (
                 <PedidoCard envio={item} onDespachar={onDespachar} onVerPanel={onVerPanel} />
@@ -223,7 +223,7 @@ export const PickingScreen = () => {
     const [filtroEstado, setFiltroEstado] = useState<EstadoPedido | null>('En_Tienda');
     const [ordenDesc, setOrdenDesc] = useState(true);
 
-    const handleDespachar = async (envio: Envio) => {
+    const handleDespachar = useCallback(async (envio: Envio) => {
         try {
             await LogisticsRepository.actualizarEstado(envio, 'En_Tienda', role || undefined);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -232,16 +232,16 @@ export const PickingScreen = () => {
         } catch (err) {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         }
-    };
+    }, [role, reSincronizar]);
 
-    const handleVerPanel = (envio: Envio) => {
+    const handleVerPanel = useCallback((envio: Envio) => {
         navigation.navigate('StorePanel', { pedidoId: envio.id });
-    };
+    }, [navigation]);
 
-    const handleToggleFiltro = (estado: EstadoPedido) => {
+    const handleToggleFiltro = useCallback((estado: EstadoPedido) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         setFiltroEstado(prev => prev === estado ? null : estado);
-    };
+    }, []);
 
     return (
         <SafeAreaView style={[styles.contenedor, { backgroundColor: colors.fondo }]}>
@@ -325,6 +325,7 @@ export const PickingScreen = () => {
                     <View style={{ flex: 1 }} />
 
                     <TouchableOpacity 
+                        testID="toggle-order-btn"
                         onPress={() => setOrdenDesc(!ordenDesc)} 
                         style={[styles.ordenBtn, { backgroundColor: colors.fondoPrimario }]}
                     >
@@ -338,9 +339,9 @@ export const PickingScreen = () => {
             </Surface>
 
             {/* Lista reactiva de envíos */}
-            <View style={{ flex: 1 }}>
+            <View style={styles.flex1}>
                 {cargando && (
-                    <View style={{ padding: TOKENS.spacing.lg }}>
+                    <View style={styles.paddingLg}>
                         <SkeletonCard />
                         <SkeletonCard />
                     </View>
@@ -378,6 +379,12 @@ const styles = StyleSheet.create({
     headerBranding: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
     logoTiny: { width: 32, height: 32 },
     marginLeft4: { marginLeft: 4 },
+    marginLeftMd: { marginLeft: TOKENS.spacing.md },
+    marginTop2: { marginTop: 2 },
+    marginTop4: { marginTop: 4 },
+    marginTop8: { marginTop: 8 },
+    paddingLg: { padding: TOKENS.spacing.lg },
+    alignItemsEnd: { alignItems: 'flex-end' },
     cardIdContainer: { 
         flexDirection: 'row', 
         alignItems: 'center', 

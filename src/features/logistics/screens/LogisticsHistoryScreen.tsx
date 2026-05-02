@@ -11,13 +11,15 @@ import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
 import { Text, Surface, Badge, HeaderPremium } from '../../../core/ui/components';
 import { TOKENS } from '../../../core/ui/tokens';
 import LogisticaHistorial from '../../../core/database/models/LogisticaHistorial';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../../../core/types/navigation';
 
-const FastList = FlashList as any;
+const FastList = FlashList;
 
 const HistorialItem = React.memo(({ item, esUltimo }: { item: LogisticaHistorial; esUltimo: boolean }) => {
     const { colors } = useTheme();
     
-    const getStatusIcon = (estado: string) => {
+    const getStatusIcon = (estado: string): React.ComponentProps<typeof Ionicons>['name'] => {
         switch (estado) {
             case 'Entregado': return 'checkmark-circle';
             case 'Listo para envío':
@@ -44,7 +46,7 @@ const HistorialItem = React.memo(({ item, esUltimo }: { item: LogisticaHistorial
                     radius="full" 
                     style={styles.iconoCirculo}
                 >
-                    <Ionicons name={getStatusIcon(item.estadoNuevo) as any} size={16} color={colors.primario} />
+                    <Ionicons name={getStatusIcon(item.estadoNuevo)} size={16} color={colors.primario} />
                 </Surface>
                 {!esUltimo && (
                     <View style={[styles.timelineLinea, { backgroundColor: colors.borde }]} />
@@ -61,18 +63,18 @@ const HistorialItem = React.memo(({ item, esUltimo }: { item: LogisticaHistorial
 
                 <View style={styles.cambioRow}>
                     <Badge label={item.estadoAnterior.replace('_', ' ')} variant="neutral" />
-                    <Ionicons name="arrow-forward" size={14} color={colors.textoTerciario} style={{ marginHorizontal: 8 }} />
+                    <Ionicons name="arrow-forward" size={14} color={colors.textoTerciario} style={styles.marginHorizontal8} />
                     <Badge label={item.estadoNuevo.replace('_', ' ')} variant={getStatusVariant(item.estadoNuevo)} />
                 </View>
 
                 <View style={[styles.tarjetaFooter, { borderTopColor: colors.borde }]}>
-                    <View style={{ flex: 1 }}>
+                    <View style={styles.flex1}>
                         <Text variant="tiny" color={colors.textoTerciario}>
                             {formatearHora(item.timestamp)}
                         </Text>
                         {item.rolUsuario && (
-                            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
-                                <Ionicons name="shield-checkmark" size={10} color={colors.primario} style={{ marginRight: 4 }} />
+                            <View style={styles.rolRow}>
+                                <Ionicons name="shield-checkmark" size={10} color={colors.primario} style={styles.marginRight4} />
                                 <Text variant="tiny" weight="bold" color={colors.primario}>
                                     {item.rolUsuario.toUpperCase()}
                                 </Text>
@@ -92,7 +94,7 @@ const HistorialItem = React.memo(({ item, esUltimo }: { item: LogisticaHistorial
 
 export const LogisticsHistoryScreen = () => {
     const { colors, isDark } = useTheme();
-    const navigation = useNavigation<any>();
+    const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
     const { entradas, cargando, error } = useLogisticaHistorial();
 
     return (
@@ -112,12 +114,12 @@ export const LogisticsHistoryScreen = () => {
                 ) : error ? (
                     <View style={styles.centrado}>
                         <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
-                        <Text variant="body" color={colors.error} style={{ marginTop: 12 }}>{error}</Text>
+                        <Text variant="body" color={colors.error} style={styles.marginTop12}>{error}</Text>
                     </View>
                 ) : entradas.length === 0 ? (
                     <View style={styles.centrado}>
                         <Ionicons name="time-outline" size={64} color={colors.textoTerciario} />
-                        <Text variant="h3" weight="bold" style={{ marginTop: 16 }}>Sin movimientos</Text>
+                        <Text variant="h3" weight="bold" style={styles.marginTop16}>Sin movimientos</Text>
                         <Text variant="body" color={colors.textoSecundario} align="center">
                             Los cambios de estado aparecerán aquí.
                         </Text>
@@ -126,6 +128,7 @@ export const LogisticsHistoryScreen = () => {
                     <FastList
                         data={entradas}
                         keyExtractor={(item: LogisticaHistorial) => item.id}
+                        // @ts-ignore - Caso excepcional: los tipos locales de FlashListProps omiten estimatedItemSize aunque es mandatorio
                         estimatedItemSize={120}
                         renderItem={({ item, index }: { item: LogisticaHistorial; index: number }) => (
                             <HistorialItem item={item} esUltimo={index === entradas.length - 1} />
@@ -161,4 +164,10 @@ const styles = StyleSheet.create({
     tarjetaCabecera: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
     cambioRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
     tarjetaFooter: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, borderTopWidth: 1, paddingTop: 8 },
+    flex1: { flex: 1 },
+    marginHorizontal8: { marginHorizontal: TOKENS.spacing.sm },
+    marginRight4: { marginRight: 4 },
+    marginTop12: { marginTop: TOKENS.spacing.md },
+    marginTop16: { marginTop: TOKENS.spacing.md },
+    rolRow: { flexDirection: 'row', alignItems: 'center', marginTop: 2 }
 });

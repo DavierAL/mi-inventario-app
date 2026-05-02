@@ -25,28 +25,28 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>0/17</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/32</span>
+                <span class='fraction'>0/40</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>0/2</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/9</span>
+                <span class='fraction'>0/16</span>
             </div>
         
             
@@ -141,7 +141,22 @@
 <a name='L76'></a><a href='#L76'>76</a>
 <a name='L77'></a><a href='#L77'>77</a>
 <a name='L78'></a><a href='#L78'>78</a>
-<a name='L79'></a><a href='#L79'>79</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -163,6 +178,19 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -231,6 +259,7 @@ import { PickingScreen, StorePanelScreen, LogisticsHistoryScreen } from '../../f
 import { LoginScreen } from '../../features/auth/screens/LoginScreen';
 import { RootStackParamList } from '../types/navigation';
 import { useAuthStore } from '../store/useAuthStore';
+import { supabase } from '../database/supabase';
 import { ActivityIndicator, View } from 'react-native';
 import { useTheme } from '../ui/ThemeContext';
 &nbsp;
@@ -241,7 +270,20 @@ export const AppNavigator = <span class="cstat-no" title="statement not covered"
     const { colors } = <span class="cstat-no" title="statement not covered" >useTheme();</span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+        // 1. Restaurar sesión inicial
 <span class="cstat-no" title="statement not covered" >        restoreSession();</span>
+&nbsp;
+        // 2. Escuchar cambios de estado (Token Refresh, SignOut, etc)
+        const { data: { subscription } } = <span class="cstat-no" title="statement not covered" >supabase.auth.onAuthStateChange(<span class="fstat-no" title="function not covered" >as</span>ync (event, session) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >            console.log(`[Auth] Evento: ${event}`);</span>
+<span class="cstat-no" title="statement not covered" >            if (event === 'SIGNED_IN' &amp;&amp; session) {</span>
+<span class="cstat-no" title="statement not covered" >                restoreSession();</span>
+            } else <span class="cstat-no" title="statement not covered" >if (event === 'SIGNED_OUT') {</span>
+<span class="cstat-no" title="statement not covered" >                useAuthStore.getState().logout();</span>
+            }
+        });
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        return <span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >subscription.unsubscribe();</span></span>
     }, []);
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    if (isLoading) {</span>
@@ -265,7 +307,7 @@ export const AppNavigator = <span class="cstat-no" title="statement not covered"
                             &lt;Stack.Screen name="InventarioList" component={InventarioListScreen} /&gt;
                         )}
 &nbsp;
-                        {(user.rol === 'admin' || user.rol === 'logistica' || user.rol === 'atencion') &amp;&amp; (
+                        {(user.rol === 'admin' || user.rol === 'logistica' || user.rol === 'atencion' || user.rol === 'tienda') &amp;&amp; (
                             &lt;Stack.Screen name="PickingList" component={PickingScreen} /&gt;
                         )}
                         
@@ -285,7 +327,7 @@ export const AppNavigator = <span class="cstat-no" title="statement not covered"
                             /&gt;
                         )}
 &nbsp;
-                        {(user.rol === 'admin' || user.rol === 'logistica' || user.rol === 'atencion') &amp;&amp; (
+                        {(user.rol === 'admin' || user.rol === 'logistica' || user.rol === 'atencion' || user.rol === 'tienda') &amp;&amp; (
                             &lt;&gt;
                                 &lt;Stack.Screen name="StorePanel" component={StorePanelScreen} /&gt;
                                 &lt;Stack.Screen name="LogisticsHistory" component={LogisticsHistoryScreen} /&gt;
@@ -304,7 +346,7 @@ export const AppNavigator = <span class="cstat-no" title="statement not covered"
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-24T16:16:23.909Z
+                at 2026-05-02T17:22:15.434Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

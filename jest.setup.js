@@ -1,4 +1,5 @@
 // jest.setup.js
+// Mocks must be at the top (they are hoisted, but better to be explicit)
 global.process.env.EXPO_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
 global.process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = 'test-key';
 global.process.env.EXPO_PUBLIC_CLOUD_FUNCTION_URL = 'https://test.supabase.co/functions/v1/proxy';
@@ -47,10 +48,10 @@ jest.mock('expo-camera', () => {
   const { View } = require('react-native');
   return {
     CameraView: (props) => React.createElement(View, props),
-    useCameraPermissions: () => [
+    useCameraPermissions: jest.fn(() => [
         { granted: true, status: 'granted' },
         jest.fn().mockResolvedValue({ granted: true, status: 'granted' })
-    ],
+    ]),
   };
 });
 
@@ -227,10 +228,17 @@ jest.mock('expo-haptics', () => ({
   NotificationFeedbackType: { Success: 0, Error: 1 },
 }));
 
-// Mock linking
+// Mock Alert and Linking
+jest.mock('react-native/Libraries/Alert/Alert', () => ({
+  alert: jest.fn(),
+}));
+
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   openURL: jest.fn().mockResolvedValue(true),
   canOpenURL: jest.fn().mockResolvedValue(true),
+  addEventListener: jest.fn(() => ({ remove: jest.fn() })),
+  removeEventListener: jest.fn(),
+  getInitialURL: jest.fn().mockResolvedValue(null),
 }));
 
 // Mock Safe Area
@@ -284,6 +292,73 @@ jest.mock('@react-native-community/netinfo', () => ({
   },
 }));
 
+// Mock TurboModuleRegistry and Native Modules constants
+jest.mock('react-native/Libraries/TurboModule/TurboModuleRegistry', () => ({
+    getEnforcing: jest.fn((name) => {
+        if (name === 'DeviceInfo') return { getConstants: () => ({}) };
+        if (name === 'StatusBarManager') return { getConstants: () => ({ height: 20 }), setStyle: jest.fn() };
+        return {};
+    }),
+    get: jest.fn((name) => {
+        if (name === 'DeviceInfo') return { getConstants: () => ({}) };
+        return {};
+    }),
+    enforce: jest.fn(() => ({})),
+}));
+
+jest.mock('react-native/src/private/specs_DEPRECATED/modules/NativeDeviceInfo', () => ({
+    __esModule: true,
+    default: {
+        getConstants: () => ({
+            Dimensions: {
+                window: { width: 400, height: 800, scale: 2, fontScale: 1 },
+                screen: { width: 400, height: 800, scale: 2, fontScale: 1 },
+            }
+        }),
+    },
+}));
+
+jest.mock('react-native/Libraries/Utilities/NativePlatformConstantsIOS', () => ({
+    __esModule: true,
+    default: {
+        getConstants: () => ({
+            forceTouchAvailable: false,
+            interfaceStyle: 'light',
+            isTesting: true,
+            osVersion: '15.0',
+            reactNativeVersion: { major: 0, minor: 72, patch: 0 },
+            systemName: 'iOS',
+        }),
+    },
+}));
+
+jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter', () => {
+    return class {
+        addListener = jest.fn(() => ({ remove: jest.fn() }));
+        removeListeners = jest.fn();
+        removeAllListeners = jest.fn();
+    };
+});
+
+jest.mock('react-native/Libraries/ReactNative/NativeI18nManager', () => ({
+    __esModule: true,
+    default: {
+        getConstants: () => ({ isRTL: false, doLeftAndRightSwapInRTL: true }),
+    },
+}));
+
+jest.mock('react-native/Libraries/Utilities/NativeDeviceInfo', () => ({
+    __esModule: true,
+    default: {
+        getConstants: () => ({
+            Dimensions: {
+                window: { width: 400, height: 800, scale: 2, fontScale: 1 },
+                screen: { width: 400, height: 800, scale: 2, fontScale: 1 },
+            }
+        }),
+    },
+}));
+
 // Mock Reanimated
 jest.mock('react-native-reanimated', () => {
     const reanimatedMock = require('react-native-reanimated/mock');
@@ -324,3 +399,6 @@ jest.mock('./src/core/ui/BottomBar', () => {
 // Polyfills para Reanimated en Node
 global._WORKLET = false;
 global._IS_FABRIC = false;
+
+require('react-native-gesture-handler/jestSetup');
+

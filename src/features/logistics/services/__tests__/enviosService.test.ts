@@ -37,8 +37,9 @@ describe('EnviosService', () => {
     it('debe subir la foto exitosamente y retornar la URL', async () => {
       const url = await EnviosService.subirFotoPOD('file://local/path.jpg', mockCodPedido);
       
-      expect(FileSystem.readAsStringAsync).toHaveBeenCalled();
       expect(supabase.storage.from).toHaveBeenCalledWith('evidencias');
+      const mockStorage = (supabase.storage.from as jest.Mock)();
+      expect(mockStorage.upload).toHaveBeenCalled();
       expect(url).toBe('https://supabase.com/pod.jpg');
     });
 

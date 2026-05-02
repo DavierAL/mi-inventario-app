@@ -1,0 +1,314 @@
+﻿  console.error
+    An update to StorePanelScreen inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+    [0m [90m 20 |[39m     [90m// 1. Obtener estado inicial de forma as├¡ncrona[39m
+     [90m 21 |[39m     [33mNetInfo[39m[33m.[39mfetch()[33m.[39mthen((state) [33m=>[39m {
+    [31m[1m>[22m[39m[90m 22 |[39m       setNetworkState(state)[33m;[39m
+     [90m    |[39m       [31m[1m^[22m[39m
+     [90m 23 |[39m     })[33m;[39m
+     [90m 24 |[39m
+     [90m 25 |[39m     [90m// 2. Suscribirse a los cambios de red en tiempo real[39m[0m
+
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11801:19
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11800:9)
+      at scheduleUpdateOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10326:9)
+      at dispatchSetStateInternal (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4148:13)
+      at dispatchSetState (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4107:7)
+      at setNetworkState (src/core/utils/useNetworkStatus.ts:22:7)
+
+  console.error
+    An update to StorePanelScreen inside a test was not wrapped in act(...).
+    
+    When testing, code that causes React state updates should be wrapped into act(...):
+    
+    act(() => {
+      /* fire events that update state */
+    });
+    /* assert on the output */
+    
+    This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+    [0m [90m 270 |[39m                 [36mreturn[39m[33m;[39m
+     [90m 271 |[39m             }
+    [31m[1m>[22m[39m[90m 272 |[39m             setEnvio(p)[33m;[39m
+     [90m     |[39m             [31m[1m^[22m[39m
+     [90m 273 |[39m         } [36mcatch[39m {
+     [90m 274 |[39m             [33mToast[39m[33m.[39mshow({ type[33m:[39m [32m'error'[39m[33m,[39m text1[33m:[39m [32m'envio no encontrado en local'[39m })[33m;[39m
+     [90m 275 |[39m         }[0m
+
+      at node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11801:19
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at warnIfUpdatesNotWrappedWithActDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11800:9)
+      at scheduleUpdateOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10326:9)
+      at dispatchSetStateInternal (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4148:13)
+      at dispatchSetState (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:4107:7)
+      at setEnvio (src/features/logistics/screens/StorePanelScreen.tsx:272:13)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+
+  console.log
+    [BENCHMARK] StorePanel Load: 98ms
+
+      at log (src/core/utils/benchmark.ts:24:11)
+
+  console.warn
+    An error occurred in the <Badge> component.
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+      at defaultOnUncaughtError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5452:15)
+      at logUncaughtError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5512:11)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at lane.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5542:9)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2700:16)
+      at commitCallbacks (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2720:11)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8936:15)
+      at flushLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11356:13)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11310:9)
+      at commitRootWhenReady (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10532:7)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10494:15)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at Immediate.performWorkUntilDeadline [as _onImmediate] (node_modules/scheduler/cjs/scheduler.native.development.js:45:48)
+
+  console.warn
+    An error occurred in the <Badge> component.
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+      at defaultOnUncaughtError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5452:15)
+      at logUncaughtError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5512:11)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at lane.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5542:9)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2700:16)
+      at commitCallbacks (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2720:11)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8936:15)
+      at flushLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11356:13)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11310:9)
+      at commitRootWhenReady (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10532:7)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10494:15)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at Immediate.performWorkUntilDeadline [as _onImmediate] (node_modules/scheduler/cjs/scheduler.native.development.js:45:48)
+
+  console.warn
+    An error occurred in the <Badge> component.
+    
+    Consider adding an error boundary to your tree to customize error handling behavior.
+    Visit https://react.dev/link/error-boundaries to learn more about error boundaries.
+
+      at defaultOnUncaughtError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5452:15)
+      at logUncaughtError (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5512:11)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at lane.callback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:5542:9)
+      at callCallback (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2700:16)
+      at commitCallbacks (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2720:11)
+      at runWithFiberInDEV (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:1574:13)
+      at commitLayoutEffectOnFiber (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:8936:15)
+      at flushLayoutEffects (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11356:13)
+      at commitRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:11310:9)
+      at commitRootWhenReady (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10532:7)
+      at performWorkOnRoot (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:10494:15)
+      at performWorkOnRootViaSchedulerTask (node_modules/react-test-renderer/cjs/react-test-renderer.development.js:2094:7)
+      at Immediate.performWorkUntilDeadline [as _onImmediate] (node_modules/scheduler/cjs/scheduler.native.development.js:45:48)
+
+cmd.exe : FAIL src/features/logistics/screens/StorePanelScreen.test.tsx
+En línea: 1 Carácter: 1
++ cmd.exe /c npx jest src/features/logistics/screens/StorePanelScreen.t ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (FAIL src/featur...Screen.test.tsx:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  StorePanelScreen - Unit & Flow
+    ÔêÜ Renderizado inicial y benchmark (133 ms)
+    ├ù Permisos de c├ímara denegados muestra mensaje y puede solicitarlos (1017 ms)
+    ├ù Llamar cliente y abrir google maps
+    ├ù Flujo completo de Confirmar Entrega (1008 ms)
+
+  ÔùÅ StorePanelScreen - Unit & Flow ÔÇ║ Permisos de c├ímara denegados muestra mensaje y puede solicitarlos
+
+    Unable to find node on an unmounted component.
+
+    [0m [90m 184 |[39m         
+     [90m 185 |[39m         [90m// Wait for order to load[39m
+    [31m[1m>[22m[39m[90m 186 |[39m         [36mawait[39m waitFor(() [33m=>[39m {
+     [90m     |[39m                      [31m[1m^[22m[39m
+     [90m 187 |[39m             expect(getByText([32m'Tomar Fotograf├¡a'[39m))[33m.[39mtoBeTruthy()[33m;[39m
+     [90m 188 |[39m         })[33m;[39m
+     [90m 189 |[39m[0m
+
+      at Object.<anonymous> (src/features/logistics/screens/StorePanelScreen.test.tsx:186:22)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ÔùÅ StorePanelScreen - Unit & Flow ÔÇ║ Llamar cliente y abrir google maps
+
+    Cannot use spyOn on a primitive value; undefined given
+
+    [0m [90m 206 |[39m     test([32m'Llamar cliente y abrir google maps'[39m[33m,[39m [36masync[39m () 
+[33m=>[39m {
+     [90m 207 |[39m         [36mconst[39m [33mReactNative[39m [33m=[39m 
+require([32m'react-native'[39m)[33m;[39m
+    [31m[1m>[22m[39m[90m 208 |[39m         [36mconst[39m spyOpenUrl [33m=[39m 
+jest[33m.[39mspyOn([33mReactNative[39m[33m.[39m[33mLinking[39m[33m,[39m 
+[32m'openURL'[39m)[33m.[39mmockImplementation(jest[33m.[39mfn())[33m;[39m
+     [90m     |[39m                                 [31m[1m^[22m[39m
+     [90m 209 |[39m
+     [90m 210 |[39m         [36mconst[39m { getByText } [33m=[39m render([33m<[39m[33mStorePanelScreen[39m 
+[33m/[39m[33m>[39m)[33m;[39m
+     [90m 211 |[39m         [0m
+
+      at ModuleMocker.spyOn (node_modules/jest-mock/build/index.js:719:13)
+      at Object.spyOn (src/features/logistics/screens/StorePanelScreen.test.tsx:208:33)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+  ÔùÅ StorePanelScreen - Unit & Flow ÔÇ║ Flujo completo de Confirmar Entrega
+
+    Unable to find node on an unmounted component.
+
+    [0m [90m 226 |[39m         [36mconst[39m { getByText[33m,[39m getByTestId } [33m=[39m 
+render([33m<[39m[33mStorePanelScreen[39m [33m/[39m[33m>[39m)[33m;[39m
+     [90m 227 |[39m         
+    [31m[1m>[22m[39m[90m 228 |[39m         [36mawait[39m waitFor(() [33m=>[39m {
+     [90m     |[39m                      [31m[1m^[22m[39m
+     [90m 229 |[39m             expect(getByText([32m'Tomar Fotograf├¡a'[39m))[33m.[39mtoBeTruthy()[33m;[39m
+     [90m 230 |[39m         })[33m;[39m
+     [90m 231 |[39m[0m
+
+      at Object.<anonymous> (src/features/logistics/screens/StorePanelScreen.test.tsx:228:22)
+      at asyncGeneratorStep (node_modules/@babel/runtime/helpers/asyncToGenerator.js:3:17)
+      at _next (node_modules/@babel/runtime/helpers/asyncToGenerator.js:17:9)
+      at node_modules/@babel/runtime/helpers/asyncToGenerator.js:22:7
+      at Object.<anonymous> (node_modules/@babel/runtime/helpers/asyncToGenerator.js:14:12)
+
+----------------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------
+File                              | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s                                                                                                              
+----------------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------
+All files                         |    8.93 |     7.44 |    7.22 |    9.42 |                                                                                                                                
+ core/constants                   |   14.28 |        0 |       0 |   14.28 |                                                                                                                                
+  mensajes.ts                     |   14.28 |        0 |       0 |   14.28 | 6-47                                                                                                                           
+ core/database                    |      70 |       50 |     100 |      70 |                                                                                                                                
+  schema.ts                       |       0 |      100 |     100 |       0 | 3                                                                                                                              
+  supabase.ts                     |   77.77 |       50 |     100 |   77.77 | 9,12                                                                                                                           
+ core/database/models             |    4.16 |        0 |       0 |    5.55 |                                                                                                                                
+  Envio.ts                        |    5.88 |        0 |       0 |    9.09 | 44-59                                                                                                                          
+  Log.ts                          |       0 |      100 |     100 |       0 | 6                                                                                                                              
+  LogisticaHistorial.ts           |       0 |      100 |     100 |       0 | 5                                                                                                                              
+  Movimiento.ts                   |       0 |      100 |     100 |       0 | 5                                                                                                                              
+  OutboxJob.ts                    |       0 |      100 |     100 |       0 | 5                                                                                                                              
+  Producto.ts                     |       0 |      100 |     100 |       0 | 5                                                                                                                              
+  SyncHistory.ts                  |       0 |      100 |     100 |       0 | 6                                                                                                                              
+  Usuario.ts                      |       0 |      100 |     100 |       0 | 5                                                                                                                              
+ core/hooks                       |       0 |        0 |       0 |       0 |                                                                                                                                
+  usePermissions.ts               |       0 |        0 |       0 |       0 | 12-48                                                                                                                          
+ core/navigation                  |       0 |        0 |       0 |       0 |                                                                                                                                
+  AppNavigator.tsx                |       0 |        0 |       0 |       0 | 17-48                                                                                                                          
+ core/repository                  |     3.7 |        0 |       0 |    4.16 |                                                                                                                                
+  AuthRepository.ts               |     3.7 |        0 |       0 |    4.16 | 7-52                                                                                                                           
+ core/services                    |    1.33 |        0 |       0 |    1.47 |                                                                                                                                
+  AuthService.ts                  |    3.84 |        0 |       0 |    4.54 | 6-62                                                                                                                           
+  ErrorService.ts                 |       0 |        0 |       0 |       0 | 18-89                                                                                                                          
+  LoggerService.ts                |       0 |        0 |       0 |       0 | 20-72                                                                                                                          
+ core/services/queue              |     6.8 |     6.66 |     2.7 |    7.19 |                                                                                                                                
+  PersistentQueue.ts              |       0 |        0 |       0 |       0 | 9-102                                                                                                                          
+  QueueProcessor.ts               |    12.5 |    13.04 |    12.5 |   13.63 | 20-91                                                                                                                          
+  QueueRetryStrategy.ts           |    12.5 |        0 |       0 |   13.33 | 9-38                                                                                                                           
+  jobHandlers.ts                  |    4.87 |        0 |       0 |    5.12 | 12-111                                                                                                                         
+  types.ts                        |       0 |        0 |       0 |       0 |                                                                                                                                
+ core/store                       |       5 |        0 |      25 |    2.56 |                                                                                                                                
+  useAuthStore.ts                 |       5 |        0 |      25 |    2.56 | 19-83                                                                                                                          
+ core/ui                          |    3.22 |        0 |       0 |    3.27 |                                                                                                                                
+  BottomBar.tsx                   |       0 |        0 |       0 |       0 | 18-136                                                                                                                         
+  ErrorBoundary.tsx               |       0 |        0 |       0 |       0 | 22-95                                                                                                                          
+  SkeletonCard.tsx                |       0 |      100 |       0 |       0 | 7-35                                                                                                                           
+  ThemeContext.tsx                |       0 |        0 |       0 |       0 | 16-55                                                                                                                          
+  colores.ts                      |       0 |      100 |     100 |       0 | 5                                                                                                                              
+  shadows.ts                      |     100 |      100 |     100 |     100 |                                                                                                                                
+  tokens.ts                       |     100 |      100 |     100 |     100 |                                                                                                                                
+ core/ui/components               |   53.04 |    38.75 |   46.15 |   55.66 |                                                                                                                                
+  AnimatedPressable.tsx           |   38.09 |    18.75 |   33.33 |   41.17 | 47-48,56-67                                                                                                                    
+  Badge.tsx                       |   61.53 |     12.5 |     100 |   61.53 | 26-30,34-37                                                                                                                    
+  Button.tsx                      |   60.86 |       60 |      75 |   63.63 | 46-47,69-73,92-96                                                                                                              
+  HeaderPremium.tsx               |      25 |        0 |       0 |      25 | 25-43                                                                                                                          
+  Input.tsx                       |   28.57 |        0 |       0 |   28.57 | 38-64                                                                                                                          
+  Shimmer.tsx                     |       0 |        0 |       0 |       0 | 22-63                                                                                                                          
+  Surface.tsx                     |   88.88 |     62.5 |     100 |   88.88 | 41                                                                                                                             
+  Typography.tsx                  |    82.6 |       68 |     100 |   94.73 | 29                                                                                                                             
+ core/utils                       |   12.59 |     3.33 |   20.83 |   14.81 |                                                                                                                                
+  benchmark.ts                    |      60 |        0 |      50 |      60 | 37-45                                                                                                                          
+  exportaciones.ts                |       0 |      100 |       0 |       0 | 5-54                                                                                                                           
+  fecha.ts                        |    1.51 |        0 |       0 |    1.92 | 13-81,88-120                                                                                                                   
+  formato.ts                      |       0 |        0 |       0 |       0 | 3-8                                                                                                                            
+  sonidos.ts                      |       0 |        0 |       0 |       0 | 4-28                                                                                                                           
+  useDebounce.ts                  |       0 |      100 |       0 |       0 | 5-17                                                                                                                           
+  useNetworkStatus.ts             |   69.23 |      100 |   66.66 |   69.23 | 27,46-48                                                                                                                       
+ core/validation                  |       0 |        0 |       0 |       0 |                                                                                                                                
+  schemas.ts                      |       0 |        0 |       0 |       0 | 7-63                                                                                                                           
+ features/analytics/hooks         |       0 |        0 |       0 |       0 |                                                                                                                                
+  useAnalytics.ts                 |       0 |        0 |       0 |       0 | 7-58                                                                                                                           
+ features/analytics/screens       |       0 |        0 |       0 |       0 |                                                                                                                                
+  AnalyticsScreen.tsx             |       0 |        0 |       0 |       0 | 23-192                                                                                                                         
+ features/auth/screens            |       0 |        0 |       0 |       0 |                                                                                                                                
+  LoginScreen.tsx                 |       0 |        0 |       0 |       0 | 20-121                                                                                                                         
+ features/historial/hooks         |       0 |        0 |       0 |       0 |                                                                                                                                
+  useHistorial.ts                 |       0 |        0 |       0 |       0 | 18-57                                                                                                                          
+ features/historial/screens       |       0 |        0 |       0 |       0 |                                                                                                                                
+  HistorialScreen.tsx             |       0 |        0 |       0 |       0 | 19-204                                                                                                                         
+ features/inventory/components    |       0 |        0 |       0 |       0 |                                                                                                                                
+  EditProductoModal.tsx           |       0 |        0 |       0 |       0 | 28-279                                                                                                                         
+  ProductoCard.tsx                |       0 |        0 |       0 |       0 | 21-127                                                                                                                         
+ features/inventory/hooks         |       0 |        0 |       0 |       0 |                                                                                                                                
+  useFiltrosInventario.ts         |       0 |        0 |       0 |       0 | 16-59                                                                                                                          
+ features/inventory/repository    |    2.08 |        0 |       0 |    2.27 |                                                                                                                                
+  inventarioRepository.ts         |    2.08 |        0 |       0 |    2.27 | 19-135                                                                                                                         
+ features/inventory/screens       |       0 |        0 |       0 |       0 |                                                                                                                                
+  InventarioListScreen.tsx        |       0 |        0 |       0 |       0 | 40-300                                                                                                                         
+ features/inventory/services      |    0.51 |        0 |       0 |    0.54 |                                                                                                                                
+  syncService.ts                  |    0.51 |        0 |       0 |    0.54 | 15,75-535                                                                                                                      
+ features/inventory/store         |    6.81 |        0 |    7.14 |    4.87 |                                                                                                                                
+  useInventarioStore.ts           |    6.81 |        0 |    7.14 |    4.87 | 52-155                                                                                                                         
+ features/logistics/hooks         |       0 |        0 |       0 |       0 |                                                                                                                                
+  useLogisticaHistorial.ts        |       0 |        0 |       0 |       0 | 8-45                                                                                                                           
+  useLogisticsSync.ts             |       0 |        0 |       0 |       0 | 16-64                                                                                                                          
+ features/logistics/repository    |       0 |      100 |       0 |       0 |                                                                                                                                
+  logisticaHistorialRepository.ts |       0 |      100 |       0 |       0 | 5-44                                                                                                                           
+  logisticsRepository.ts          |       0 |      100 |       0 |       0 | 5-39                                                                                                                           
+ features/logistics/screens       |   16.78 |    16.19 |    8.77 |   18.07 |                                                                                                                                
+  LogisticsHistoryScreen.tsx      |       0 |        0 |       0 |       0 | 17-154                                                                                                                         
+  PickingScreen.tsx               |       0 |        0 |       0 |       0 | 46-376                                                                                                                         
+  StorePanelScreen.tsx            |   27.42 |    30.07 |   16.66 |   28.48 | 72,160-161,207-208,238-241,268-270,274,279-281,287-306,311-319,323-326,330-338,342-390,395-478,487-502,516-527,558,562,580-671 
+ features/logistics/services      |       0 |        0 |       0 |       0 |                                                                                                                                
+  enviosService.ts                |       0 |        0 |       0 |       0 | 13-130                                                                                                                         
+ features/scanner/hooks           |       0 |        0 |       0 |       0 |                                                                                                                                
+  useScanner.ts                   |       0 |        0 |       0 |       0 | 17-121                                                                                                                         
+ features/scanner/repository      |       0 |      100 |       0 |       0 |                                                                                                                                
+  scannerRepository.ts            |       0 |      100 |       0 |       0 | 10-15                                                                                                                          
+ features/scanner/screens         |       0 |        0 |       0 |       0 |                                                                                                                                
+  ScannerScreen.tsx               |       0 |        0 |       0 |       0 | 17-88                                                                                                                          
+----------------------------------|---------|----------|---------|---------|--------------------------------------------------------------------------------------------------------------------------------
+Jest: "global" coverage threshold for statements (90%) not met: 8.93%
+Jest: "global" coverage threshold for branches (90%) not met: 7.44%
+Jest: "global" coverage threshold for lines (90%) not met: 9.42%
+Jest: "global" coverage threshold for functions (90%) not met: 7.22%
+Test Suites: 1 failed, 1 total
+Tests:       3 failed, 1 passed, 4 total
+Snapshots:   0 total
+Time:        6.389 s
+Ran all test suites matching src/features/logistics/screens/StorePanelScreen.test.tsx.

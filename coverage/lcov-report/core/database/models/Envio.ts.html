@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">64.7% </span>
+                <span class="strong">5.88% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>11/17</span>
+                <span class='fraction'>1/17</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">70% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>14/20</span>
+                <span class='fraction'>0/20</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/2</span>
+                <span class='fraction'>0/2</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">90.9% </span>
+                <span class="strong">9.09% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>10/11</span>
+                <span class='fraction'>1/11</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -130,7 +130,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">26x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -167,10 +167,10 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -178,11 +178,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { Model } from '@nozbe/watermelondb';
@@ -227,23 +227,23 @@ export default class Envio extends Model {
   /**
    * Mapea un estado interno de la app al estado externo de Supabase/Google Sheets.
    */
-  static toExternalStatus(interno: string): string {
-    const status = interno.trim();
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (status === 'Pendiente') <span class="cstat-no" title="statement not covered" >return 'Impresión Etiqueta';</span>
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (status === 'En_Tienda') <span class="cstat-no" title="statement not covered" >return 'Listo para envío';</span>
-    <span class="missing-if-branch" title="else path not taken" >E</span>if (status === 'Entregado') return 'Entregado';
+<span class="fstat-no" title="function not covered" >  st</span>atic toExternalStatus(interno: string): string {
+    const status = <span class="cstat-no" title="statement not covered" >interno.trim();</span>
+<span class="cstat-no" title="statement not covered" >    if (status === 'Pendiente') <span class="cstat-no" title="statement not covered" >return 'Impresión Etiqueta';</span></span>
+<span class="cstat-no" title="statement not covered" >    if (status === 'En_Tienda') <span class="cstat-no" title="statement not covered" >return 'Listo para envío';</span></span>
+<span class="cstat-no" title="statement not covered" >    if (status === 'Entregado') <span class="cstat-no" title="statement not covered" >return 'Entregado';</span></span>
 <span class="cstat-no" title="statement not covered" >    return status;</span>
   }
 &nbsp;
   /**
    * Mapea un estado externo de Supabase/Google Sheets al estado interno de la app.
    */
-  static fromExternalStatus(externo: string): EstadoPedido {
-    const norm = (externo || '').toLowerCase().replace(/_/g, ' ').trim();
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (norm.includes('impresion etiqueta') || norm === 'pendiente' || norm.includes('revisar pago')) <span class="cstat-no" title="statement not covered" >return 'Pendiente';</span>
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (norm.includes('listo para envio') || norm === 'en tienda' || norm === 'en_tienda') <span class="cstat-no" title="statement not covered" >return 'En_Tienda';</span>
-    <span class="missing-if-branch" title="if path not taken" >I</span>if (norm.includes('entregado')) <span class="cstat-no" title="statement not covered" >return 'Entregado';</span>
-    return 'Pendiente';
+<span class="fstat-no" title="function not covered" >  st</span>atic fromExternalStatus(externo: string): EstadoPedido {
+    const norm = <span class="cstat-no" title="statement not covered" >(externo || '').toLowerCase().replace(/_/g, ' ').trim();</span>
+<span class="cstat-no" title="statement not covered" >    if (norm.includes('impresion etiqueta') || norm === 'pendiente' || norm.includes('revisar pago')) <span class="cstat-no" title="statement not covered" >return 'Pendiente';</span></span>
+<span class="cstat-no" title="statement not covered" >    if (norm.includes('listo para envio') || norm === 'en tienda' || norm === 'en_tienda') <span class="cstat-no" title="statement not covered" >return 'En_Tienda';</span></span>
+<span class="cstat-no" title="statement not covered" >    if (norm.includes('entregado')) <span class="cstat-no" title="statement not covered" >return 'Entregado';</span></span>
+<span class="cstat-no" title="statement not covered" >    return 'Pendiente';</span>
   }
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -253,7 +253,7 @@ export default class Envio extends Model {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-04-24T16:16:23.909Z
+                at 2026-05-02T17:22:15.434Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

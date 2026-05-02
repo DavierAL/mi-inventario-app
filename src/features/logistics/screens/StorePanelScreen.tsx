@@ -40,8 +40,191 @@ import { syncConSupabase } from '../../inventory/services/syncService';
 type StorePanelNavProp = NativeStackNavigationProp<RootStackParamList, 'StorePanel'>;
 type StorePanelRoute = RouteProp<RootStackParamList, 'StorePanel'>;
 
-// ─── Componente principal ─────────────────────────────────────────────────────
+// ─── Componentes Extraídos ──────────────────────────────────────────────────
 
+const OrderDetailsCard = React.memo(({ item, onAbrirGmaps }: { item: Envio, onAbrirGmaps: () => void }) => {
+    const { colors } = useTheme();
+    return (
+        <Animated.View entering={FadeInDown.springify().damping(15)}>
+            <Surface variant="elevated" padding="lg" style={styles.card}>
+                <View style={styles.cardHeader}>
+                    <View style={styles.flex1}>
+                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>
+                            CÓDIGO DE ENVÍO
+                        </Text>
+                        <Text variant="h2" weight="bold">{item.codPedido}</Text>
+                    </View>
+                    <Badge 
+                        label={item.estado.replace('_', ' ')} 
+                        variant={item.estado === 'Entregado' ? 'success' : 'primary'} 
+                    />
+                </View>
+
+                <View style={[styles.divider, { backgroundColor: colors.borde }]} />
+
+                <View style={styles.infoRow}>
+                    <Ionicons name="person-outline" size={16} color={colors.textoTerciario} />
+                    <View style={styles.infoCol}>
+                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>CLIENTE</Text>
+                        <Text variant="body" weight="medium">{item.cliente}</Text>
+                        {!!item.telefono && (
+                            <TouchableOpacity 
+                                onPress={() => Linking.openURL(`tel:${item.telefono}`)}
+                                style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2, paddingVertical: 4 }}
+                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                accessibilityLabel={`Llamar al cliente al teléfono ${item.telefono}`}
+                                accessibilityRole="button"
+                            >
+                                <Ionicons name="call-outline" size={12} color={colors.primario} />
+                                <Text variant="small" weight="bold" color={colors.primario} style={{ marginLeft: 4 }}>
+                                    {item.telefono}
+                                </Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                </View>
+
+                {(item.direccion || item.distrito) && (
+                    <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
+                        <Ionicons name="location-outline" size={16} color={colors.textoTerciario} />
+                        <View style={styles.infoCol}>
+                            <Text variant="tiny" weight="bold" color={colors.textoTerciario}>DIRECCIÓN</Text>
+                            <Text variant="body">
+                                {item.direccion}{item.distrito ? `, ${item.distrito}` : ''}
+                            </Text>
+                            {!!item.referencia && (
+                                <Text variant="small" color={colors.textoSecundario} style={styles.marginTop2}>
+                                    Ref: {item.referencia}
+                                </Text>
+                            )}
+                            {!!item.gmapsUrl && (
+                                <TouchableOpacity 
+                                    style={[styles.gmapsBtn, { paddingVertical: 4 }]} 
+                                    onPress={onAbrirGmaps}
+                                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                                    accessibilityLabel="Ver ubicación en Google Maps"
+                                    accessibilityRole="button"
+                                >
+                                    <Ionicons name="map-outline" size={14} color={colors.primario} />
+                                    <Text variant="small" weight="bold" color={colors.primario} style={styles.marginLeft4}>
+                                        Ver en Google Maps
+                                    </Text>
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                    </View>
+                )}
+
+                {!!item.operador && (
+                    <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
+                        <Ionicons name="bicycle-outline" size={16} color={colors.textoTerciario} />
+                        <View style={styles.marginLeft12}>
+                            <Text variant="tiny" weight="bold" color={colors.textoTerciario}>OPERADOR</Text>
+                            <Badge 
+                                label={item.operador}
+                                variant={item.operador === 'Salva' ? 'primary' : 'success'}
+                                style={{ marginTop: 2 }}
+                            />
+                        </View>
+                    </View>
+                )}
+
+                {(item.aPagar !== undefined || item.formaPago) && (
+                    <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
+                        <Ionicons name="cash-outline" size={16} color={colors.textoTerciario} />
+                        <View style={styles.marginLeft12}>
+                            <Text variant="tiny" weight="bold" color={colors.textoTerciario}>PAGO Y COBRO</Text>
+                            <Text variant="body" weight="bold">
+                                {item.aPagar && item.aPagar > 0 ? `S/ ${item.aPagar.toFixed(2)}` : 'S/ 0.00'}
+                                <Text variant="small" color={colors.textoSecundario}> ({item.formaPago || 'Sin especificar'})</Text>
+                            </Text>
+                        </View>
+                    </View>
+                )}
+
+                {!!item.notas && (
+                    <>
+                        <View style={[styles.divider, { backgroundColor: colors.borde }]} />
+                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>NOTAS</Text>
+                        <Text variant="small" color={colors.textoSecundario} style={styles.marginTop4}>
+                            {item.notas}
+                        </Text>
+                    </>
+                )}
+            </Surface>
+        </Animated.View>
+    );
+});
+
+const PODEvidenceSection = React.memo(({ uri, isDelivered, onAbrirCamara }: { uri: string | null, isDelivered: boolean, onAbrirCamara: () => void }) => {
+    const { colors } = useTheme();
+    return (
+        <Animated.View entering={FadeInDown.delay(200).springify()}>
+            <Text variant="h3" weight="bold" style={styles.podTitulo}>
+                Evidencia de Entrega (POD)
+            </Text>
+
+            {uri ? (
+                <Surface variant="elevated" padding="lg" style={styles.podCard}>
+                    <View style={[styles.fotoCheck, { backgroundColor: colors.fondoPrimario }]}>
+                        <Ionicons name="checkmark-circle" size={32} color={colors.exito} />
+                    </View>
+                    <View style={styles.podInfo}>
+                        <Text variant="body" weight="bold">Foto capturada</Text>
+                        <Text variant="small" color={colors.textoTerciario} numberOfLines={1}>
+                            Guardada localmente
+                        </Text>
+                    </View>
+                    {!isDelivered && (
+                        <Button 
+                            label="Cambiar"
+                            variant="ghost"
+                            size="sm"
+                            onPress={onAbrirCamara}
+                        />
+                    )}
+                </Surface>
+            ) : (
+                <Surface variant="outline" padding="xl" style={styles.podPlaceholder}>
+                    <Ionicons name="camera-outline" size={48} color={colors.textoTerciario} />
+                    <Text variant="body" color={colors.textoSecundario} style={styles.podText}>
+                        Es necesario capturar una foto para confirmar la entrega.
+                    </Text>
+                    <Button 
+                        label="Tomar Fotografía"
+                        variant="secondary"
+                        style={[styles.marginTopLg, { borderStyle: 'dashed' }]}
+                        icon={<Ionicons name="camera" size={18} color={colors.primario} />}
+                        onPress={onAbrirCamara}
+                    />
+                </Surface>
+            )}
+        </Animated.View>
+    );
+});
+
+const SuccessOverlay = ({ codPedido }: { codPedido?: string }) => {
+    const { colors } = useTheme();
+    return (
+        <Animated.View 
+            entering={FadeIn} 
+            exiting={FadeOut}
+            style={[StyleSheet.absoluteFill, styles.successOverlay, { backgroundColor: colors.fondo + 'E6' }]}
+        >
+            <Animated.View entering={ZoomIn.delay(200)} style={styles.successContainer}>
+                <View style={[styles.successCircle, { backgroundColor: colors.fondoPrimario }]}>
+                    <Ionicons name="checkmark" size={80} color={colors.exito} />
+                </View>
+                <Text variant="h1" weight="bold" style={styles.successTitle}>¡Entregado!</Text>
+                <Text variant="body" color={colors.textoSecundario} align="center">
+                    El envío {codPedido} ha sido registrado con éxito.
+                </Text>
+            </Animated.View>
+        </Animated.View>
+    );
+};
+
+// ─── Componente principal ─────────────────────────────────────────────────────
 export const StorePanelScreen = () => {
     const { colors, isDark } = useTheme();
     const navigation = useNavigation<StorePanelNavProp>();
@@ -296,7 +479,13 @@ export const StorePanelScreen = () => {
         }
     };
 
+    const handleAbrirGmapsCallback = useCallback(() => {
+        handleAbrirGmaps();
+    }, [handleAbrirGmaps]);
 
+    const handleAbrirCamaraCallback = useCallback(() => {
+        handleAbrirCamara();
+    }, [handleAbrirCamara]);
 
     // ─── Modal escáner QR ─────────────────────────────────────────────────────
 
@@ -345,6 +534,7 @@ export const StorePanelScreen = () => {
                                 <Ionicons name="close-circle" size={44} color={colors.absolutoBlanco} />
                             </TouchableOpacity>
                             <TouchableOpacity
+                                testID="btn-capturar-pod"
                                 style={[
                                     styles.camaraDisparador,
                                     { backgroundColor: colors.superficieAlta },
@@ -370,180 +560,7 @@ export const StorePanelScreen = () => {
 
     // ─── Vista principal ──────────────────────────────────────────────────────
 
-    // ─── Componentes Memoizados ──────────────────────────────────────────────
-    
-    const OrderDetailsCard = React.memo(({ item }: { item: Envio }) => (
-        <Animated.View entering={FadeInDown.springify().damping(15)}>
-            <Surface variant="elevated" padding="lg" style={styles.card}>
-                <View style={styles.cardHeader}>
-                    <View style={styles.flex1}>
-                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>
-                            CÓDIGO DE ENVÍO
-                        </Text>
-                        <Text variant="h2" weight="bold">{item.codPedido}</Text>
-                    </View>
-                    <Badge 
-                        label={item.estado.replace('_', ' ')} 
-                        variant={item.estado === 'Entregado' ? 'success' : 'primary'} 
-                    />
-                </View>
 
-                <View style={[styles.divider, { backgroundColor: colors.borde }]} />
-
-                <View style={styles.infoRow}>
-                    <Ionicons name="person-outline" size={16} color={colors.textoTerciario} />
-                    <View style={styles.infoCol}>
-                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>CLIENTE</Text>
-                        <Text variant="body" weight="medium">{item.cliente}</Text>
-                        {!!item.telefono && (
-                            <TouchableOpacity 
-                                onPress={() => Linking.openURL(`tel:${item.telefono}`)}
-                                style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2, paddingVertical: 4 }}
-                                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                                accessibilityLabel={`Llamar al cliente al teléfono ${item.telefono}`}
-                                accessibilityRole="button"
-                            >
-                                <Ionicons name="call-outline" size={12} color={colors.primario} />
-                                <Text variant="small" weight="bold" color={colors.primario} style={{ marginLeft: 4 }}>
-                                    {item.telefono}
-                                </Text>
-                            </TouchableOpacity>
-                        )}
-                    </View>
-                </View>
-
-                {(item.direccion || item.distrito) && (
-                    <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
-                        <Ionicons name="location-outline" size={16} color={colors.textoTerciario} />
-                        <View style={styles.infoCol}>
-                            <Text variant="tiny" weight="bold" color={colors.textoTerciario}>DIRECCIÓN</Text>
-                            <Text variant="body">
-                                {item.direccion}{item.distrito ? `, ${item.distrito}` : ''}
-                            </Text>
-                            {!!item.referencia && (
-                                <Text variant="small" color={colors.textoSecundario} style={styles.marginTop2}>
-                                    Ref: {item.referencia}
-                                </Text>
-                            )}
-                            {!!item.gmapsUrl && (
-                                <TouchableOpacity 
-                                    style={[styles.gmapsBtn, { paddingVertical: 4 }]} 
-                                    onPress={handleAbrirGmaps}
-                                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                                    accessibilityLabel="Ver ubicación en Google Maps"
-                                    accessibilityRole="button"
-                                >
-                                    <Ionicons name="map-outline" size={14} color={colors.primario} />
-                                    <Text variant="small" weight="bold" color={colors.primario} style={styles.marginLeft4}>
-                                        Ver en Google Maps
-                                    </Text>
-                                </TouchableOpacity>
-                            )}
-                        </View>
-                    </View>
-                )}
-
-                {!!item.operador && (
-                    <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
-                        <Ionicons name="bicycle-outline" size={16} color={colors.textoTerciario} />
-                        <View style={styles.marginLeft12}>
-                            <Text variant="tiny" weight="bold" color={colors.textoTerciario}>OPERADOR</Text>
-                            <Badge 
-                                label={item.operador}
-                                variant={item.operador === 'Salva' ? 'primary' : 'success'}
-                                style={{ marginTop: 2 }}
-                            />
-                        </View>
-                    </View>
-                )}
-
-                {(item.aPagar !== undefined || item.formaPago) && (
-                    <View style={[styles.infoRow, { marginTop: TOKENS.spacing.md }]}>
-                        <Ionicons name="cash-outline" size={16} color={colors.textoTerciario} />
-                        <View style={styles.marginLeft12}>
-                            <Text variant="tiny" weight="bold" color={colors.textoTerciario}>PAGO Y COBRO</Text>
-                            <Text variant="body" weight="bold">
-                                {item.aPagar && item.aPagar > 0 ? `S/ ${item.aPagar.toFixed(2)}` : 'S/ 0.00'}
-                                <Text variant="small" color={colors.textoSecundario}> ({item.formaPago || 'Sin especificar'})</Text>
-                            </Text>
-                        </View>
-                    </View>
-                )}
-
-                {!!item.notas && (
-                    <>
-                        <View style={[styles.divider, { backgroundColor: colors.borde }]} />
-                        <Text variant="tiny" weight="bold" color={colors.textoTerciario}>NOTAS</Text>
-                        <Text variant="small" color={colors.textoSecundario} style={styles.marginTop4}>
-                            {item.notas}
-                        </Text>
-                    </>
-                )}
-            </Surface>
-        </Animated.View>
-    ));
-
-    const PODEvidenceSection = React.memo(({ uri, isDelivered }: { uri: string | null, isDelivered: boolean }) => (
-        <Animated.View entering={FadeInDown.delay(200).springify()}>
-            <Text variant="h3" weight="bold" style={styles.podTitulo}>
-                Evidencia de Entrega (POD)
-            </Text>
-
-            {uri ? (
-                <Surface variant="elevated" padding="lg" style={styles.podCard}>
-                    <View style={[styles.fotoCheck, { backgroundColor: colors.fondoPrimario }]}>
-                        <Ionicons name="checkmark-circle" size={32} color={colors.exito} />
-                    </View>
-                    <View style={styles.podInfo}>
-                        <Text variant="body" weight="bold">Foto capturada</Text>
-                        <Text variant="small" color={colors.textoTerciario} numberOfLines={1}>
-                            Guardada localmente
-                        </Text>
-                    </View>
-                    {!isDelivered && (
-                        <Button 
-                            label="Cambiar"
-                            variant="ghost"
-                            size="sm"
-                            onPress={handleAbrirCamara}
-                        />
-                    )}
-                </Surface>
-            ) : (
-                <Surface variant="outline" padding="xl" style={styles.podPlaceholder}>
-                    <Ionicons name="camera-outline" size={48} color={colors.textoTerciario} />
-                    <Text variant="body" color={colors.textoSecundario} style={styles.podText}>
-                        Es necesario capturar una foto para confirmar la entrega.
-                    </Text>
-                    <Button 
-                        label="Tomar Fotografía"
-                        variant="secondary"
-                        style={[styles.marginTopLg, { borderStyle: 'dashed' }]}
-                        icon={<Ionicons name="camera" size={18} color={colors.primario} />}
-                        onPress={handleAbrirCamara}
-                    />
-                </Surface>
-            )}
-        </Animated.View>
-    ));
-
-    const SuccessOverlay = () => (
-        <Animated.View 
-            entering={FadeIn} 
-            exiting={FadeOut}
-            style={[StyleSheet.absoluteFill, styles.successOverlay, { backgroundColor: colors.fondo + 'E6' }]}
-        >
-            <Animated.View entering={ZoomIn.delay(200)} style={styles.successContainer}>
-                <View style={[styles.successCircle, { backgroundColor: colors.fondoPrimario }]}>
-                    <Ionicons name="checkmark" size={80} color={colors.exito} />
-                </View>
-                <Text variant="h1" weight="bold" style={styles.successTitle}>¡Entregado!</Text>
-                <Text variant="body" color={colors.textoSecundario} align="center">
-                    El envío {envio?.codPedido} ha sido registrado con éxito.
-                </Text>
-            </Animated.View>
-        </Animated.View>
-    );
 
     // ─── Vista principal ──────────────────────────────────────────────────────
 
@@ -607,15 +624,17 @@ export const StorePanelScreen = () => {
                 {/* Datos del envio */}
                 {envio && (
                     <>
-                        <OrderDetailsCard item={envio} />
+                        <OrderDetailsCard item={envio} onAbrirGmaps={handleAbrirGmapsCallback} />
                         
                         <PODEvidenceSection 
                             uri={fotoUri} 
                             isDelivered={envio.estado === 'Entregado'} 
+                            onAbrirCamara={handleAbrirCamaraCallback}
                         />
 
                         {/* Botón Final */}
                         <Button 
+                            testID="btn-confirmar-entrega"
                             label={procesando ? "Guardando..." : "Confirmar Entrega"}
                             variant="primary"
                             loading={procesando}
@@ -653,7 +672,7 @@ export const StorePanelScreen = () => {
                 }}
             />
 
-            {showSuccess && <SuccessOverlay />}
+            {showSuccess && <SuccessOverlay codPedido={envio?.codPedido} />}
         </SafeAreaView>
     );
 };

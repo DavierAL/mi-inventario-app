@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { database } from '../../../core/database';
 import LogisticaHistorial from '../../../core/database/models/LogisticaHistorial';
 import { Q } from '@nozbe/watermelondb';
+import { Clause } from '@nozbe/watermelondb/QueryDescription';
 import { useAuthStore } from '../../../core/store/useAuthStore';
 
 export const useLogisticaHistorial = () => {
@@ -12,7 +13,7 @@ export const useLogisticaHistorial = () => {
   useEffect(() => {
     const user = useAuthStore.getState().user;
     const role = user?.rol;
-    const conditions: any[] = [];
+    const conditions: Clause[] = [];
 
     if (role === 'logistica') {
       conditions.push(Q.where('operador', 'Salva'));
