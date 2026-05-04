@@ -52,6 +52,7 @@ export const AnimatedPressable: React.FC<AnimatedPressableProps> = ({
     const tap = Gesture.Tap()
         .enabled(!disabled)
         .maxDuration(10000)
+        .hitSlop(props.hitSlop as any)
         .onBegin(() => {
             scale.value = withSpring(scaleTo, { damping: 10, stiffness: 200 });
             opacity.value = withTiming(0.85, { duration: 100 });

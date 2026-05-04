@@ -15,6 +15,8 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Image } from 'expo-image';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
+import * as FileSystem from 'expo-file-system';
+import * as Print from 'expo-print';
 
 import { database } from '../../../core/database';
 import { Q } from '@nozbe/watermelondb';
@@ -22,6 +24,10 @@ import Producto from '../../../core/database/models/Producto';
 import { useTheme } from '../../../core/ui/ThemeContext';
 import { RootStackParamList } from '../../../core/types/navigation';
 import { TOKENS } from '../../../core/ui/tokens';
+import { generateAuditPdf } from '../utils/auditPdfGenerator';
+import { supabase } from '../../../core/database/supabase';
+import { AuthService } from '../../../core/services/AuthService';
+import MarcaControl from '../../../core/database/models/MarcaControl';
 
 // Core Components
 import { HeaderPremium } from '../../../core/ui/components/HeaderPremium';
@@ -47,6 +53,8 @@ export const BrandAuditScreen: React.FC = () => {
   const [cargando, setCargando] = useState(true);
   const [auditData, setAuditData] = useState<Record<string, AuditState>>({});
   const [showScanner, setShowScanner] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+  const [responsable, setResponsable] = useState('...');
   const [permission, requestPermission] = useCameraPermissions();
 
   useEffect(() => {
@@ -64,6 +72,13 @@ export const BrandAuditScreen: React.FC = () => {
           initialData[p.id] = { manual: '0', escaneado: 0 };
         });
         setAuditData(initialData);
+
+        // Fetch current user for "Responsable"
+        const session = await AuthService.getSession();
+        if (session?.user) {
+          const { profile } = await AuthService.getProfile(session.user.id);
+          if (profile) setResponsable(profile.nombre);
+        }
       } catch (error) {
         console.error('Error fetching productos for audit:', error);
       } finally {
@@ -78,6 +93,29 @@ export const BrandAuditScreen: React.FC = () => {
       ...prev,
       [id]: { ...prev[id], manual: value }
     }));
+  };
+
+  const incrementManual = (id: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setAuditData(prev => {
+      const current = parseInt(prev[id]?.manual || '0', 10);
+      return {
+        ...prev,
+        [id]: { ...prev[id], manual: (current + 1).toString() }
+      };
+    });
+  };
+
+  const decrementManual = (id: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setAuditData(prev => {
+      const current = parseInt(prev[id]?.manual || '0', 10);
+      if (current <= 0) return prev;
+      return {
+        ...prev,
+        [id]: { ...prev[id], manual: (current - 1).toString() }
+      };
+    });
   };
 
   const handleBarcodeScanned = ({ data }: { data: string }) => {
@@ -105,22 +143,64 @@ export const BrandAuditScreen: React.FC = () => {
     }
   };
 
-  const handleEnviar = () => {
+  const handleEnviar = async () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    
     Alert.alert(
       'Enviar Inventario',
-      '¿Estás seguro de enviar los datos del conteo? Se generará un reporte comparativo.',
+      '¿Estás seguro de enviar los datos del conteo? Se generará un reporte comparativo y se enviará por correo.',
       [
         { text: 'Cancelar', style: 'cancel' },
         { 
           text: 'Enviar', 
-          onPress: () => {
-            Toast.show({
-              type: 'success',
-              text1: 'Inventario Enviado',
-              text2: 'Los datos han sido registrados exitosamente.',
-            });
-            navigation.goBack();
+          onPress: async () => {
+            try {
+              setEnviando(true);
+              
+              // 1. Generate PDF HTML
+              const html = await generateAuditPdf(marca, responsable, productos, auditData);
+              
+              // 2. Print to file
+              const { uri } = await Print.printToFileAsync({ html });
+              
+              // 3. Convert to Base64
+              const pdfBase64 = await FileSystem.readAsStringAsync(uri, {
+                encoding: 'base64',
+              });
+              
+              const filename = `Audit_${marca.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+              // 4. Send via Edge Function
+              const { error } = await supabase.functions.invoke('enviar-constancia-inventario', {
+                body: { pdfBase64, filename }
+              });
+
+              if (error) throw error;
+
+              // 5. Update last audit date locally
+              await database.write(async () => {
+                const brands = await database.get<MarcaControl>('marcas_control')
+                  .query(Q.where('nombre', marca))
+                  .fetch();
+                if (brands.length > 0) {
+                  await brands[0].update(m => {
+                    m.ultimoConteo = new Date();
+                  });
+                }
+              });
+
+              Toast.show({
+                type: 'success',
+                text1: 'Inventario Enviado',
+                text2: 'El reporte ha sido enviado exitosamente por correo.',
+              });
+              navigation.goBack();
+            } catch (err) {
+              console.error('Error al enviar auditoria:', err);
+              Alert.alert('Error', 'No se pudo enviar el reporte. Verifica tu conexión.');
+            } finally {
+              setEnviando(false);
+            }
           } 
         }
       ]
@@ -157,6 +237,8 @@ export const BrandAuditScreen: React.FC = () => {
       <FlashList
         data={productos}
         keyExtractor={item => item.id}
+        // @ts-ignore
+        estimatedItemSize={180}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => {
           const state = auditData[item.id] || { manual: '0', escaneado: 0 };
@@ -175,9 +257,9 @@ export const BrandAuditScreen: React.FC = () => {
                   </Text>
                   <Text variant="tiny" color={colors.textoSecundario}>SKU: {item.sku}</Text>
                 </View>
-                <View style={styles.systemStock}>
-                  <Text variant="tiny" color={colors.textoTerciario}>SISTEMA</Text>
-                  <Text variant="h3" weight="bold" color={colors.primario}>{item.stockMaster}</Text>
+                <View style={[styles.systemStock, { backgroundColor: colors.superficieAlta || '#F8FAFC' }]}>
+                  <Text variant="tiny" weight="bold" color={colors.textoTerciario}>SISTEMA</Text>
+                  <Text variant="h2" weight="bold" color={colors.textoPrincipal}>{item.stockMaster}</Text>
                 </View>
               </View>
 
@@ -185,29 +267,31 @@ export const BrandAuditScreen: React.FC = () => {
 
               <View style={styles.auditControls}>
                 <View style={styles.controlGroup}>
-                  <Text variant="tiny" weight="bold" color={colors.textoSecundario}>MANUAL</Text>
-                  <Input
-                    value={state.manual}
-                    onChangeText={(val) => handleManualChange(item.id, val)}
-                    keyboardType="number-pad"
-                    containerStyle={styles.inputContainer}
-                    style={styles.manualInput}
-                  />
+                  <Text variant="tiny" weight="bold" color={colors.textoSecundario} style={{ marginBottom: 4 }}>DIF. MANUAL</Text>
+                  <View style={[styles.counterContainer, { backgroundColor: colors.fondoPrimario }]}>
+                    <AnimatedPressable onPress={() => decrementManual(item.id)} hitSlop={8}>
+                      <Ionicons name="remove-circle-outline" size={22} color={colors.primario} />
+                    </AnimatedPressable>
+                    <Input
+                      value={state.manual}
+                      onChangeText={(val) => handleManualChange(item.id, val)}
+                      keyboardType="number-pad"
+                      containerStyle={{ flex: 1, marginBottom: 0 }}
+                      style={styles.manualInput}
+                      variant="flat"
+                    />
+                    <AnimatedPressable onPress={() => incrementManual(item.id)} hitSlop={8}>
+                      <Ionicons name="add-circle" size={22} color={colors.primario} />
+                    </AnimatedPressable>
+                  </View>
                 </View>
 
                 <View style={styles.controlGroup}>
-                  <Text variant="tiny" weight="bold" color={colors.textoSecundario}>ESCANEADO</Text>
-                  <View style={[styles.scanCounter, { backgroundColor: colors.fondoPrimario }]}>
-                    <Text variant="body" weight="bold" color={colors.primario}>{state.escaneado}</Text>
-                    <AnimatedPressable onPress={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        setAuditData(prev => ({
-                          ...prev,
-                          [item.id]: { ...prev[item.id], escaneado: prev[item.id].escaneado + 1 }
-                        }));
-                    }}>
-                      <Ionicons name="add-circle" size={24} color={colors.primario} />
-                    </AnimatedPressable>
+                  <Text variant="tiny" weight="bold" color={colors.textoSecundario} style={{ marginBottom: 4 }}>DIF. ESCANEADO</Text>
+                  <View style={[styles.counterContainer, styles.scanDisplay, { backgroundColor: colors.superficieAlta || '#F1F5F9' }]}>
+                    <Text variant="h3" weight="bold" color={colors.primario} align="center">
+                      {state.escaneado}
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -217,10 +301,11 @@ export const BrandAuditScreen: React.FC = () => {
         ListFooterComponent={() => (
           <View style={styles.footer}>
             <Button 
-              label="FINALIZAR Y ENVIAR" 
+              label={enviando ? "ENVIANDO..." : "FINALIZAR Y ENVIAR"} 
               variant="primary" 
               onPress={handleEnviar}
-              style={styles.btnEnviar}
+              disabled={enviando}
+              style={[styles.btnEnviar, { backgroundColor: colors.error }]}
             />
           </View>
         )}
@@ -240,7 +325,12 @@ export const BrandAuditScreen: React.FC = () => {
                   <Ionicons name="close-circle" size={32} color="#fff" />
                 </AnimatedPressable>
              </View>
-             <View style={styles.scannerTarget} />
+             <View style={styles.scannerTarget}>
+               <View style={[styles.scannerCorner, styles.topLeft]} />
+               <View style={[styles.scannerCorner, styles.topRight]} />
+               <View style={[styles.scannerCorner, styles.bottomLeft]} />
+               <View style={[styles.scannerCorner, styles.bottomRight]} />
+             </View>
              <View style={styles.scannerFooter}>
                 <Text variant="small" color="#fff" align="center">
                   Apunta a los códigos de barras de la marca {marca}. El conteo se incrementará automáticamente.
@@ -280,42 +370,58 @@ const styles = StyleSheet.create({
   },
   systemStock: {
     alignItems: 'center',
-    minWidth: 60,
+    justifyContent: 'center',
+    minWidth: 70,
+    height: 60,
+    borderRadius: TOKENS.radius.md,
+    padding: 8,
   },
   divider: {
     height: 1,
-    marginVertical: 12,
-    opacity: 0.5,
+    marginVertical: 14,
+    opacity: 0.3,
   },
   auditControls: {
     flexDirection: 'row',
-    gap: 16,
+    gap: 12,
   },
   controlGroup: {
     flex: 1,
-    gap: 4,
-  },
-  inputContainer: {
-    marginBottom: 0,
   },
   manualInput: {
     textAlign: 'center',
-    fontWeight: 'bold',
+    fontWeight: '700',
+    fontSize: 18,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
   },
-  scanCounter: {
-    height: 48,
-    borderRadius: TOKENS.radius.md,
+  counterContainer: {
+    height: 52,
+    borderRadius: TOKENS.radius.lg,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 12,
+    borderWidth: 1.5,
+    borderColor: 'rgba(0,0,0,0.08)',
+  },
+  scanDisplay: {
+    justifyContent: 'center',
+    borderStyle: 'dashed',
   },
   footer: {
-    marginTop: 20,
-    marginBottom: 40,
+    paddingTop: 20,
+    paddingBottom: 40,
+    paddingHorizontal: 16,
   },
   btnEnviar: {
-    backgroundColor: '#DC2626', // Red consistent with "ENVIAR" button in spreadsheet
+    backgroundColor: '#DC2626',
+    borderRadius: TOKENS.radius.lg,
+    height: 56,
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
   },
   scannerContainer: {
     flex: 1,
@@ -324,25 +430,38 @@ const styles = StyleSheet.create({
   scannerOverlay: {
     flex: 1,
     justifyContent: 'space-between',
-    padding: 20,
+    padding: 24,
   },
   scannerHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingTop: 20,
   },
   scannerTarget: {
-    width: 250,
-    height: 150,
-    borderWidth: 2,
-    borderColor: '#fff',
-    borderRadius: 12,
+    width: 280,
+    height: 180,
+    borderRadius: 20,
     alignSelf: 'center',
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    position: 'relative',
+    backgroundColor: 'transparent',
   },
+  scannerCorner: {
+    position: 'absolute',
+    width: 40,
+    height: 40,
+    borderColor: '#3B82F6',
+    borderWidth: 4,
+  },
+  topLeft: { top: 0, left: 0, borderRightWidth: 0, borderBottomWidth: 0, borderTopLeftRadius: 20 },
+  topRight: { top: 0, right: 0, borderLeftWidth: 0, borderBottomWidth: 0, borderTopRightRadius: 20 },
+  bottomLeft: { bottom: 0, left: 0, borderRightWidth: 0, borderTopWidth: 0, borderBottomLeftRadius: 20 },
+  bottomRight: { bottom: 0, right: 0, borderLeftWidth: 0, borderTopWidth: 0, borderBottomRightRadius: 20 },
   scannerFooter: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    padding: 16,
-    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
   }
 });

@@ -1,11 +1,13 @@
 // ARCHIVO: src/core/ui/components/HeaderPremium.tsx
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../ThemeContext';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Text } from './Typography';
 import { SHADOWS } from '../shadows';
+import { TOKENS } from '../tokens';
 
 interface Props {
     titulo: string;
@@ -29,6 +31,7 @@ export const HeaderPremium: React.FC<Props> = ({
     lastSync,
     extraAction
 }) => {
+    const insets = useSafeAreaInsets();
     const { colors, isDark, toggleTheme } = useTheme();
     const { logout } = useAuthStore();
 
@@ -48,7 +51,14 @@ export const HeaderPremium: React.FC<Props> = ({
     };
 
     return (
-        <View style={[styles.header, { backgroundColor: colors.superficie, borderBottomColor: colors.borde }]}>
+        <View style={[
+            styles.header, 
+            { 
+                backgroundColor: colors.superficie, 
+                borderBottomColor: colors.borde,
+                paddingTop: Math.max(insets.top, 12) 
+            }
+        ]}>
             <View style={styles.filaArriba}>
                 <View style={styles.branding}>
                     <View style={[styles.logoPlaceholder, { backgroundColor: colors.primario + '15' }]}>
@@ -127,9 +137,8 @@ export const HeaderPremium: React.FC<Props> = ({
 
 const styles = StyleSheet.create({
     header: {
-        paddingTop: 12,
-        paddingBottom: 10,
-        paddingHorizontal: 16,
+        paddingBottom: 12,
+        paddingHorizontal: TOKENS.spacing.lg,
         borderBottomWidth: 1,
         ...SHADOWS.CARD,
     },
@@ -141,7 +150,7 @@ const styles = StyleSheet.create({
     branding: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 10,
+        gap: TOKENS.spacing.md,
     },
     logoPlaceholder: {
         width: 34,
@@ -165,6 +174,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginTop: 8,
+        paddingLeft: 34 + TOKENS.spacing.md, // Alineado con el texto de la marca (logo width + gap)
         gap: 6,
         opacity: 0.8,
     },

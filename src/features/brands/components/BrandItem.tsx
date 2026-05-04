@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useTheme } from '../../../core/ui/ThemeContext';
 import { Text } from '../../../core/ui/components/Typography';
 import { Badge } from '../../../core/ui/components/Badge';
@@ -10,10 +11,11 @@ import { MarcaEstado } from '../services/marcasService';
 interface Props {
   marca: MarcaEstado;
   onPress: () => void;
+  onConfig?: () => void;
   disabled?: boolean;
 }
 
-export const BrandItem: React.FC<Props> = ({ marca, onPress, disabled }) => {
+export const BrandItem: React.FC<Props> = ({ marca, onPress, onConfig, disabled }) => {
   const { colors } = useTheme();
 
   const getStatusConfig = () => {
@@ -54,7 +56,19 @@ export const BrandItem: React.FC<Props> = ({ marca, onPress, disabled }) => {
             </Text>
           </View>
         </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.textoTerciario} />
+        
+        <View style={styles.rightActions}>
+          {onConfig && (
+            <AnimatedPressable 
+              onPress={onConfig} 
+              style={styles.configButton}
+              haptic={Haptics.ImpactFeedbackStyle.Light}
+            >
+              <Ionicons name="settings-outline" size={20} color={colors.primario} />
+            </AnimatedPressable>
+          )}
+          <Ionicons name="chevron-forward" size={18} color={colors.textoTerciario} />
+        </View>
       </View>
     </AnimatedPressable>
   );
@@ -79,6 +93,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  rightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  configButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.03)',
   },
   daysText: {
     marginLeft: 4,

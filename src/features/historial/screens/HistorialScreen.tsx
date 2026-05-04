@@ -144,7 +144,7 @@ const HistorialScreen: React.FC = () => {
     ), [entradas.length]);
 
     return (
-        <SafeAreaView style={[styles.contenedor, { backgroundColor: colors.fondo }]}>
+        <SafeAreaView style={[styles.contenedor, { backgroundColor: colors.fondo }]} edges={['bottom']}>
             <HeaderPremium 
                 titulo="Historial" 
             />
@@ -174,7 +174,7 @@ const HistorialScreen: React.FC = () => {
                     keyExtractor={(item: EntradaHistorial) => item.id || String(item.timestamp)}
                     estimatedItemSize={160}
                     renderItem={renderItem}
-                    contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}
+                    contentContainerStyle={{ paddingHorizontal: TOKENS.spacing.lg, paddingTop: 20, paddingBottom: 40 }}
                     ListHeaderComponent={
                         <Surface variant="flat" padding="md" style={styles.bannerInfo}>
                             <Ionicons name="information-circle-outline" size={16} color={colors.primario} />

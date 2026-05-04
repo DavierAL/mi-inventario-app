@@ -23,6 +23,7 @@ interface InputProps extends TextInputProps {
     testID?: string;
     accessibilityLabel?: string;
     accessibilityHint?: string;
+    variant?: 'default' | 'flat' | 'borderless';
 }
 
 export const Input: React.FC<InputProps> = ({ 
@@ -31,6 +32,7 @@ export const Input: React.FC<InputProps> = ({
     icon, 
     rightIcon,
     containerStyle,
+    variant = 'default',
     accessibilityLabel,
     accessibilityHint,
     ...props 
@@ -47,10 +49,16 @@ export const Input: React.FC<InputProps> = ({
             )}
             <View style={[
                 styles.inputWrapper, 
-                { 
+                variant === 'default' && { 
                     backgroundColor: colors.inputFondo, 
                     borderColor: error ? colors.error : (isFocused ? colors.primario : colors.borde),
                     borderWidth: isFocused || error ? 1.5 : 1
+                },
+                (variant === 'flat' || variant === 'borderless') && {
+                    backgroundColor: 'transparent',
+                    borderWidth: 0,
+                    paddingHorizontal: 0,
+                    minHeight: 0,
                 }
             ]}>
                 {icon && <View style={styles.iconContainer}>{icon}</View>}

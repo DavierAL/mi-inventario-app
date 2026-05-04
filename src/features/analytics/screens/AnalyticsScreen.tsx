@@ -54,7 +54,7 @@ const AnalyticsScreenRaw: React.FC<Props> = ({ productos }) => {
     }));
 
     return (
-        <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.fondo }]}>
+        <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.fondo }]} edges={['bottom']}>
             <HeaderPremium titulo="Análisis" />
             <ScrollView style={styles.contenedor}>
 
@@ -192,7 +192,7 @@ export const AnalyticsScreen = enhance(AnalyticsScreenRaw);
 
 const styles = StyleSheet.create({
     safeArea: { flex: 1 },
-    contenedor: { flex: 1, padding: 16 },
+    contenedor: { flex: 1, padding: TOKENS.spacing.lg },
     // Notion typography
     tituloSec: { fontSize: 22, fontWeight: '700', letterSpacing: -0.25, marginBottom: 16, marginTop: 8 },
     // Metric Cards — Notion spec

@@ -151,18 +151,18 @@ export const ControlMarcasScreen: React.FC = () => {
     return list;
   }, [marcasFiltradas, colors]);
 
+  const irAConfig = (marca: any) => {
+    navigation.navigate('MarcaConfig', { 
+      marcaId: marca.id, 
+      nombre: marca.nombre, 
+      diasRango: marca.diasRango, 
+      inventariar: marca.inventariar 
+    });
+  };
+
   const handleMarcaPress = (marca: any) => {
-    if (isAdmin) {
-      navigation.navigate('MarcaConfig', { 
-        marcaId: marca.id, 
-        nombre: marca.nombre, 
-        diasRango: marca.diasRango, 
-        inventariar: marca.inventariar 
-      });
-    } else {
-      // Roles operativos van directo a hacer el inventario (Modo Auditoría)
-      navigation.navigate('BrandAudit', { marca: marca.nombre });
-    }
+    // Todos los roles van a la auditoría al hacer click
+    navigation.navigate('BrandAudit', { marca: marca.nombre });
   };
 
   const renderSkeleton = () => (
@@ -232,6 +232,8 @@ export const ControlMarcasScreen: React.FC = () => {
           <FlashList
             data={listData}
             keyExtractor={(item) => item.id}
+            // @ts-ignore
+            estimatedItemSize={72}
             onRefresh={recargar}
             refreshing={false}
             renderItem={({ item, index }) => {
@@ -249,6 +251,7 @@ export const ControlMarcasScreen: React.FC = () => {
                   <BrandItem 
                     marca={item} 
                     onPress={() => handleMarcaPress(item)} 
+                    onConfig={isAdmin ? () => irAConfig(item) : undefined}
                   />
                 </Animated.View>
               );
@@ -340,7 +343,7 @@ const styles = StyleSheet.create({
     paddingTop: 24,
   },
   alertWrapper: {
-    paddingHorizontal: 16,
+    paddingHorizontal: TOKENS.spacing.lg,
     paddingTop: 8,
     paddingBottom: 16,
   },

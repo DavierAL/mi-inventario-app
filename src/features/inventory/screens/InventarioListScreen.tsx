@@ -192,7 +192,7 @@ export const InventarioListScreen = () => {
     };
 
     return (
-        <SafeAreaView style={[styles.contenedor, { backgroundColor: colors.fondo }]}>
+        <SafeAreaView style={[styles.contenedor, { backgroundColor: colors.fondo }]} edges={['bottom']}>
             <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={colors.superficie} />
             <HeaderPremium 
                 titulo="Almacén" 
@@ -308,9 +308,9 @@ const styles = StyleSheet.create({
     filaSync: { flexDirection: 'row', alignItems: 'center' },
     headerBranding: { flexDirection: 'row', alignItems: 'center', gap: 12 },
     logoTiny: { width: 32, height: 32 },
-    areaBuscador: { paddingHorizontal: 20, paddingVertical: 12, borderBottomWidth: 1 },
+    areaBuscador: { paddingHorizontal: TOKENS.spacing.lg, paddingVertical: 12, borderBottomWidth: 1 },
     searchContainer: { marginTop: TOKENS.spacing.md },
-    filtrosScroll: { paddingHorizontal: 20, gap: 8 },
+    filtrosScroll: { paddingHorizontal: TOKENS.spacing.lg, gap: 8 },
     cargandoContenedor: { flex: 1, padding: 20 },
     listaPadding: { paddingVertical: TOKENS.spacing.md },
     contenedor: { flex: 1 },

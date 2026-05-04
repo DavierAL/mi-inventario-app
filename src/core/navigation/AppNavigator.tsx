@@ -10,6 +10,7 @@ import { PickingScreen, StorePanelScreen, LogisticsHistoryScreen } from '../../f
 import { LoginScreen } from '../../features/auth/screens/LoginScreen';
 import { ControlMarcasScreen } from '../../features/brands/screens/ControlMarcasScreen';
 import { MarcaConfigScreen } from '../../features/brands/screens/MarcaConfigScreen';
+import { BrandAuditScreen } from '../../features/brands/screens/BrandAuditScreen';
 import { RootStackParamList } from '../types/navigation';
 import { useAuthStore } from '../store/useAuthStore';
 import { supabase } from '../database/supabase';
@@ -96,7 +97,10 @@ export const AppNavigator = () => {
                         )}
 
                         {(user.rol === 'admin' || user.rol === 'almacen' || user.rol === 'tienda') && (
-                            <Stack.Screen name="ControlMarcas" component={ControlMarcasScreen} />
+                            <>
+                                <Stack.Screen name="ControlMarcas" component={ControlMarcasScreen} />
+                                <Stack.Screen name="BrandAudit" component={BrandAuditScreen} />
+                            </>
                         )}
 
                         {user.rol === 'admin' && (

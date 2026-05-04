@@ -244,7 +244,7 @@ export const PickingScreen = () => {
     }, []);
 
     return (
-        <SafeAreaView style={[styles.contenedor, { backgroundColor: colors.fondo }]}>
+        <SafeAreaView style={[styles.contenedor, { backgroundColor: colors.fondo }]} edges={['bottom']}>
             <StatusBar
                 barStyle={isDark ? 'light-content' : 'dark-content'}
                 backgroundColor={colors.fondo}
@@ -620,7 +620,7 @@ const styles = StyleSheet.create({
     filtrosRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingHorizontal: 20,
+        paddingHorizontal: TOKENS.spacing.lg,
     },
     notasContainer: {
         marginTop: 8,
