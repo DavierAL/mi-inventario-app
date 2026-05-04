@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 import { Q } from '@nozbe/watermelondb';
 import { database } from '../../../core/database';
 import { QueueActions } from '../../../core/services/queue';
+import { ErrorService } from '../../../core/services/ErrorService';
 import { ProductoInventario, EntradaHistorial, TipoAccionHistorial } from '../../../core/types/inventario';
 import Movimiento from '../../../core/database/models/Movimiento';
 import Producto from '../../../core/database/models/Producto';
@@ -34,7 +35,7 @@ export const InventarioRepository = {
 
             return results.length > 0 ? results[0] : null;
         } catch (error) {
-            console.error('[Repo] Error al buscar producto:', error);
+            ErrorService.handle(error, { component: 'InventarioRepository', operation: 'buscarPorCodigoBarras' });
             return null;
         }
     },
@@ -109,7 +110,7 @@ export const InventarioRepository = {
             return { exito: true, webhookEncolado: true };
 
         } catch (error) {
-            console.error('[Repo] Error Fatal en Actualización:', error);
+            ErrorService.handle(error, { component: 'InventarioRepository', operation: 'actualizarProducto' });
             return { exito: false, webhookEncolado: false };
         }
     },
@@ -132,7 +133,7 @@ export const InventarioRepository = {
                 });
             });
         } catch (error) {
-            console.error('[Repo] Error en SQLite History:', error);
+            ErrorService.handle(error, { component: 'InventarioRepository', operation: 'registrarMovimiento' });
         }
     }
 };

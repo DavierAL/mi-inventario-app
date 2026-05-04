@@ -84,7 +84,7 @@ export function parseFVToDate(valor: string | Date | null | undefined): Date | u
 /**
  * Helper interno para asegurar que siempre trabajamos con un number (Timestamp ms)
  */
-export const obtenerTimestamp = (valor: any): number => {
+export const obtenerTimestamp = (valor: string | Date | number | null | undefined): number => {
     if (!valor || valor === 0) return Date.now();
     if (typeof valor === 'number') return valor;
     if (valor instanceof Date) {
@@ -98,7 +98,7 @@ export const obtenerTimestamp = (valor: any): number => {
 /**
  * Devuelve una cadena legible con el tiempo transcurrido (ej: "Hace 5 min").
  */
-export function formatearTiempoRelativo(rawTimestamp: any): string {
+export function formatearTiempoRelativo(rawTimestamp: string | Date | number | null | undefined): string {
     const timestamp = obtenerTimestamp(rawTimestamp);
     const diffMs = Date.now() - timestamp;
     const diffMin = Math.floor(diffMs / 60_000);
@@ -115,7 +115,7 @@ export function formatearTiempoRelativo(rawTimestamp: any): string {
 /**
  * Devuelve la hora en formato HH:MM.
  */
-export function formatearHora(rawTimestamp: any): string {
+export function formatearHora(rawTimestamp: string | Date | number | null | undefined): string {
     const timestamp = obtenerTimestamp(rawTimestamp);
     return new Date(timestamp).toLocaleTimeString('es-ES', {
         hour: '2-digit', minute: '2-digit'

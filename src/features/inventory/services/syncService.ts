@@ -58,6 +58,110 @@ interface EnvioRemote {
   bultos?: number;
 }
 
+interface HistorialRemote {
+  id: string;
+  envio_id: string;
+  cod_pedido: string;
+  estado_anterior: string;
+  estado_nuevo: string;
+  timestamp: number | string;
+  operador?: string;
+  rol_usuario?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface MovimientoRemote {
+  id: string;
+  producto_id: string;
+  sku: string;
+  descripcion: string;
+  marca: string;
+  accion: string;
+  fv_anterior_ts?: number | string;
+  fv_nuevo_ts?: number | string;
+  comentario?: string;
+  dispositivo?: string;
+  timestamp: number | string;
+  rol_usuario?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ProductoLocalRecord {
+  id: string;
+  cod_barras?: string;
+  codBarras?: string;
+  codigo_barras?: string;
+  sku?: string;
+  descripcion?: string;
+  marca?: string;
+  stock_master?: number;
+  stockMaster?: number;
+  precio_web?: number;
+  precioWeb?: number;
+  precio_tienda?: number;
+  precioTienda?: number;
+  fv_actual_ts?: number | null;
+  fvActualTs?: number | null;
+  comentarios?: string | null;
+  fecha_edicion?: string | null;
+  imagen?: string | null;
+}
+
+interface EnvioLocalRecord {
+  id: string;
+  cod_pedido?: string;
+  codPedido?: string;
+  cliente?: string;
+  estado?: string;
+  operador?: string | null;
+  url_foto?: string | null;
+  urlFoto?: string | null;
+  notas?: string | null;
+  direccion?: string | null;
+  distrito?: string | null;
+  telefono?: string | null;
+  gmaps_url?: string | null;
+  gmapsUrl?: string | null;
+  referencia?: string | null;
+}
+
+interface HistorialLocalRecord {
+  id: string;
+  envio_id?: string;
+  envioId?: string;
+  cod_pedido?: string;
+  codPedido?: string;
+  estado_anterior?: string;
+  estadoAnterior?: string;
+  estado_nuevo?: string;
+  estadoNuevo?: string;
+  timestamp?: number;
+  operador?: string | null;
+  rol_usuario?: string | null;
+  rolUsuario?: string | null;
+}
+
+interface MovimientoLocalRecord {
+  id: string;
+  producto_id?: string;
+  productoId?: string;
+  sku?: string;
+  descripcion?: string;
+  marca?: string;
+  accion?: string;
+  fv_anterior_ts?: number | null;
+  fvAnteriorTs?: number | null;
+  fv_nuevo_ts?: number | null;
+  fvNuevoTs?: number | null;
+  comentario?: string | null;
+  dispositivo?: string;
+  timestamp?: number;
+  rol_usuario?: string | null;
+  rolUsuario?: string | null;
+}
+
 interface SyncChanges {
   [key: string]: {
     created: Model[];
@@ -257,7 +361,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         }));
 
         // --- PULL LOGISTICA HISTORIAL ---
-        let historialRemote: any[] = [];
+        let historialRemote: HistorialRemote[] = [];
         let hasMoreHist = true;
         let pageHist = 0;
         
@@ -296,7 +400,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         }));
 
         // --- PULL PRODUCTOS HISTORIAL (MOVIMIENTOS) ---
-        let movimientosRemote: any[] = [];
+        let movimientosRemote: MovimientoRemote[] = [];
         let hasMoreMov = true;
         let pageMov = 0;
         
@@ -374,7 +478,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
           const all = [...changes.productos.created, ...changes.productos.updated];
           if (all.length > 0) {
             const updates = all
-              .map((r: any) => {
+              .map((r: ProductoLocalRecord) => {
                 const cod = r.cod_barras || r.codBarras || r.codigo_barras || '';
                 if (!cod) {
                   Logger.warn(`[Sync] Saltando producto sin código de barras: ${r.sku || r.id}`);
@@ -410,7 +514,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         if (changes.envios) {
           const all = [...changes.envios.created, ...changes.envios.updated];
           if (all.length > 0) {
-            const updates = all.map((r: any) => {
+            const updates = all.map((r: EnvioLocalRecord) => {
               const codPedido = r.cod_pedido || r.codPedido;
               if (!codPedido) {
                 Logger.warn(`[Sync] Saltando envío sin cod_pedido: ${r.id}`);
@@ -442,7 +546,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         if (changes.logistica_historial) {
           const all = [...changes.logistica_historial.created, ...changes.logistica_historial.updated];
           if (all.length > 0) {
-            const updates = all.map((r: any) => ({
+            const updates = all.map((r: HistorialLocalRecord) => ({
               id: r.id,
               envio_id: r.envio_id || r.envioId,
               cod_pedido: r.cod_pedido || r.codPedido,
@@ -464,7 +568,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         if (changes.movimientos) {
           const all = [...changes.movimientos.created, ...changes.movimientos.updated];
           if (all.length > 0) {
-            const updates = all.map((r: any) => ({
+            const updates = all.map((r: MovimientoLocalRecord) => ({
               id: r.id,
               producto_id: r.producto_id || r.productoId,
               sku: r.sku,
@@ -513,8 +617,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
     Logger.info(`[Sync] Éxito: ${pulledCount} ↓, ${pushedCount} ↑ (${Date.now() - startTime}ms)`);
 
   } catch (error) {
-    const err = error as Error;
-    console.error('[Sync] Error fatal durante la sincronización:', err);
+    const err = error instanceof Error ? error : new Error(String(error));
     ErrorService.handle(err, { component: 'syncService', operation: 'syncConSupabase' });
     
     // Registrar fallo
@@ -529,7 +632,7 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         });
       });
     } catch (dbErr) {
-      console.error('[Sync] No se pudo registrar el fallo en DB', dbErr);
+      ErrorService.handle(dbErr, { component: 'syncService', operation: 'registrarFalloSync' });
     }
   } finally {
     isSyncing = false;

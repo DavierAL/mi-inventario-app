@@ -16,7 +16,7 @@ import { AnimatedPressable } from './AnimatedPressable';
 interface ButtonProps {
     label: string;
     onPress: () => void;
-    variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+    variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'outline';
     size?: 'md' | 'sm';
     loading?: boolean;
     disabled?: boolean;
@@ -69,6 +69,13 @@ export const Button: React.FC<ButtonProps> = ({
                 return { ...base, backgroundColor: colors.fondoPrimario, borderWidth: 1, borderColor: colors.error };
             case 'ghost':
                 return { ...base, backgroundColor: 'transparent' };
+            case 'outline':
+                return { 
+                    ...base, 
+                    backgroundColor: 'transparent', 
+                    borderWidth: 1, 
+                    borderColor: colors.borde 
+                };
             default:
                 return base;
         }
@@ -91,6 +98,8 @@ export const Button: React.FC<ButtonProps> = ({
             case 'danger':
                 return { ...base, color: colors.error };
             case 'ghost':
+                return { ...base, color: colors.textoSecundario };
+            case 'outline':
                 return { ...base, color: colors.textoSecundario };
             default:
                 return base;

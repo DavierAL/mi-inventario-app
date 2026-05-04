@@ -1,12 +1,15 @@
 import { create } from 'zustand';
+import { Platform } from 'react-native';
 import { database } from '../../../core/database';
 import Producto from '../../../core/database/models/Producto';
+import Movimiento from '../../../core/database/models/Movimiento';
 import { syncConSupabase } from '../services/syncService';
 import { InventarioRepository } from '../repository/inventarioRepository';
 import { MENSAJES } from '../../../core/constants/mensajes';
 import { TipoAccionHistorial } from '../../../core/types/inventario';
 import { parseFVToDate } from '../../../core/utils/fecha';
 import { useAuthStore } from '../../../core/store/useAuthStore';
+import { ErrorService } from '../../../core/services/ErrorService';
 
 /**
  * DTO (Data Transfer Object) para el resultado de las operaciones de inventario.
@@ -56,15 +59,19 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
         return syncConSupabase()
             .then(() => set({ cargando: false, lastSync: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) }))
             .catch(err => {
-                console.error("Sync Error:", err);
-                const msg = err instanceof Error ? err.message : String(err);
-                set({ error: `${MENSAJES.ERROR_CONEXION_REALTIME}\n(${msg})`, cargando: false });
+                const error = err instanceof Error ? err : new Error(String(err));
+                ErrorService.handle(error, { component: 'useInventarioStore', operation: 'conectarInventario' });
+                set({ error: `${MENSAJES.ERROR_CONEXION_REALTIME}\n(${error.message})`, cargando: false });
             });
     },
 
     cargarDatosSync: () => {
         set({ sincronizandoFondo: true });
         syncConSupabase()
+            .catch((err) => {
+                const error = err instanceof Error ? err : new Error(String(err));
+                ErrorService.handle(error, { component: 'useInventarioStore', operation: 'cargarDatosSync' });
+            })
             .finally(() => set({
                 sincronizandoFondo: false,
                 lastSync: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
@@ -80,9 +87,9 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
                 error: null
             });
         } catch (err) {
-            console.error("Repair Sync Error:", err);
-            const msg = err instanceof Error ? err.message : String(err);
-            set({ error: `No se pudo completar la reparación.\n${msg}` });
+            const error = err instanceof Error ? err : new Error(String(err));
+            ErrorService.handle(error, { component: 'useInventarioStore', operation: 'repararBaseDeDatos' });
+            set({ error: `No se pudo completar la reparación.\n${error.message}` });
         } finally {
             set({ sincronizandoFondo: false });
         }
@@ -96,43 +103,42 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
 
         const codigo = productoEditando.codBarras;
         const fvAnteriorTs = productoEditando.fvActualTs;
+        const comentarioPrevio = productoEditando.comentarios;
+        const userRole = useAuthStore.getState().user?.rol;
+        const accion: TipoAccionHistorial = (comentario && !comentarioPrevio) ? 'COMENTARIO_AGREGADO' : 'FV_ACTUALIZADO';
 
         try {
-            // 1. ACTUALIZAR SQLITE (Para que la interfaz cambie al instante sin lag)
+            // Transacción atómica: actualizar producto + registrar movimiento local en una sola escritura
             await database.write(async () => {
                 await productoEditando.update((p: Producto) => {
                     p.fvActualTs = parseFVToDate(fv);
                     p.fechaEdicion = fechaEdicion;
                     p.comentarios = comentario;
                 });
+
+                await database.get<Movimiento>('movimientos').create((m: Movimiento) => {
+                    m.productoId = codigo;
+                    m.sku = productoEditando.sku;
+                    m.descripcion = productoEditando.descripcion;
+                    m.marca = productoEditando.marca;
+                    m.accion = accion;
+                    m.fvAnteriorTs = fvAnteriorTs ?? undefined;
+                    m.fvNuevoTs = parseFVToDate(fv) ?? undefined;
+                    m.comentario = comentario;
+                    m.dispositivo = Platform.OS === 'ios' ? '📱 iPhone' : '🤖 Android';
+                    m.timestamp = Date.now();
+                    m.rolUsuario = userRole;
+                });
             });
 
-            // 2. REGISTRO DE AUDITORÍA LOCAL (Historial)
-            const userRole = useAuthStore.getState().user?.rol;
-            await InventarioRepository.registrarMovimiento({
-                productoId: codigo,
-                descripcion: productoEditando.descripcion,
-                marca: productoEditando.marca,
-                sku: productoEditando.sku,
-                accion: (comentario && !productoEditando.comentarios) ? 'COMENTARIO_AGREGADO' : 'FV_ACTUALIZADO',
-                cambios: {
-                    fvAnteriorTs: fvAnteriorTs?.getTime(),
-                    fvNuevoTs: parseFVToDate(fv)?.getTime(),
-                    comentario: comentario
-                },
-                rolUsuario: userRole
-            });
-
-            // 3. PUENTE A FIREBASE Y GOOGLE SHEETS (Usando el Repositorio original)
-            const accion: TipoAccionHistorial = (comentario && !productoEditando.comentarios) ? 'COMENTARIO_AGREGADO' : 'FV_ACTUALIZADO';
-
+            // Operaciones secundarias: webhook y sync en segundo plano (no críticas para la transacción local)
             InventarioRepository.actualizarProducto(
                 codigo,
                 {
                     FV_Actual: fv,
                     Fecha_edicion: fechaEdicion,
                     Comentarios: comentario,
-                    Stock_Master: productoEditando.stockMaster // 👈 Vital para que el Webhook mande el stock
+                    Stock_Master: productoEditando.stockMaster
                 },
                 {
                     descripcion: productoEditando.descripcion,
@@ -142,16 +148,19 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
                     accion: accion,
                     rolUsuario: userRole
                 }
-            ).catch(e => console.warn('[Store] Error en actualizarProducto:', e));
+            ).catch((error) => {
+                ErrorService.handle(error, { component: 'useInventarioStore', operation: 'actualizarProductoWebhook' });
+            });
 
-            // 4. Sincronización secundaria en 2do plano
-            syncConSupabase().catch(e => console.warn('[Sync] Background error:', e));
+            syncConSupabase().catch((error) => {
+                ErrorService.handle(error, { component: 'useInventarioStore', operation: 'syncConSupabase' });
+            });
 
             set({ productoEditando: null });
             return { exito: true, codigo };
 
         } catch (error) {
-            console.error('[Store] Error al guardar en SQLite:', error);
+            ErrorService.handle(error, { component: 'useInventarioStore', operation: 'guardarEdicion', showToast: true });
             return { exito: false, mensajeError: 'Error al persistir localmente' };
         }
     }

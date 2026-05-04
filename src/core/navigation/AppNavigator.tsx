@@ -1,6 +1,6 @@
 // ARCHIVO: src/navigation/AppNavigator.tsx
 import React, { useEffect } from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createNativeStackNavigator, NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { InventarioListScreen } from '../../features/inventory';
 import { ScannerScreen } from '../../features/scanner';
@@ -51,7 +51,12 @@ export const AppNavigator = () => {
     return (
         <NavigationContainer>
             <Stack.Navigator
-                screenOptions={{ headerShown: false }}
+                screenOptions={({ route }) => ({
+                    headerShown: false,
+                    animation: 'slide_from_right',
+                    gestureEnabled: true,
+                    gestureDirection: 'horizontal',
+                } as NativeStackNavigationOptions)}
             >
                 {!isAuthenticated || !user ? (
                     <Stack.Screen name="Login" component={LoginScreen} />
