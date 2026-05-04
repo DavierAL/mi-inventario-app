@@ -13,6 +13,12 @@ interface Props {
     isSyncing?: boolean;
     onSync?: () => void;
     lastSync?: string | null;
+    extraAction?: {
+        icon: keyof typeof Ionicons.glyphMap;
+        onPress: () => void;
+        color?: string;
+        accessibilityLabel: string;
+    };
 }
 
 export const HeaderPremium: React.FC<Props> = ({ 
@@ -20,7 +26,8 @@ export const HeaderPremium: React.FC<Props> = ({
     showSync = false, 
     isSyncing = false, 
     onSync,
-    lastSync
+    lastSync,
+    extraAction
 }) => {
     const { colors, isDark, toggleTheme } = useTheme();
     const { logout } = useAuthStore();
@@ -56,6 +63,17 @@ export const HeaderPremium: React.FC<Props> = ({
                 </View>
 
                 <View style={styles.acciones}>
+                    {extraAction && (
+                        <TouchableOpacity 
+                            style={[styles.btnCircle, { backgroundColor: colors.fondoPrimario, marginRight: 8 }]}
+                            onPress={extraAction.onPress}
+                            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                            accessibilityLabel={extraAction.accessibilityLabel}
+                            accessibilityRole="button"
+                        >
+                            <Ionicons name={extraAction.icon} size={20} color={extraAction.color || colors.primario} />
+                        </TouchableOpacity>
+                    )}
                     {showSync && (
                         <TouchableOpacity 
                             style={[styles.btnCircle, { backgroundColor: colors.fondoPrimario }]}

@@ -8,6 +8,8 @@ export function useControlMarcas() {
   const [marcas, setMarcas] = useState<MarcaControl[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [busqueda, setBusqueda] = useState('');
+  const [filtroEstado, setFiltroEstado] = useState<'todas' | 'pendientes' | 'al-dia'>('todas');
 
   const cargarMarcas = useCallback(async () => {
     try {
@@ -41,6 +43,22 @@ export function useControlMarcas() {
   const alDia = useMemo(() => MarcasService.marcasAlDia(estados), [estados]);
   const noInventariar = useMemo(() => MarcasService.marcasNoInventariar(estados), [estados]);
 
+  const marcasFiltradas = useMemo(() => {
+    let base = estados;
+    
+    // Filtro por estado
+    if (filtroEstado === 'pendientes') {
+      base = base.filter(m => m.estaAtrasada && m.inventariar);
+    } else if (filtroEstado === 'al-dia') {
+      base = base.filter(m => !m.estaAtrasada && m.inventariar);
+    }
+
+    // Filtro por búsqueda
+    if (!busqueda) return base;
+    const lowBusqueda = busqueda.toLowerCase();
+    return base.filter(m => m.nombre.toLowerCase().includes(lowBusqueda));
+  }, [estados, busqueda, filtroEstado]);
+
   const hayMarcasParaHoy = atrasadas.length > 0;
   const nombresMarcasHoy = atrasadas.map(m => m.nombre).join(', ');
 
@@ -73,6 +91,11 @@ export function useControlMarcas() {
     noInventariar,
     hayMarcasParaHoy,
     nombresMarcasHoy,
+    marcasFiltradas,
+    busqueda,
+    setBusqueda,
+    filtroEstado,
+    setFiltroEstado,
     recargar: cargarMarcas,
     enviarConstancia,
   };

@@ -13,7 +13,7 @@ import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { EditProductoModal } from '../components/EditProductoModal';
 import { BottomBar, TabActivo } from '../../../core/ui/BottomBar';
 import { useTheme } from '../../../core/ui/ThemeContext';
@@ -113,6 +113,8 @@ const ListaReactiva = withObservables(['query'], ({ query }: { query: Query<Prod
 export const InventarioListScreen = () => {
     const { colors, isDark, toggleTheme } = useTheme();
     const navigation = useNavigation<InventarioListNavProp>();
+    const route = useRoute<any>();
+    const marcaFiltro = route.params?.marca;
 
     const { 
         cargando, error, pendientesSync, lastSync, sincronizandoFondo,
@@ -128,7 +130,7 @@ export const InventarioListScreen = () => {
         queryProductos, 
         filtroRapido, setFiltroRapido, 
         ordenamiento, setOrdenamiento 
-    } = useFiltrosInventario(busqueda);
+    } = useFiltrosInventario(busqueda, marcaFiltro);
 
     useEffect(() => {
         conectarInventario();

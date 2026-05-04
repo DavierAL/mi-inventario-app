@@ -8,10 +8,11 @@ type Permission =
   | 'edit_logistics'
   | 'view_analytics'
   | 'view_history'
-  | 'view_brands';
+  | 'view_brands'
+  | 'edit_brands';
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-  admin: ['view_inventory', 'edit_inventory', 'view_logistics', 'edit_logistics', 'view_analytics', 'view_history', 'view_brands'],
+  admin: ['view_inventory', 'edit_inventory', 'view_logistics', 'edit_logistics', 'view_analytics', 'view_history', 'view_brands', 'edit_brands'],
   logistica: ['view_logistics', 'edit_logistics', 'view_history'],
   almacen: ['view_inventory', 'edit_inventory', 'view_history', 'view_logistics', 'view_brands'],
   tienda: ['view_inventory', 'edit_inventory', 'view_logistics', 'edit_logistics', 'view_history', 'view_brands'],

@@ -158,7 +158,7 @@ describe('PickingScreen UI & Flow', () => {
         filtroEstado={null} 
         ordenDesc={true} 
         isFiltrado={false}
-        onDespachar={async (envio) => {
+        onDespachar={async (envio: any) => {
             try {
                 await LogisticsRepository.actualizarEstado(envio, 'En_Tienda', 'admin');
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -189,7 +189,7 @@ describe('PickingScreen UI & Flow', () => {
         filtroEstado={null} 
         ordenDesc={true} 
         isFiltrado={false}
-        onDespachar={async (envio) => {
+        onDespachar={async (envio: any) => {
             try {
                 await LogisticsRepository.actualizarEstado(envio, 'En_Tienda', 'admin');
             } catch (err) {

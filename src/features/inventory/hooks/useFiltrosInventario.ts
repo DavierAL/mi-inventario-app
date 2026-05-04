@@ -13,7 +13,7 @@ export type Ordenamiento = 'MARCA' | 'STOCK' | 'FV';
  * Responsabilidad: Generar una Consulta (Query) de WatermelonDB basada en el estado de la UI.
  * Ventaja: El filtrado ocurre en SQLite, no en el hilo de JavaScript, evitando bloqueos.
  */
-export const useFiltrosInventario = (busqueda: string) => {
+export const useFiltrosInventario = (busqueda: string, marcaFiltro?: string) => {
     const [filtroRapido, setFiltroRapido] = useState<FiltroCaducidad>('TODOS');
     const [ordenamiento, setOrdenamiento] = useState<Ordenamiento>('MARCA');
     const busquedaDebounced = useDebounce(busqueda, 300);
@@ -33,6 +33,11 @@ export const useFiltrosInventario = (busqueda: string) => {
                     Q.where('marca', Q.like(`%${Q.sanitizeLikeString(termino)}%`))
                 )
             );
+        }
+        
+        // 1.5 Filtro por Marca (si viene de ControlMarcas)
+        if (marcaFiltro) {
+            conditions.push(Q.where('marca', Q.eq(marcaFiltro)));
         }
 
         // 2. Filtro Rápido (Caducidad) - AHORA EN SQL
@@ -54,7 +59,7 @@ export const useFiltrosInventario = (busqueda: string) => {
         else if (ordenamiento === 'FV') conditions.push(Q.sortBy('fv_actual_ts', Q.asc));
 
         return database.collections.get<Producto>('productos').query(...conditions);
-    }, [busquedaDebounced, ordenamiento, filtroRapido]); 
+    }, [busquedaDebounced, ordenamiento, filtroRapido, marcaFiltro]); 
 
     return {
         queryProductos, // Retorna un objeto Query de WatermelonDB

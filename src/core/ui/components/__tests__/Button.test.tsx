@@ -11,7 +11,17 @@ jest.mock('../AnimatedPressable', () => {
     const { Pressable } = require('react-native');
     const { impactAsync } = require('expo-haptics');
     return {
-        AnimatedPressable: ({ children, onPress, disabled, style, testID, accessibilityLabel, accessibilityHint, accessibilityRole, haptic }) => (
+        AnimatedPressable: ({ children, onPress, disabled, style, testID, accessibilityLabel, accessibilityHint, accessibilityRole, haptic }: {
+            children?: React.ReactNode;
+            onPress?: () => void;
+            disabled?: boolean;
+            style?: object;
+            testID?: string;
+            accessibilityLabel?: string;
+            accessibilityHint?: string;
+            accessibilityRole?: 'button' | 'link' | 'checkbox' | 'radio' | 'menu' | 'menubar' | 'list' | 'menuitem' | 'none' | 'summary' | 'image' | 'header' | 'toolbar' | 'text' | 'search';
+            haptic?: object;
+        }) => (
             React.createElement(Pressable, {
                 onPress: () => {
                     if (haptic && !disabled) impactAsync(haptic);

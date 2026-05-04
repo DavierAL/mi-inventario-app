@@ -44,6 +44,7 @@ interface PedidoCardProps {
 }
 
 const PedidoCard = memo(({ envio, onDespachar, onVerPanel }: PedidoCardProps) => {
+export { PickingList, PickingScreen, PedidoCard };
     const { colors } = useTheme();
     const puedeDespachar = envio.estado === 'Pendiente';
 
