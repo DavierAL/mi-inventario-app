@@ -10,32 +10,22 @@ jest.mock('../AnimatedPressable', () => {
     const { Pressable } = require('react-native');
     const mockHaptics = require('expo-haptics');
     return {
-        AnimatedPressable: ({ children, onPress, disabled, style, testID, accessibilityLabel, accessibilityHint, accessibilityRole, haptic }: {
-            children?: React.ReactNode;
-            onPress?: () => void;
-            disabled?: boolean;
-            style?: object;
-            testID?: string;
-            accessibilityLabel?: string;
-            accessibilityHint?: string;
-            accessibilityRole?: 'button' | 'link' | 'checkbox' | 'radio' | 'menu' | 'menubar' | 'list' | 'menuitem' | 'none' | 'summary' | 'image' | 'header' | 'toolbar' | 'text' | 'search';
-            haptic?: object;
-        }) => (
+        AnimatedPressable: (props: any) => (
             React.createElement(Pressable, {
                 onPress: () => {
-                    if (haptic && !disabled) mockHaptics.impactAsync(haptic);
-                    if (onPress) onPress();
+                    if (props.haptic && !props.disabled) mockHaptics.impactAsync(props.haptic);
+                    if (props.onPress) props.onPress();
                 },
                 onPressIn: () => {
-                    if (haptic && !disabled) mockHaptics.impactAsync(haptic);
+                    if (props.haptic && !props.disabled) mockHaptics.impactAsync(props.haptic);
                 },
-                disabled,
-                style,
-                testID,
-                accessibilityLabel,
-                accessibilityHint,
-                accessibilityRole,
-            }, children)
+                disabled: props.disabled,
+                style: props.style,
+                testID: props.testID,
+                accessibilityLabel: props.accessibilityLabel,
+                accessibilityHint: props.accessibilityHint,
+                accessibilityRole: props.accessibilityRole,
+            }, props.children)
         ),
     };
 });
