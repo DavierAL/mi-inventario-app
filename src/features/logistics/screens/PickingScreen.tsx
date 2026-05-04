@@ -365,6 +365,7 @@ export const PickingScreen = () => {
                     if (tab === 'historial') navigation.navigate('LogisticsHistory');
                     if (tab === 'escaner') navigation.navigate('Scanner');
                     if (tab === 'analytics') navigation.navigate('Analytics');
+                    if (tab === 'marcas') navigation.navigate('ControlMarcas');
                 }}
             />
         </SafeAreaView>

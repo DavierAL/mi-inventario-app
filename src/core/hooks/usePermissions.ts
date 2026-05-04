@@ -7,13 +7,14 @@ type Permission =
   | 'view_logistics'
   | 'edit_logistics'
   | 'view_analytics'
-  | 'view_history';
+  | 'view_history'
+  | 'view_brands';
 
 const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-  admin: ['view_inventory', 'edit_inventory', 'view_logistics', 'edit_logistics', 'view_analytics', 'view_history'],
+  admin: ['view_inventory', 'edit_inventory', 'view_logistics', 'edit_logistics', 'view_analytics', 'view_history', 'view_brands'],
   logistica: ['view_logistics', 'edit_logistics', 'view_history'],
-  almacen: ['view_inventory', 'edit_inventory', 'view_history', "view_logistics"],
-  tienda: ['view_inventory', 'edit_inventory', 'view_logistics', 'edit_logistics', 'view_history'],
+  almacen: ['view_inventory', 'edit_inventory', 'view_history', 'view_logistics', 'view_brands'],
+  tienda: ['view_inventory', 'edit_inventory', 'view_logistics', 'edit_logistics', 'view_history', 'view_brands'],
   atencion: ['view_inventory', 'view_logistics', 'view_history'],
 };
 
@@ -41,6 +42,7 @@ export const usePermissions = () => {
       case 'escaner': return hasPermission('view_inventory') || hasPermission('view_logistics');
       case 'historial': return hasPermission('view_history');
       case 'analytics': return hasPermission('view_analytics');
+      case 'marcas': return hasPermission('view_brands');
       default: return false;
     }
   };

@@ -8,6 +8,8 @@ export const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+export const corsHeaders = CORS_HEADERS;
+
 export function corsResponse(status = 200): Response {
   return new Response('ok', { headers: CORS_HEADERS, status });
 }

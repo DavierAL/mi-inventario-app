@@ -192,6 +192,7 @@ const HistorialScreen: React.FC = () => {
                     if (tab === 'logistica') navigation.navigate('PickingList');
                     if (tab === 'escaner') navigation.navigate('Scanner');
                     if (tab === 'analytics') navigation.navigate('Analytics');
+                    if (tab === 'marcas') navigation.navigate('ControlMarcas');
                 }}
             />
         </SafeAreaView>

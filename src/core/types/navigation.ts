@@ -8,4 +8,6 @@ export type RootStackParamList = {
   PickingList: undefined;
   StorePanel: { pedidoId?: string } | undefined;
   LogisticsHistory: undefined;
+  ControlMarcas: undefined;
+  MarcaConfig: { marcaId: string; nombre: string; diasRango: number; inventariar: boolean };
 };

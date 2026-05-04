@@ -15,6 +15,18 @@ function mapearEstadoEntrante(estadoOriginal: string): 'Pendiente' | 'En_Tienda'
   return Envio.fromExternalStatus(estadoOriginal);
 }
 
+/**
+ * Divide un array en trozos (chunks) de un tamaño máximo.
+ * Útil para cumplir con la Regla 2 de batching (máx 500 ops).
+ */
+function chunkArray<T>(array: T[], size: number): T[][] {
+  const chunked: T[][] = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunked.push(array.slice(i, i + size));
+  }
+  return chunked;
+}
+
 interface ProductoRemote {
   id: string;
   nombre?: string;
@@ -88,77 +100,80 @@ interface MovimientoRemote {
   updated_at: string;
 }
 
+interface MarcaControlRemote {
+  id: string;
+  nombre: string;
+  dias_rango: number;
+  ultimo_conteo?: string;
+  inventariar: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface MarcaControlLocalRecord {
+  id: string;
+  nombre: string;
+  diasRango: number;
+  ultimoConteo?: number;
+  inventariar: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
+
 interface ProductoLocalRecord {
   id: string;
-  cod_barras?: string;
   codBarras?: string;
-  codigo_barras?: string;
   sku?: string;
   descripcion?: string;
   marca?: string;
-  stock_master?: number;
   stockMaster?: number;
-  precio_web?: number;
   precioWeb?: number;
-  precio_tienda?: number;
   precioTienda?: number;
-  fv_actual_ts?: number | null;
   fvActualTs?: number | null;
   comentarios?: string | null;
-  fecha_edicion?: string | null;
+  fechaEdicion?: string | null;
   imagen?: string | null;
 }
 
 interface EnvioLocalRecord {
   id: string;
-  cod_pedido?: string;
   codPedido?: string;
   cliente?: string;
   estado?: string;
   operador?: string | null;
-  url_foto?: string | null;
   urlFoto?: string | null;
+  podUrl?: string | null;
   notas?: string | null;
   direccion?: string | null;
   distrito?: string | null;
   telefono?: string | null;
-  gmaps_url?: string | null;
   gmapsUrl?: string | null;
   referencia?: string | null;
 }
 
 interface HistorialLocalRecord {
   id: string;
-  envio_id?: string;
   envioId?: string;
-  cod_pedido?: string;
   codPedido?: string;
-  estado_anterior?: string;
   estadoAnterior?: string;
-  estado_nuevo?: string;
   estadoNuevo?: string;
   timestamp?: number;
   operador?: string | null;
-  rol_usuario?: string | null;
   rolUsuario?: string | null;
 }
 
 interface MovimientoLocalRecord {
   id: string;
-  producto_id?: string;
   productoId?: string;
   sku?: string;
   descripcion?: string;
   marca?: string;
   accion?: string;
-  fv_anterior_ts?: number | null;
   fvAnteriorTs?: number | null;
-  fv_nuevo_ts?: number | null;
   fvNuevoTs?: number | null;
   comentario?: string | null;
   dispositivo?: string;
   timestamp?: number;
-  rol_usuario?: string | null;
   rolUsuario?: string | null;
 }
 
@@ -442,7 +457,43 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
           updated_at: row.updated_at ? new Date(row.updated_at).getTime() : Date.now(),
         }));
 
-        pulledCount = productosUpdated.length + enviosUpdated.length + historialUpdated.length + movimientosUpdated.length;
+        // --- PULL MARCAS CONTROL ---
+        let marcasRemote: MarcaControlRemote[] = [];
+        let hasMoreMarcas = true;
+        let pageMarcas = 0;
+
+        while (hasMoreMarcas) {
+          let queryMarcas = supabase.from('marcas_control')
+            .select('id, nombre, dias_rango, ultimo_conteo, inventariar, created_at, updated_at')
+            .range(pageMarcas * pageSize, (pageMarcas + 1) * pageSize - 1);
+          if (lastPulledAt && !options.forceFull) {
+            queryMarcas = queryMarcas.gte('updated_at', lastPulledDate);
+          }
+          const { data, error } = await queryMarcas;
+          if (error) {
+            Logger.error('[Sync] Error al descargar marcas_control', error);
+            throw error;
+          }
+          if (data && data.length > 0) {
+            marcasRemote = [...marcasRemote, ...data];
+            hasMoreMarcas = data.length === pageSize;
+            pageMarcas++;
+          } else {
+            hasMoreMarcas = false;
+          }
+        }
+
+        const marcasUpdated = marcasRemote.map(row => ({
+          id: row.id?.toString() || '',
+          nombre: row.nombre,
+          dias_rango: row.dias_rango,
+          ultimo_conteo: row.ultimo_conteo ? new Date(row.ultimo_conteo).getTime() : null,
+          inventariar: row.inventariar,
+          created_at: row.created_at ? new Date(row.created_at).getTime() : Date.now(),
+          updated_at: row.updated_at ? new Date(row.updated_at).getTime() : Date.now(),
+        }));
+
+        pulledCount = productosUpdated.length + enviosUpdated.length + historialUpdated.length + movimientosUpdated.length + marcasUpdated.length;
 
         return {
           changes: {
@@ -466,46 +517,55 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
               updated: lastPulledAt && !options.forceFull ? movimientosUpdated : [],
               deleted: []
             },
+            marcas_control: {
+              created: !lastPulledAt || options.forceFull ? marcasUpdated : [],
+              updated: lastPulledAt && !options.forceFull ? marcasUpdated : [],
+              deleted: []
+            },
           },
           timestamp: Date.now(),
         };
       },
 
-      // 2. PUSH: Enviar cambios locales
+      // 2. PUSH: Enviar cambios locales (Máx 500 por lote - Regla 2)
       pushChanges: async ({ changes }: { changes: SyncChanges }) => {
+        const CHUNK_SIZE = 500;
+
         // --- PUSH PRODUCTOS ---
         if (changes.productos) {
           const all = [...changes.productos.created, ...changes.productos.updated];
           if (all.length > 0) {
             const updates = all
-              .map((r: ProductoLocalRecord) => {
-                const cod = r.cod_barras || r.codBarras || r.codigo_barras || '';
+              .map((r: Model) => {
+                const rec = r as unknown as ProductoLocalRecord;
+                const cod = rec.codBarras || '';
                 if (!cod) {
-                  Logger.warn(`[Sync] Saltando producto sin código de barras: ${r.sku || r.id}`);
+                  Logger.warn(`[Sync] Saltando producto sin código de barras: ${rec.sku || rec.id}`);
                   return null;
                 }
                 return {
-                  id: r.id,
+                  id: rec.id,
                   cod_barras: cod,
-                  sku: r.sku || '',
-                  descripcion: r.descripcion || '',
-                  marca: r.marca || 'Genérico',
-                  stock_master: r.stock_master ?? r.stockMaster ?? 0,
-                  precio_web: r.precio_web ?? r.precioWeb ?? 0,
-                  precio_tienda: r.precio_tienda ?? r.precioTienda ?? 0,
-                  fv_actual_ts: r.fv_actual_ts ?? r.fvActualTs ?? null,
-                  comentarios: r.comentarios || null,
-                  fecha_edicion: r.fecha_edicion || null,
-                  imagen: r.imagen || null,
+                  sku: rec.sku || '',
+                  descripcion: rec.descripcion || '',
+                  marca: rec.marca || 'Genérico',
+                  stock_master: rec.stockMaster ?? 0,
+                  precio_web: rec.precioWeb ?? 0,
+                  precio_tienda: rec.precioTienda ?? 0,
+                  fv_actual_ts: rec.fvActualTs ?? null,
+                  comentarios: rec.comentarios || null,
+                  fecha_edicion: rec.fechaEdicion || null,
+                  imagen: rec.imagen || null,
                   updated_at: new Date().toISOString()
                 };
               })
-              .filter(u => u !== null);
+              .filter((u): u is NonNullable<typeof u> => u !== null);
 
-            if (updates.length > 0) {
-              const { error } = await supabase.from('productos').upsert(updates);
+            const chunks = chunkArray(updates, CHUNK_SIZE);
+            for (const chunk of chunks) {
+              const { error } = await supabase.from('productos').upsert(chunk);
               if (error) throw error;
-              pushedCount += updates.length;
+              pushedCount += chunk.length;
             }
           }
         }
@@ -514,31 +574,36 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         if (changes.envios) {
           const all = [...changes.envios.created, ...changes.envios.updated];
           if (all.length > 0) {
-            const updates = all.map((r: EnvioLocalRecord) => {
-              const codPedido = r.cod_pedido || r.codPedido;
+            const updates = all.map((r: Model) => {
+              const rec = r as unknown as EnvioLocalRecord;
+              const codPedido = rec.codPedido;
               if (!codPedido) {
-                Logger.warn(`[Sync] Saltando envío sin cod_pedido: ${r.id}`);
+                Logger.warn(`[Sync] Saltando envío sin cod_pedido: ${rec.id}`);
                 return null;
               }
               return {
-                id: r.id,
+                id: rec.id,
                 cod_pedido: codPedido,
-                cliente: r.cliente,
-                estado: Envio.toExternalStatus(r.estado),
-                operador: r.operador || null,
-                url_foto: r.url_foto || r.urlFoto || null,
-                notas: r.notas || null,
-                direccion: r.direccion || null,
-                distrito: r.distrito || null,
-                telefono: r.telefono || null,
-                gmaps_url: r.gmaps_url || r.gmapsUrl || null,
-                referencia: r.referencia || null,
+                cliente: rec.cliente,
+                estado: Envio.toExternalStatus(rec.estado || 'Pendiente'),
+                operador: rec.operador || null,
+                url_foto: rec.urlFoto || rec.podUrl || null,
+                notas: rec.notas || null,
+                direccion: rec.direccion || null,
+                distrito: rec.distrito || null,
+                telefono: rec.telefono || null,
+                gmaps_url: rec.gmapsUrl || null,
+                referencia: rec.referencia || null,
                 updated_at: new Date().toISOString()
               };
-            }).filter(u => u !== null);
-            const { error } = await supabase.from('envios').upsert(updates);
-            if (error) throw error;
-            pushedCount += updates.length;
+            }).filter((u): u is NonNullable<typeof u> => u !== null);
+
+            const chunks = chunkArray(updates, CHUNK_SIZE);
+            for (const chunk of chunks) {
+              const { error } = await supabase.from('envios').upsert(chunk);
+              if (error) throw error;
+              pushedCount += chunk.length;
+            }
           }
         }
 
@@ -546,21 +611,28 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         if (changes.logistica_historial) {
           const all = [...changes.logistica_historial.created, ...changes.logistica_historial.updated];
           if (all.length > 0) {
-            const updates = all.map((r: HistorialLocalRecord) => ({
-              id: r.id,
-              envio_id: r.envio_id || r.envioId,
-              cod_pedido: r.cod_pedido || r.codPedido,
-              estado_anterior: r.estado_anterior || r.estadoAnterior,
-              estado_nuevo: r.estado_nuevo || r.estadoNuevo,
-              timestamp: r.timestamp,
-              operador: r.operador || null,
-              rol_usuario: r.rol_usuario || r.rolUsuario || null,
-              created_at: new Date(r.timestamp).toISOString(),
-              updated_at: new Date().toISOString()
-            }));
-            const { error } = await supabase.from('logistica_historial').upsert(updates);
-            if (error) throw error;
-            pushedCount += updates.length;
+            const updates = all.map((r: Model) => {
+              const rec = r as unknown as HistorialLocalRecord;
+              return {
+                id: rec.id,
+                envio_id: rec.envioId,
+                cod_pedido: rec.codPedido,
+                estado_anterior: rec.estadoAnterior,
+                estado_nuevo: rec.estadoNuevo,
+                timestamp: rec.timestamp,
+                operador: rec.operador || null,
+                rol_usuario: rec.rolUsuario || null,
+                created_at: rec.timestamp ? new Date(rec.timestamp).toISOString() : new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              };
+            });
+
+            const chunks = chunkArray(updates, CHUNK_SIZE);
+            for (const chunk of chunks) {
+              const { error } = await supabase.from('logistica_historial').upsert(chunk);
+              if (error) throw error;
+              pushedCount += chunk.length;
+            }
           }
         }
 
@@ -568,37 +640,74 @@ export async function syncConSupabase(options: { forceFull?: boolean } = {}) {
         if (changes.movimientos) {
           const all = [...changes.movimientos.created, ...changes.movimientos.updated];
           if (all.length > 0) {
-            const updates = all.map((r: MovimientoLocalRecord) => ({
-              id: r.id,
-              producto_id: r.producto_id || r.productoId,
-              sku: r.sku,
-              descripcion: r.descripcion,
-              marca: r.marca,
-              accion: r.accion,
-              fv_anterior_ts: r.fv_anterior_ts || r.fvAnteriorTs,
-              fv_nuevo_ts: r.fv_nuevo_ts || r.fvNuevoTs,
-              comentario: r.comentario || null,
-              dispositivo: r.dispositivo || '📱 App',
-              timestamp: r.timestamp,
-              rol_usuario: r.rol_usuario || r.rolUsuario || null,
-              updated_at: new Date().toISOString()
-            }));
-            const { error } = await supabase.from('historial').upsert(updates);
-            if (error) throw error;
-            pushedCount += updates.length;
+            const updates = all.map((r: Model) => {
+              const rec = r as unknown as MovimientoLocalRecord;
+              return {
+                id: rec.id,
+                producto_id: rec.productoId,
+                sku: rec.sku,
+                descripcion: rec.descripcion,
+                marca: rec.marca,
+                accion: rec.accion,
+                fv_anterior_ts: rec.fvAnteriorTs,
+                fv_nuevo_ts: rec.fvNuevoTs,
+                comentario: rec.comentario || null,
+                dispositivo: rec.dispositivo || '📱 App',
+                timestamp: rec.timestamp,
+                rol_usuario: rec.rolUsuario || null,
+                updated_at: new Date().toISOString()
+              };
+            });
+
+            const chunks = chunkArray(updates, CHUNK_SIZE);
+            for (const chunk of chunks) {
+              const { error } = await supabase.from('historial').upsert(chunk);
+              if (error) throw error;
+              pushedCount += chunk.length;
+            }
+          }
+        }
+
+        // --- PUSH MARCAS CONTROL ---
+        if (changes.marcas_control) {
+          const all = [...changes.marcas_control.created, ...changes.marcas_control.updated];
+          if (all.length > 0) {
+            const updates = all.map((r: Model) => {
+              const rec = r as unknown as MarcaControlLocalRecord;
+              return {
+                id: rec.id,
+                nombre: rec.nombre,
+                dias_rango: rec.diasRango,
+                ultimo_conteo: rec.ultimoConteo ? new Date(rec.ultimoConteo).toISOString() : null,
+                inventariar: rec.inventariar,
+                updated_at: new Date().toISOString()
+              };
+            });
+
+            const chunks = chunkArray(updates, CHUNK_SIZE);
+            for (const chunk of chunks) {
+              const { error } = await supabase.from('marcas_control').upsert(chunk);
+              if (error) throw error;
+              pushedCount += chunk.length;
+            }
           }
         }
       },
 
       conflictResolver: (table, local, remote, resolved) => {
-        const localRec = local as Record<string, unknown>;
-        const remoteRec = remote as Record<string, unknown>;
+        if (table === 'productos') {
+          const localProd = local as unknown as ProductoLocalRecord;
+          const remoteProd = remote as unknown as ProductoRemote;
 
-        if (table === 'productos' && localRec.stock_master !== remoteRec.stock_master) {
-          if ((localRec.updated_at as unknown as number) > (remoteRec.updated_at as unknown as number)) {
-            return { ...remoteRec, stock_master: localRec.stock_master };
+          if (localProd.stockMaster !== remoteProd.stock_master) {
+            // Si el local es más reciente, priorizamos el stock_master local
+            const localUpdatedAt = (local as any).updatedAt || 0;
+            const remoteUpdatedAt = new Date(remoteProd.updated_at).getTime();
+
+            if (localUpdatedAt > remoteUpdatedAt) {
+              return { ...resolved, stock_master: localProd.stockMaster };
+            }
           }
-          return remoteRec;
         }
         return resolved;
       }

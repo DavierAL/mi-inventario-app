@@ -291,6 +291,7 @@ export const InventarioListScreen = () => {
                     if (tab === 'historial') navigation.navigate('Historial');
                     if (tab === 'logistica') navigation.navigate('PickingList');
                     if (tab === 'analytics') navigation.navigate('Analytics');
+                    if (tab === 'marcas') navigation.navigate('ControlMarcas');
                 }}
             />
         </SafeAreaView>

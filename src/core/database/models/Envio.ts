@@ -10,10 +10,10 @@ export default class Envio extends Model {
   @text('cliente') cliente!: string;
   @text('estado') estado!: string;
   @text('operador') operador?: string;
-  @text('url_foto') urlFoto?: string;
-  @text('pod_local_uri') podLocalUri?: string;
+  @text('url_foto') urlFoto?: string; // URL de la foto en Supabase (columna url_foto)
+  @text('pod_local_uri') podLocalUri?: string; // URI local de la foto antes de subirla
   @text('supabase_id') supabaseId!: string;
-  @text('pod_url') podUrl?: string | null;
+  @text('pod_url') podUrl?: string | null; // Alias redundante para url_foto usado en algunos flujos de sincronización
 
   @text('notas') notas?: string;
 

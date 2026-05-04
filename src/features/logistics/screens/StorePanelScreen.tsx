@@ -669,6 +669,7 @@ export const StorePanelScreen = () => {
                     if (tab === 'historial') navigation.navigate('LogisticsHistory');
                     if (tab === 'escaner') navigation.navigate('Scanner');
                     if (tab === 'logistica') navigation.navigate('PickingList');
+                    if (tab === 'marcas') navigation.navigate('ControlMarcas');
                 }}
             />
 

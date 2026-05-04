@@ -176,6 +176,7 @@ const AnalyticsScreenRaw: React.FC<Props> = ({ productos }) => {
                     if (tab === 'logistica') navigation.navigate('PickingList');
                     if (tab === 'escaner') navigation.navigate('Scanner');
                     if (tab === 'historial') navigation.navigate('Historial');
+                    if (tab === 'marcas') navigation.navigate('ControlMarcas');
                 }}
             />
         </SafeAreaView>

@@ -5,6 +5,7 @@ import Producto from '../../../core/database/models/Producto';
 import Movimiento from '../../../core/database/models/Movimiento';
 import { syncConSupabase } from '../services/syncService';
 import { InventarioRepository } from '../repository/inventarioRepository';
+import { MarcasService } from '../../brands/services/marcasService';
 import { MENSAJES } from '../../../core/constants/mensajes';
 import { TipoAccionHistorial } from '../../../core/types/inventario';
 import { parseFVToDate } from '../../../core/utils/fecha';
@@ -130,6 +131,13 @@ export const useInventarioStore = create<InventarioState>((set, get) => ({
                     m.rolUsuario = userRole;
                 });
             });
+
+            // Actualizar fecha de último conteo de la marca
+            if (productoEditando.marca) {
+                MarcasService.actualizarUltimoConteo(productoEditando.marca).catch((error) => {
+                    ErrorService.handle(error, { component: 'useInventarioStore', operation: 'actualizarUltimoConteoMarca' });
+                });
+            }
 
             // Operaciones secundarias: webhook y sync en segundo plano (no críticas para la transacción local)
             InventarioRepository.actualizarProducto(

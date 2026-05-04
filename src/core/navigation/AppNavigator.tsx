@@ -8,6 +8,8 @@ import { AnalyticsScreen } from '../../features/analytics';
 import { HistorialScreen } from '../../features/historial';
 import { PickingScreen, StorePanelScreen, LogisticsHistoryScreen } from '../../features/logistics';
 import { LoginScreen } from '../../features/auth/screens/LoginScreen';
+import { ControlMarcasScreen } from '../../features/brands/screens/ControlMarcasScreen';
+import { MarcaConfigScreen } from '../../features/brands/screens/MarcaConfigScreen';
 import { RootStackParamList } from '../types/navigation';
 import { useAuthStore } from '../store/useAuthStore';
 import { supabase } from '../database/supabase';
@@ -91,6 +93,14 @@ export const AppNavigator = () => {
                                 <Stack.Screen name="StorePanel" component={StorePanelScreen} />
                                 <Stack.Screen name="LogisticsHistory" component={LogisticsHistoryScreen} />
                             </>
+                        )}
+
+                        {(user.rol === 'admin' || user.rol === 'almacen' || user.rol === 'tienda') && (
+                            <Stack.Screen name="ControlMarcas" component={ControlMarcasScreen} />
+                        )}
+
+                        {user.rol === 'admin' && (
+                            <Stack.Screen name="MarcaConfig" component={MarcaConfigScreen} />
                         )}
                     </>
                 )}

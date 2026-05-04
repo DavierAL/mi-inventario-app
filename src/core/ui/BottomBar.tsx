@@ -8,7 +8,7 @@ import * as Haptics from 'expo-haptics';
 import { useTheme } from './ThemeContext';
 import { usePermissions } from '../hooks/usePermissions';
 
-export type TabActivo = 'lista' | 'escaner' | 'historial' | 'logistica' | 'analytics';
+export type TabActivo = 'lista' | 'escaner' | 'historial' | 'logistica' | 'analytics' | 'marcas';
 
 interface Props {
     modoActivo: TabActivo;
@@ -124,6 +124,24 @@ export const BottomBar: React.FC<Props> = ({ modoActivo, onTabPress }) => {
                         />
                         <Text style={[styles.texto, { color: iconColor('analytics') }]}>
                             Análisis
+                        </Text>
+                    </TouchableOpacity>
+                )}
+
+                {/* TAB: MARCAS */}
+                {canAccessTab('marcas') && (
+                    <TouchableOpacity
+                        style={styles.tab}
+                        onPress={() => handlePress('marcas')}
+                        activeOpacity={0.7}
+                    >
+                        <Ionicons
+                            name={modoActivo === 'marcas' ? 'pricetags' : 'pricetags-outline'}
+                            size={22}
+                            color={iconColor('marcas')}
+                        />
+                        <Text style={[styles.texto, { color: iconColor('marcas') }]}>
+                            Marcas
                         </Text>
                     </TouchableOpacity>
                 )}

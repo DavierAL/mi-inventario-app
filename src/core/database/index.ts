@@ -10,6 +10,7 @@ import Log from './models/Log';
 import SyncHistory from './models/SyncHistory';
 import Usuario from './models/Usuario';
 import LogisticaHistorial from './models/LogisticaHistorial';
+import MarcaControl from './models/MarcaControl';
 
 const migrations = schemaMigrations({
   migrations: [
@@ -109,6 +110,33 @@ const migrations = schemaMigrations({
         }),
       ],
     },
+    {
+      toVersion: 13,
+      steps: [
+        addColumns({
+          table: 'logistica_historial',
+          columns: [
+            { name: 'rol_usuario', type: 'string', isOptional: true },
+          ],
+        }),
+      ],
+    },
+    {
+      toVersion: 14,
+      steps: [
+        createTable({
+          name: 'marcas_control',
+          columns: [
+            { name: 'nombre', type: 'string', isIndexed: true },
+            { name: 'dias_rango', type: 'number' },
+            { name: 'ultimo_conteo', type: 'number', isOptional: true },
+            { name: 'inventariar', type: 'boolean' },
+            { name: 'created_at', type: 'number' },
+            { name: 'updated_at', type: 'number' },
+          ],
+        }),
+      ],
+    },
   ],
 });
 
@@ -124,5 +152,5 @@ const adapter = new SQLiteAdapter({
 
 export const database = new Database({
   adapter,
-  modelClasses: [Producto, Movimiento, Envio, OutboxJob, Log, SyncHistory, Usuario, LogisticaHistorial],
+  modelClasses: [Producto, Movimiento, Envio, OutboxJob, Log, SyncHistory, Usuario, LogisticaHistorial, MarcaControl],
 });
