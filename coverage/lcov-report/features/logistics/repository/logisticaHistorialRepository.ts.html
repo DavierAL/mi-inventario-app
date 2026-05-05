@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">83.33% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>10/12</span>
+                <span class='fraction'>0/12</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">60% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>3/5</span>
+                <span class='fraction'>0/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">83.33% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>10/12</span>
+                <span class='fraction'>0/12</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line medium'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -119,7 +119,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -131,15 +131,15 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -171,11 +171,11 @@
 import LogisticaHistorial from '../../../core/database/models/LogisticaHistorial';
 import { Q } from '@nozbe/watermelondb';
 &nbsp;
-export const LogisticaHistorialRepository = {
+export const LogisticaHistorialRepository = <span class="cstat-no" title="statement not covered" >{</span>
   /**
    * Registra un cambio de estado en el historial local.
    */
-  async registrarCambio(params: {
+<span class="fstat-no" title="function not covered" >  as</span>ync registrarCambio(params: {
     envioId: string;
     codPedido: string;
     estadoAnterior: string;
@@ -183,15 +183,15 @@ export const LogisticaHistorialRepository = {
     operador?: string;
     rolUsuario?: string;
   }): Promise&lt;void&gt; {
-    await database.write(async () =&gt; {
-      await database.get&lt;LogisticaHistorial&gt;('logistica_historial').create((h) =&gt; {
-        h.envioId = params.envioId;
-        h.codPedido = params.codPedido;
-        h.estadoAnterior = params.estadoAnterior;
-        h.estadoNuevo = params.estadoNuevo;
-        h.timestamp = Date.now();
-        h.operador = params.operador;
-        h.rolUsuario = params.rolUsuario;
+<span class="cstat-no" title="statement not covered" >    await database.write(<span class="fstat-no" title="function not covered" >as</span>ync () =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >      await database.get&lt;LogisticaHistorial&gt;('logistica_historial').create(<span class="fstat-no" title="function not covered" >(h</span>) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        h.envioId = params.envioId;</span>
+<span class="cstat-no" title="statement not covered" >        h.codPedido = params.codPedido;</span>
+<span class="cstat-no" title="statement not covered" >        h.estadoAnterior = params.estadoAnterior;</span>
+<span class="cstat-no" title="statement not covered" >        h.estadoNuevo = params.estadoNuevo;</span>
+<span class="cstat-no" title="statement not covered" >        h.timestamp = Date.now();</span>
+<span class="cstat-no" title="statement not covered" >        h.operador = params.operador;</span>
+<span class="cstat-no" title="statement not covered" >        h.rolUsuario = params.rolUsuario;</span>
       });
     });
   },
@@ -226,7 +226,7 @@ export const LogisticaHistorialRepository = {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-02T17:53:36.577Z
+                at 2026-05-04T21:54:58.402Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

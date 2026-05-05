@@ -15,7 +15,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Image } from 'expo-image';
 import Toast from 'react-native-toast-message';
 import * as Haptics from 'expo-haptics';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as Print from 'expo-print';
 
 import { database } from '../../../core/database';
@@ -170,12 +170,20 @@ export const BrandAuditScreen: React.FC = () => {
               
               const filename = `Audit_${marca.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
 
-              // 4. Send via Edge Function
-              const { error } = await supabase.functions.invoke('enviar-constancia-inventario', {
+              const { data, error } = await supabase.functions.invoke('enviar-constancia-inventario', {
                 body: { pdfBase64, filename }
               });
 
-              if (error) throw error;
+              if (error) {
+                // Si es un error de status (500), intentamos obtener el detalle del JSON
+                let errorMessage = error.message;
+                try {
+                  const details = await (error as any).context?.json();
+                  if (details?.error) errorMessage = details.error;
+                } catch (e) { /* ignore */ }
+                
+                throw new Error(errorMessage || 'Error en la llamada a la función');
+              }
 
               // 5. Update last audit date locally
               await database.write(async () => {
@@ -195,9 +203,9 @@ export const BrandAuditScreen: React.FC = () => {
                 text2: 'El reporte ha sido enviado exitosamente por correo.',
               });
               navigation.goBack();
-            } catch (err) {
+            } catch (err: any) {
               console.error('Error al enviar auditoria:', err);
-              Alert.alert('Error', 'No se pudo enviar el reporte. Verifica tu conexión.');
+              Alert.alert('Error', `Detalle: ${err.message || 'Error desconocido'}`);
             } finally {
               setEnviando(false);
             }

@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">42.85% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>3/7</span>
+                <span class='fraction'>0/7</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">25% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>1/4</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">33.33% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>2/6</span>
+                <span class='fraction'>0/6</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">42.85% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>3/7</span>
+                <span class='fraction'>0/7</span>
             </div>
         
             
@@ -116,7 +116,7 @@
 <a name='L51'></a><a href='#L51'>51</a>
 <a name='L52'></a><a href='#L52'>52</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">9x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -125,7 +125,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -138,7 +138,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -167,7 +167,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">// ARCHIVO: src/core/constants/mensajes.ts
 &nbsp;
-export const MENSAJES = {
+export const MENSAJES = <span class="cstat-no" title="statement not covered" >{</span>
     // Notificaciones (Toasts)
     EXITO_GUARDADO: '✅ Guardado exitoso',
     EXITO_GUARDADO_SUB: <span class="fstat-no" title="function not covered" >(i</span>d: string) =&gt; <span class="cstat-no" title="statement not covered" >`Las modificaciones de ${id} se sincronizaron.`,</span>
@@ -176,7 +176,7 @@ export const MENSAJES = {
     ERROR_GUARDADO: '❌ Error al guardar',
     ERROR_GUARDADO_DB: 'No se pudo insertar en la base de datos.',
     ERROR_NO_ENCONTRADO: '❌ No encontrado',
-    ERROR_NO_ENCONTRADO_SUB: (cod: string) =&gt; `El código ${cod} no existe en stock.`,
+    ERROR_NO_ENCONTRADO_SUB: <span class="fstat-no" title="function not covered" >(c</span>od: string) =&gt; <span class="cstat-no" title="statement not covered" >`El código ${cod} no existe en stock.`,</span>
     
     // Estados de Carga y Errores
     CARGANDO_INVENTARIO: 'Sincronizando con la nube...',
@@ -189,7 +189,7 @@ export const MENSAJES = {
     PRODUCTOS_REGISTRADOS: <span class="fstat-no" title="function not covered" >(c</span>ont: number, total: number, filtrando: boolean) =&gt; 
 <span class="cstat-no" title="statement not covered" >        filtrando ? `${cont} de ${total} productos` : `${total} productos registrados`,</span>
     BUSCAR_PLACEHOLDER: 'Buscar por nombre, SKU o marca...',
-    SIN_RESULTADOS: (busqueda: string) =&gt; busqueda ? `Sin resultados para "${busqueda}"` : <span class="branch-1 cbranch-no" title="branch not covered" >'Sin inventario',</span>
+    SIN_RESULTADOS: <span class="fstat-no" title="function not covered" >(b</span>usqueda: string) =&gt; <span class="cstat-no" title="statement not covered" >busqueda ? `Sin resultados para "${busqueda}"` : 'Sin inventario',</span>
     MODO_OFFLINE_BANNER: <span class="fstat-no" title="function not covered" >(s</span>ync: string) =&gt; <span class="cstat-no" title="statement not covered" >`📵 Caché local · Última sync: ${sync}`,</span>
 &nbsp;
     // Filtros y Orden
@@ -223,7 +223,7 @@ export const MENSAJES = {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-02T17:53:36.577Z
+                at 2026-05-04T21:54:58.402Z
             </div>
         <script src="../../prettify.js"></script>
         <script>

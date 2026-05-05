@@ -23,9 +23,9 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">91.66% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>11/12</span>
+                <span class='fraction'>0/12</span>
             </div>
         
             
@@ -37,16 +37,16 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">80% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>4/5</span>
+                <span class='fraction'>0/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>11/11</span>
+                <span class='fraction'>0/11</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -108,65 +108,65 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { database } from '../../../core/database';
 import Envio from '../../../core/database/models/Envio';
 import { LogisticaHistorialRepository } from './logisticaHistorialRepository';
 &nbsp;
-export const LogisticsRepository = {
+export const LogisticsRepository = <span class="cstat-no" title="statement not covered" >{</span>
   /**
    * Actualiza el estado de un envío en la base de datos local.
    * El syncService se encargará de propagar el cambio a Supabase.
    */
-  async actualizarEstado(envio: Envio, nuevoEstado: string, rolUsuario?: string): Promise&lt;void&gt; {
-    const estadoAnterior = envio.estado;
-    const codPedido = envio.codPedido;
-    const envioId = envio.id;
+<span class="fstat-no" title="function not covered" >  as</span>ync actualizarEstado(envio: Envio, nuevoEstado: string, rolUsuario?: string): Promise&lt;void&gt; {
+    const estadoAnterior = <span class="cstat-no" title="statement not covered" >envio.estado;</span>
+    const codPedido = <span class="cstat-no" title="statement not covered" >envio.codPedido;</span>
+    const envioId = <span class="cstat-no" title="statement not covered" >envio.id;</span>
 &nbsp;
-    await database.write(async () =&gt; {
-      await envio.update((p) =&gt; {
-        p.estado = nuevoEstado;
+<span class="cstat-no" title="statement not covered" >    await database.write(<span class="fstat-no" title="function not covered" >as</span>ync () =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >      await envio.update(<span class="fstat-no" title="function not covered" >(p</span>) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        p.estado = nuevoEstado;</span>
       });
     });
 &nbsp;
     // Registrar en historial local
-    await LogisticaHistorialRepository.registrarCambio({
+<span class="cstat-no" title="statement not covered" >    await LogisticaHistorialRepository.registrarCambio({</span>
       envioId,
       codPedido,
       estadoAnterior,
@@ -175,15 +175,15 @@ export const LogisticsRepository = {
     });
 &nbsp;
     // Trigger sync to Supabase immediately
-    const { syncConSupabase } = require('../../inventory/services/syncService');
-    syncConSupabase().catch(<span class="fstat-no" title="function not covered" >(e</span>rr: Error) =&gt; <span class="cstat-no" title="statement not covered" >console.error('[Logistics] Sync failed:', err.message))</span>;
+    const { syncConSupabase } = <span class="cstat-no" title="statement not covered" >require('../../inventory/services/syncService');</span>
+<span class="cstat-no" title="statement not covered" >    syncConSupabase().catch(<span class="fstat-no" title="function not covered" >(e</span>rr: Error) =&gt; <span class="cstat-no" title="statement not covered" >console.error('[Logistics] Sync failed:', err.message))</span>;</span>
   },
 &nbsp;
   /**
    * Busca un envío por su ID de WatermelonDB.
    */
-  async obtenerPorId(id: string): Promise&lt;Envio&gt; {
-    return await database.get&lt;Envio&gt;('envios').find(id);
+<span class="fstat-no" title="function not covered" >  as</span>ync obtenerPorId(id: string): Promise&lt;Envio&gt; {
+<span class="cstat-no" title="statement not covered" >    return await database.get&lt;Envio&gt;('envios').find(id);</span>
   }
 };
 &nbsp;</pre></td></tr></table></pre>
@@ -193,7 +193,7 @@ export const LogisticsRepository = {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-02T17:53:36.577Z
+                at 2026-05-04T21:54:58.402Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

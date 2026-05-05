@@ -23,16 +23,16 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">3.7% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>1/27</span>
+                <span class='fraction'>0/29</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>0/14</span>
+                <span class='fraction'>0/16</span>
             </div>
         
             
@@ -44,9 +44,9 @@
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">4.16% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>1/24</span>
+                <span class='fraction'>0/26</span>
             </div>
         
             
@@ -129,7 +129,12 @@
 <a name='L64'></a><a href='#L64'>64</a>
 <a name='L65'></a><a href='#L65'>65</a>
 <a name='L66'></a><a href='#L66'>66</a>
-<a name='L67'></a><a href='#L67'>67</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a></td><td class="line-coverage quiet"><span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -142,21 +147,21 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
-<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -164,6 +169,11 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -210,7 +220,7 @@ export type Ordenamiento = 'MARCA' | 'STOCK' | 'FV';
  * Responsabilidad: Generar una Consulta (Query) de WatermelonDB basada en el estado de la UI.
  * Ventaja: El filtrado ocurre en SQLite, no en el hilo de JavaScript, evitando bloqueos.
  */
-export const useFiltrosInventario = <span class="fstat-no" title="function not covered" >(b</span>usqueda: string) =&gt; {
+export const useFiltrosInventario = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >(b</span>usqueda: string, marcaFiltro?: string) =&gt; {</span>
     const [filtroRapido, setFiltroRapido] = <span class="cstat-no" title="statement not covered" >useState&lt;FiltroCaducidad&gt;('TODOS');</span>
     const [ordenamiento, setOrdenamiento] = <span class="cstat-no" title="statement not covered" >useState&lt;Ordenamiento&gt;('MARCA');</span>
     const busquedaDebounced = <span class="cstat-no" title="statement not covered" >useDebounce(busqueda, 300);</span>
@@ -230,6 +240,11 @@ export const useFiltrosInventario = <span class="fstat-no" title="function not c
                     Q.where('marca', Q.like(`%${Q.sanitizeLikeString(termino)}%`))
                 )
             );
+        }
+        
+        // 1.5 Filtro por Marca (si viene de ControlMarcas)
+<span class="cstat-no" title="statement not covered" >        if (marcaFiltro) {</span>
+<span class="cstat-no" title="statement not covered" >            conditions.push(Q.where('marca', Q.eq(marcaFiltro)));</span>
         }
 &nbsp;
         // 2. Filtro Rápido (Caducidad) - AHORA EN SQL
@@ -251,7 +266,7 @@ export const useFiltrosInventario = <span class="fstat-no" title="function not c
         else <span class="cstat-no" title="statement not covered" >if (ordenamiento === 'FV') <span class="cstat-no" title="statement not covered" >conditions.push(Q.sortBy('fv_actual_ts', Q.asc));</span></span>
 &nbsp;
 <span class="cstat-no" title="statement not covered" >        return database.collections.get&lt;Producto&gt;('productos').query(...conditions);</span>
-    }, [busquedaDebounced, ordenamiento, filtroRapido]); 
+    }, [busquedaDebounced, ordenamiento, filtroRapido, marcaFiltro]); 
 &nbsp;
 <span class="cstat-no" title="statement not covered" >    return {</span>
         queryProductos, // Retorna un objeto Query de WatermelonDB
@@ -268,7 +283,7 @@ export const useFiltrosInventario = <span class="fstat-no" title="function not c
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-02T17:53:36.577Z
+                at 2026-05-04T21:54:58.402Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>

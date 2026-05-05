@@ -23,30 +23,30 @@
         <div class='clearfix'>
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>22/22</span>
+                <span class='fraction'>0/22</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>4/4</span>
+                <span class='fraction'>0/4</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Functions</span>
-                <span class='fraction'>5/5</span>
+                <span class='fraction'>0/5</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
-                <span class="strong">100% </span>
+                <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>21/21</span>
+                <span class='fraction'>0/21</span>
             </div>
         
             
@@ -61,7 +61,7 @@
             </div>
         </template>
     </div>
-    <div class='status-line high'></div>
+    <div class='status-line low'></div>
     <pre><table class="coverage">
 <tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
 <a name='L2'></a><a href='#L2'>2</a>
@@ -116,44 +116,44 @@
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
-<span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
-<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
-<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useState, useEffect } from 'react';
 import { database } from '../../../core/database';
@@ -162,44 +162,44 @@ import { Q } from '@nozbe/watermelondb';
 import { Clause } from '@nozbe/watermelondb/QueryDescription';
 import { useAuthStore } from '../../../core/store/useAuthStore';
 &nbsp;
-export const useLogisticaHistorial = () =&gt; {
-  const [entradas, setEntradas] = useState&lt;LogisticaHistorial[]&gt;([]);
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState&lt;string | null&gt;(null);
+export const useLogisticaHistorial = <span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+  const [entradas, setEntradas] = <span class="cstat-no" title="statement not covered" >useState&lt;LogisticaHistorial[]&gt;([]);</span>
+  const [cargando, setCargando] = <span class="cstat-no" title="statement not covered" >useState(true);</span>
+  const [error, setError] = <span class="cstat-no" title="statement not covered" >useState&lt;string | null&gt;(null);</span>
 &nbsp;
-  useEffect(() =&gt; {
-    const user = useAuthStore.getState().user;
-    const role = user?.rol;
-    const conditions: Clause[] = [];
+<span class="cstat-no" title="statement not covered" >  useEffect(<span class="fstat-no" title="function not covered" >()</span> =&gt; {</span>
+    const user = <span class="cstat-no" title="statement not covered" >useAuthStore.getState().user;</span>
+    const role = <span class="cstat-no" title="statement not covered" >user?.rol;</span>
+    const conditions: Clause[] = <span class="cstat-no" title="statement not covered" >[];</span>
 &nbsp;
-    if (role === 'logistica') {
-      conditions.push(Q.where('operador', 'Salva'));
-    } else if (role === 'tienda') {
-      conditions.push(Q.where('operador', Q.oneOf(['Tienda', 'Yango', 'Cabify'])));
+<span class="cstat-no" title="statement not covered" >    if (role === 'logistica') {</span>
+<span class="cstat-no" title="statement not covered" >      conditions.push(Q.where('operador', 'Salva'));</span>
+    } else <span class="cstat-no" title="statement not covered" >if (role === 'tienda') {</span>
+<span class="cstat-no" title="statement not covered" >      conditions.push(Q.where('operador', Q.oneOf(['Tienda', 'Yango', 'Cabify'])));</span>
     }
     
-    conditions.push(Q.sortBy('timestamp', Q.desc));
+<span class="cstat-no" title="statement not covered" >    conditions.push(Q.sortBy('timestamp', Q.desc));</span>
 &nbsp;
-    const subscription = database
+    const subscription = <span class="cstat-no" title="statement not covered" >database</span>
       .get&lt;LogisticaHistorial&gt;('logistica_historial')
       .query(...conditions)
       .observe()
       .subscribe({
-        next: (data) =&gt; {
-          setEntradas(data);
-          setCargando(false);
+        next: <span class="fstat-no" title="function not covered" >(d</span>ata) =&gt; {
+<span class="cstat-no" title="statement not covered" >          setEntradas(data);</span>
+<span class="cstat-no" title="statement not covered" >          setCargando(false);</span>
         },
-        error: (err) =&gt; {
-          console.error('[useLogisticaHistorial] Error:', err);
-          setError('No se pudo cargar el historial');
-          setCargando(false);
+        error: <span class="fstat-no" title="function not covered" >(e</span>rr) =&gt; {
+<span class="cstat-no" title="statement not covered" >          console.error('[useLogisticaHistorial] Error:', err);</span>
+<span class="cstat-no" title="statement not covered" >          setError('No se pudo cargar el historial');</span>
+<span class="cstat-no" title="statement not covered" >          setCargando(false);</span>
         }
       });
 &nbsp;
-    return () =&gt; subscription.unsubscribe();
+<span class="cstat-no" title="statement not covered" >    return <span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >subscription.unsubscribe();</span></span>
   }, []);
 &nbsp;
-  return { entradas, cargando, error };
+<span class="cstat-no" title="statement not covered" >  return { entradas, cargando, error };</span>
 };
 &nbsp;</pre></td></tr></table></pre>
 
@@ -208,7 +208,7 @@ export const useLogisticaHistorial = () =&gt; {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2026-05-02T17:53:36.577Z
+                at 2026-05-04T21:54:58.402Z
             </div>
         <script src="../../../prettify.js"></script>
         <script>
